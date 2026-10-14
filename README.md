@@ -8,10 +8,10 @@ machine-learning model that predicts **fill toxicity (adverse selection)** from 
 features. Every number is real, out-of-sample — including the parts that did not work.
 
 ## Highlights
-- **~1.15M order-book snapshots/hour** sustained, 24/7, into a TimescaleDB hypertable
-  (9.6M+ rows, compression + retention policies).
-- **Toxicity classifier: AUC 0.642 out-of-fold** across 45 unseen markets (domain
-  academic ceiling ≈ 0.586 for prediction markets) — real, honest signal.
+- **~600k order-book snapshots/hour** sustained, 24/7, into a TimescaleDB hypertable
+  (15M+ rows, compression + retention policies).
+- **Toxicity classifier: AUC 0.688 out-of-fold** (LightGBM) across unseen markets —
+  real, honest signal, above the MLP baseline (0.642).
 - Caught and removed a **feature-leakage trap** that had inflated AUC to 0.702.
 - Grounded in the microstructure literature: OFI (Cont 2014), micro-price (Stoikov 2018),
   markout, Glosten-Milgrom / Kyle.
@@ -40,10 +40,11 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest AUC 0.642
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill). Markout < 0 = adversely selected.
-- **Multi-horizon labeling:** every fill labeled at 1s/10s/1m/5m → 41,828 labeled samples, 45 markets.
+- **Multi-horizon labeling:** every fill labeled at 1s/10s/1m/5m.
 - **Validation:** GroupKFold by market (unseen-market generalization) + per-market z-score normalization.
-- **Leakage removed:** `pos_en_spread` and `fill_price` reconstruct the target by construction — dropped them, AUC fell from 0.702 to the honest **0.6425**.
-- **Honest limitation:** ranks toxicity (AUC) but binary accuracy (57%) < majority baseline (69%) → it is a scoring/filter layer, not an autonomous decision-maker.
+- **Leakage removed:** `pos_en_spread` and `fill_price` reconstruct the target by construction — dropped them, AUC fell from 0.702 to the honest **0.6425** (MLP).
+- **LightGBM upgrade:** AUC **0.688** out-of-fold, beating the MLP — better for tabular microstructure features.
+- **Honest limitation:** ranks toxicity (AUC) but binary accuracy sits below the majority baseline → it is a scoring/filter layer, not an autonomous decision-maker.
 
 | Metric | Value |
 |---|---|
@@ -70,10 +71,10 @@ modelo de ML que predice la **toxicidad de fills (selección adversa)** desde fe
 libro. Todos los números son reales y out-of-sample — incluidas las partes que no funcionaron.
 
 ## Lo más relevante
-- **~1.15M snapshots de libro/hora** sostenidos, 24/7, a una hypertable de TimescaleDB
-  (9.6M+ filas, compresión + retención).
-- **Clasificador de toxicidad: AUC 0.642 out-of-fold** en 45 mercados no vistos (techo
-  académico del dominio ≈ 0.586) — señal real y honesta.
+- **~600k snapshots de libro/hora** sostenidos, 24/7, a una hypertable de TimescaleDB
+  (15M+ filas, compresión + retención).
+- **Clasificador de toxicidad: AUC 0.688 out-of-fold** (LightGBM) en mercados no vistos —
+  señal real y honesta, por encima del baseline MLP (0.642).
 - Se detectó y eliminó una **trampa de fuga de features** que inflaba el AUC a 0.702.
 - Fundamentado en la literatura: OFI (Cont 2014), micro-precio (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
@@ -125,10 +126,10 @@ ML que prevê a **toxicidade de fills (seleção adversa)** a partir de features
 Todos os números são reais e out-of-sample — incluídas as partes que não funcionaram.
 
 ## Destaques
-- **~1,15M snapshots de livro/hora** sustentados, 24/7, em uma hypertable do TimescaleDB
-  (9,6M+ linhas, compressão + retenção).
-- **Classificador de toxicidade: AUC 0.642 out-of-fold** em 45 mercados não vistos (teto
-  acadêmico do domínio ≈ 0.586) — sinal real e honesto.
+- **~600k snapshots de livro/hora** sustentados, 24/7, em uma hypertable do TimescaleDB
+  (15M+ linhas, compressão + retenção).
+- **Classificador de toxicidade: AUC 0.688 out-of-fold** (LightGBM) em mercados não vistos —
+  sinal real e honesto, acima do baseline MLP (0.642).
 - Detectou-se e removeu-se uma **armadilha de vazamento de features** que inflava o AUC a 0.702.
 - Fundamentado na literatura: OFI (Cont 2014), micro-preço (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
