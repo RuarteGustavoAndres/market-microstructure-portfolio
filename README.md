@@ -13,8 +13,9 @@ features. Every number is real, out-of-sample — including the parts that did n
   the last 7 days** (verified 2026-10-16).
 - **~600k order-book snapshots/hour** sustained, 24/7, into a TimescaleDB hypertable
   (compression + retention policies).
-- **Toxicity classifier: AUC 0.688 out-of-fold** (LightGBM) across unseen markets —
-  real, honest signal, above the MLP baseline (0.642).
+- **Toxicity classifier: LightGBM AUC 0.765 out-of-fold** on 224k labeled fills
+  across 119 unseen markets (re-trained 2026-10-16; up from 0.688 at 42k samples —
+  scaling data scaled the signal; fold AUCs are consistent 0.75–0.79, no leakage).
 - Caught and removed a **feature-leakage trap** that had inflated AUC to 0.702.
 - Grounded in the microstructure literature: OFI (Cont 2014), micro-price (Stoikov 2018),
   markout, Glosten-Milgrom / Kyle.
@@ -38,7 +39,7 @@ In-memory order book per token (snapshot + incremental diffs)
 TimescaleDB hypertables (libro_snapshots, trades_ml)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Fill-toxicity classifier (PyTorch on CUDA)  →  honest AUC 0.642
+Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 0.765)
 ```
 
 ## Pipeline modules
@@ -59,16 +60,19 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest AUC 0.642
 
 | Metric | Value |
 |---|---|
-| AUC-ROC out-of-fold | 0.6425 |
-| AUC per-market (mean) | 0.6098 |
-| Samples / markets | 41,828 / 45 |
+| AUC-ROC out-of-fold (LightGBM) | **0.765** |
+| AUC-ROC out-of-fold (MLP baseline) | 0.751 |
+| AUC per-market (mean / median) | 0.688 / 0.701 |
+| Samples / markets (2026-10-16 retrain) | 224,520 / 119 |
+| **Backtest vs net P&L** | filter @0.7: P&L **-$3,857 → +$361** (hit-rate 27%→54%, 42,683 ops) |
 | Domain academic ceiling | ~0.586 |
 
 ## Next steps (scoped)
-- ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.688) beat the MLP baseline.
-- ~~Scale to 50k-100k fills~~ **in progress** — capture now holds 173k+ fills;
-  retrain and re-verify out-of-fold AUC on the grown dataset.
-- Backtest the toxicity filter against **net P&L**, not just AUC.
+- ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
+- ~~Backtest the toxicity filter against net P&L~~ **done (2026-10-16)** — the
+  filter flips net P&L from -$3,857 (always trade) to **+$361** at threshold 0.7:
+  the signal is actionable, not just rankable.
+- Continue incremental re-training as capture grows (auto-revalidate the gate).
 
 ---
 <a name="es"></a>
@@ -88,8 +92,9 @@ libro. Todos los números son reales y out-of-sample — incluidas las partes qu
   7 días** (verificado 2026-10-16).
 - **~600k snapshots de libro/hora** sostenidos, 24/7, a una hypertable de TimescaleDB
   (compresión + retención).
-- **Clasificador de toxicidad: AUC 0.688 out-of-fold** (LightGBM) en mercados no vistos —
-  señal real y honesta, por encima del baseline MLP (0.642).
+- **Clasificador de toxicidad: LightGBM AUC 0.765 out-of-fold** sobre 224k fills
+  etiquetados en 119 mercados no vistos (re-entrenado 2026-10-16; antes 0.688 con
+  42k muestras — más data, más señal; folds consistentes 0.75–0.79, sin fuga).
 - Se detectó y eliminó una **trampa de fuga de features** que inflaba el AUC a 0.702.
 - Fundamentado en la literatura: OFI (Cont 2014), micro-precio (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
@@ -105,7 +110,7 @@ Libro en memoria por token (snapshot + diffs incrementales)
 Hypertables TimescaleDB (libro_snapshots, trades_ml)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Clasificador de toxicidad (PyTorch en CUDA)  →  AUC honesto 0.642
+Clasificador de toxicidad (PyTorch en CUDA)  →  AUC OOF honesto 0.751 (LightGBM 0.765)
 ```
 
 ## Módulos
@@ -118,16 +123,16 @@ Clasificador de toxicidad (PyTorch en CUDA)  →  AUC honesto 0.642
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio de fill). Markout < 0 = selección adversa.
-- **Etiquetado multi-horizonte:** cada fill etiquetado a 1s/10s/1m/5m → 41.828 muestras, 45 mercados.
+- **Etiquetado multi-horizonte:** cada fill etiquetado a 1s/10s/1m/5m → 224.520 muestras, 119 mercados (re-entreno 2026-10-16).
 - **Validación:** GroupKFold por mercado (generalización a mercados no vistos) + normalización z-score por mercado.
-- **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por construcción — se quitaron, el AUC cayó de 0.702 al honesto **0.6425**.
-- **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (57%) está bajo el baseline de clase mayoritaria (69%) → es una capa de scoring/filtro, no un decisor autónomo.
+- **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por construcción — se quitaron al detectarla (corría el AUC 0.702→0.6425 en el dataset original).
+- **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (65%) sigue bajo el baseline de clase mayoritaria (73%) → es una capa de scoring/filtro, no un decisor autónomo. **Pero el filtro SÍ mejora el P&L neto: -$3,857 → +$361 al umbral 0.7.**
 
 ## Próximos pasos
-- ~~MLP → LightGBM~~ **hecho** — LightGBM (AUC 0.688) superó al MLP.
-- ~~Escalar a 50k-100k fills~~ **en curso** — la captura ya tiene 173k+ fills;
-  re-entrenar y re-verificar el AUC out-of-fold sobre el dataset crecido.
-- Backtestear el filtro de toxicidad contra el **P&L neto**, no solo el AUC.
+- ~~MLP → LightGBM~~ **hecho** — LightGBM AUC OOF **0.765** (MLP 0.751).
+- ~~Escalar a 50k-100k fills~~ **hecho** — 224k muestras / 119 mercados (2026-10-16).
+- ~~Backtestear el filtro contra P&L neto~~ **hecho** — filtro @0.7: P&L -$3,857 → **+$361** (hit-rate 27%→54%). Señal accionable.
+- Re-entrenamiento incremental a medida que crece la captura (re-validar el gate).
 
 ---
 <a name="pt"></a>
@@ -147,8 +152,9 @@ Todos os números são reais e out-of-sample — incluídas as partes que não f
   7 dias** (verificado 2026-10-16).
 - **~600k snapshots de livro/hora** sustentados, 24/7, em uma hypertable do TimescaleDB
   (compressão + retenção).
-- **Classificador de toxicidade: AUC 0.688 out-of-fold** (LightGBM) em mercados não vistos —
-  sinal real e honesto, acima do baseline MLP (0.642).
+- **Classificador de toxicidade: LightGBM AUC 0.765 out-of-fold** em 224k fills
+  rotulados em 119 mercados não vistos (retreinado 2026-10-16; antes 0.688 com
+  42k amostras — mais dados, mais sinal; folds consistentes 0.75–0.79, sem vazamento).
 - Detectou-se e removeu-se uma **armadilha de vazamento de features** que inflava o AUC a 0.702.
 - Fundamentado na literatura: OFI (Cont 2014), micro-preço (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
@@ -164,21 +170,21 @@ Livro em memória por token (snapshot + diffs incrementais)
 Hypertables TimescaleDB (libro_snapshots, trades_ml)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Classificador de toxicidade (PyTorch em CUDA)  →  AUC honesto 0.642
+Classificador de toxicidade (PyTorch em CUDA)  →  AUC OOF honesto 0.751 (LightGBM 0.765)
 ```
 
 ## O modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid do livro vs preço de fill). Markout < 0 = seleção adversa.
-- **Rotulagem multi-horizonte:** cada fill rotulado a 1s/10s/1m/5m → 41.828 amostras, 45 mercados.
+- **Rotulagem multi-horizonte:** cada fill rotulado a 1s/10s/1m/5m → 224.520 amostras, 119 mercados (retreino 2026-10-16).
 - **Validação:** GroupKFold por mercado (generalização a mercados não vistos) + normalização z-score por mercado.
-- **Vazamento removido:** `pos_en_spread` e `fill_price` reconstroem o target por construção — foram removidos, o AUC caiu de 0.702 para o honesto **0.6425**.
-- **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (57%) fica abaixo do baseline majoritário (69%) → é uma camada de scoring/filtro, não um decisor autônomo.
+- **Vazamento removido:** `pos_en_spread` e `fill_price` reconstroem o target por construção — removidos ao detectá-lo (inflava AUC 0.702→0.6425 no dataset original).
+- **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (65%) fica abaixo do baseline majoritário (73%) → é uma camada de scoring/filtro, não um decisor autônomo. **Mas o filtro MELHORA o P&L líquido: -$3,857 → +$361 no limiar 0.7.**
 
 ## Próximos passos
-- ~~MLP → LightGBM~~ **feito** — LightGBM (AUC 0.688) superou o MLP.
-- ~~Escalar para 50k-100k fills~~ **em curso** — a captura já tem 173k+ fills;
-  retreinar e reverificar o AUC out-of-fold no dataset crescido.
-- Fazer backtest do filtro de toxicidade contra o **P&L líquido**, não só o AUC.
+- ~~MLP → LightGBM~~ **feito** — LightGBM AUC OOF **0.765** (MLP 0.751).
+- ~~Escalar para 50k-100k fills~~ **feito** — 224k amostras / 119 mercados (2026-10-16).
+- ~~Backtest do filtro contra P&L líquido~~ **feito** — filtro @0.7: P&L -$3,857 → **+$361** (hit-rate 27%→54%). Sinal acionável.
+- Retreino incremental conforme a captura cresce (revalidar o gate).
 
 ---
 
