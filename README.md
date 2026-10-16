@@ -92,6 +92,12 @@ event→ingest latency ~0.3s. Execution-quality analytics (pure functions, teste
 +5s/+30s/+60s and the gain/pain ratio per horizon, no look-ahead (the mid used
 is the last one known at or before t+h; trades whose horizon passes the last
 quote are excluded, never extrapolated).
+Venue 1 (Polymarket CLOB, above) = discrete-event prediction markets; this
+venue 2 = continuous high-frequency books — same schema, same analytics.
+First real markout over the first ~2h of capture (**preliminary, few hours
+of data, trend-biased — do not read as edge**): mean markout at +5s
+BTCUSDT +2.67 USD (54% toxic), ETHUSDT +0.09 (46%), SOLUSDT -0.004
+(83% toxic — the classic spread-donation signature of taker flow).
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
@@ -182,6 +188,13 @@ testeada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
 — markout a +5s/+30s/+60s y ratio gain/pain por horizonte, sin look-ahead
 (el mid usado es el último conocido en o antes de t+h; los trades cuyo
 horizonte pasa la última cita se excluyen, nunca se extrapolan).
+Venue 1 (CLOB de Polymarket, arriba) = mercados de predicción de eventos
+discretos; este venue 2 = libros continuos de alta frecuencia — mismo
+schema, misma analítica. Primer markout real sobre las primeras ~2h de
+captura (**preliminar, pocas horas de data, sesgo de tendencia — no leer
+como edge**): markout medio a +5s BTCUSDT +2.67 USD (54% tóxico),
+ETHUSDT +0.09 (46%), SOLUSDT -0.004 (83% tóxico — la firma clásica de
+flujo taker que dona el spread).
 
 ## Próximos pasos
 - ~~MLP → LightGBM~~ **hecho** — LightGBM AUC OOF **0.765** (MLP 0.751).
@@ -265,6 +278,13 @@ testada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
 — markout a +5s/+30s/+60s e razão gain/pain por horizonte, sem look-ahead
 (o mid usado é o último conhecido em ou antes de t+h; trades cujo horizonte
 passa a última cotação são excluídos, nunca extrapolados).
+Venue 1 (CLOB da Polymarket, acima) = mercados de predição de eventos
+discretos; este venue 2 = livros contínuos de alta frequência — mesmo
+schema, mesma analítica. Primeiro markout real sobre as primeiras ~2h de
+captura (**preliminar, poucas horas de dados, viés de tendência — não ler
+como edge**): markout médio a +5s BTCUSDT +2.67 USD (54% tóxico),
+ETHUSDT +0.09 (46%), SOLUSDT -0.004 (83% tóxico — a assinatura clássica
+de fluxo taker que doa o spread).
 
 ## Próximos passos
 - ~~MLP → LightGBM~~ **feito** — LightGBM AUC OOF **0.765** (MLP 0.751).
