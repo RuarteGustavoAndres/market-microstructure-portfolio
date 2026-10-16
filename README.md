@@ -17,8 +17,14 @@ features. Every number is real, out-of-sample — including the parts that did n
   across 119 unseen markets (re-trained 2026-10-16; up from 0.688 at 42k samples —
   scaling data scaled the signal; fold AUCs are consistent 0.75–0.79, no leakage).
 - Caught and removed a **feature-leakage trap** that had inflated AUC to 0.702.
-- Grounded in the microstructure literature: OFI (Cont 2014), micro-price (Stoikov 2018),
-  markout, Glosten-Milgrom / Kyle.
+- Grounded in the microstructure literature: OFI (Cont 2014), micro-price (Stoikov 2018), markout, Glosten-Milgrom / Kyle.
+- **Backtest Audit Demo** — a runnable, dependency-free teardown
+  ([`demo/audit_demo.py`](demo/audit_demo.py),
+  results in [`results/AUDIT_DEMO.md`](results/AUDIT_DEMO.md)): a synthetic
+  backtest with planted look-ahead, free fills and in-sample tuning reports
+  Sharpe 34; forced to obey reality (tradeable information, book-priced fills,
+  walk-forward tuning) it loses exactly the spread. Five audit checks,
+  self-verifying. This is the checklist behind the backtest-audit service.
 
 ### Data status (declared, as of 2026-10-16)
 - Continuous capture **2026-10-14 → present** (trades stream: no gaps).
@@ -105,6 +111,13 @@ libro. Todos los números son reales y out-of-sample — incluidas las partes qu
 - Se detectó y eliminó una **trampa de fuga de features** que inflaba el AUC a 0.702.
 - Fundamentado en la literatura: OFI (Cont 2014), micro-precio (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
+- **Demo de auditoría de backtests** — teardown ejecutable, sin dependencias
+  ([`demo/audit_demo.py`](demo/audit_demo.py), resultados en
+  [`results/AUDIT_DEMO.md`](results/AUDIT_DEMO.md)): un backtest sintético con
+  look-ahead, fills gratis y tuning in-sample reporta Sharpe 34; obligado a obedecer
+  la realidad (información ejecutable, fills al libro, walk-forward) pierde exactamente
+  el spread. Cinco checks de auditoría, auto-verificados. Ese es el checklist del
+  servicio de auditoría.
 
 ## Arquitectura
 ```
@@ -171,6 +184,13 @@ Todos os números são reais e out-of-sample — incluídas as partes que não f
 - Detectou-se e removeu-se uma **armadilha de vazamento de features** que inflava o AUC a 0.702.
 - Fundamentado na literatura: OFI (Cont 2014), micro-preço (Stoikov 2018), markout,
   Glosten-Milgrom / Kyle.
+- **Demo de auditoria de backtests** — teardown executável, sem dependências
+  ([`demo/audit_demo.py`](demo/audit_demo.py), resultados em
+  [`results/AUDIT_DEMO.md`](results/AUDIT_DEMO.md)): um backtest sintético com
+  look-ahead, fills grátis e tuning in-sample reporta Sharpe 34; obrigado a obedecer
+  a realidade (informação executável, fills ao livro, walk-forward) perde exatamente
+  o spread. Cinco verificações de auditoria, auto-verificadas. Esse é o checklist do
+  serviço de auditoria.
 
 ## Arquitetura
 ```
