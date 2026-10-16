@@ -25,6 +25,10 @@ features. Every number is real, out-of-sample — including the parts that did n
   Sharpe 34; forced to obey reality (tradeable information, book-priced fills,
   walk-forward tuning) it loses exactly the spread. Five audit checks,
   self-verifying. This is the checklist behind the backtest-audit service.
+- **Venue 2 live: Binance USDT-M perpetuals** (2026-10-16) — same pipeline,
+  second asset class: aggTrades with aggressor side + top-5 book + funding
+  for BTC/ETH/SOL perps, 24/7 systemd capture. Markout / adverse-selection
+  analytics in [`analytics/adverse_selection.py`](analytics/adverse_selection.py).
 
 ### Data status (declared, as of 2026-10-16)
 - Continuous capture **2026-10-14 → present** (trades stream: no gaps).
@@ -76,6 +80,19 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 
 | **Walk-forward vs net P&L** | **no edge yet**: exact-markout walk-forward (temporal splits, 300s embargo) → OOS P&L -$225 without filter, -$514 with filter @0.7. The earlier spread-approximated backtest showed +$361 — an artifact. Gate stays closed; reported anyway. |
 | Domain academic ceiling | ~0.586 |
 
+## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
+Second venue feeding the same TimescaleDB stack, same order-book sync protocol
+(snapshot + diff with update-id chain verification, gap detection, resync —
+the official Binance algorithm): aggTrades with aggressor side, top-5 book at
+2s cadence, and funding/mark-price every 5 minutes for BTCUSDT/ETHUSDT/SOLUSDT.
+Captured 24/7 by a systemd service (public streams, no account involved).
+Preliminary sustained rates: ~15 book rows/s + ~9 aggTrades/s across 3 symbols,
+event→ingest latency ~0.3s. Execution-quality analytics (pure functions, tested):
+[`analytics/adverse_selection.py`](analytics/adverse_selection.py) — markout at
++5s/+30s/+60s and the gain/pain ratio per horizon, no look-ahead (the mid used
+is the last one known at or before t+h; trades whose horizon passes the last
+quote are excluded, never extrapolated).
+
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
 - ~~Backtest the toxicity filter against net P&L~~ **done, honest verdict: no edge yet** —
@@ -118,6 +135,10 @@ libro. Todos los números son reales y out-of-sample — incluidas las partes qu
   la realidad (información ejecutable, fills al libro, walk-forward) pierde exactamente
   el spread. Cinco checks de auditoría, auto-verificados. Ese es el checklist del
   servicio de auditoría.
+- **Venue 2 activo: perpetuos USDT-M de Binance** (16-10-2026) — mismo pipeline,
+  segunda clase de activo: aggTrades con lado agresor + libro top-5 + funding de
+  BTC/ETH/SOL perp, captura systemd 24/7. Analítica de markout/selección adversa
+  en [`analytics/adverse_selection.py`](analytics/adverse_selection.py).
 
 ## Arquitectura
 ```
@@ -147,6 +168,20 @@ Clasificador de toxicidad (PyTorch en CUDA)  →  AUC OOF honesto 0.751 (LightGB
 - **Validación:** GroupKFold por mercado (generalización a mercados no vistos) + normalización z-score por mercado.
 - **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por construcción — se quitaron al detectarla (corría el AUC 0.702→0.6425 en el dataset original).
 - **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (65%) sigue bajo el baseline de clase mayoritaria (73%) → es una capa de scoring/filtro, no un decisor autónomo. **Y con markout exacto + walk-forward temporal, el filtro todavía NO genera P&L neto positivo** (-$225 sin filtro vs -$514 con filtro @0.7, OOS).
+
+## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
+Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
+sincronización de libro (snapshot + diffs con verificación de cadena de
+update-ids, detección de gaps, resync — el algoritmo oficial de Binance):
+aggTrades con lado agresor, libro top-5 cada 2s, y funding/mark-price cada
+5 minutos para BTCUSDT/ETHUSDT/SOLUSDT. Capturado 24/7 por un servicio
+systemd (streams públicos, sin cuenta involucrada). Tasas sostenidas
+preliminares: ~15 filas de libro/s + ~9 aggTrades/s en 3 símbolos, latencia
+evento→ingesta ~0.3s. Analítica de calidad de ejecución (funciones puras,
+testeada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
+— markout a +5s/+30s/+60s y ratio gain/pain por horizonte, sin look-ahead
+(el mid usado es el último conocido en o antes de t+h; los trades cuyo
+horizonte pasa la última cita se excluyen, nunca se extrapolan).
 
 ## Próximos pasos
 - ~~MLP → LightGBM~~ **hecho** — LightGBM AUC OOF **0.765** (MLP 0.751).
@@ -191,6 +226,10 @@ Todos os números são reais e out-of-sample — incluídas as partes que não f
   a realidade (informação executável, fills ao livro, walk-forward) perde exatamente
   o spread. Cinco verificações de auditoria, auto-verificadas. Esse é o checklist do
   serviço de auditoria.
+- **Venue 2 ativo: perpétuos USDT-M da Binance** (16-10-2026) — mesmo pipeline,
+  segunda classe de ativo: aggTrades com lado agressor + livro top-5 + funding de
+  BTC/ETH/SOL perp, captura systemd 24/7. Analítica de markout/seleção adversa
+  em [`analytics/adverse_selection.py`](analytics/adverse_selection.py).
 
 ## Arquitetura
 ```
@@ -212,6 +251,20 @@ Classificador de toxicidade (PyTorch em CUDA)  →  AUC OOF honesto 0.751 (Light
 - **Validação:** GroupKFold por mercado (generalização a mercados não vistos) + normalização z-score por mercado.
 - **Vazamento removido:** `pos_en_spread` e `fill_price` reconstroem o target por construção — removidos ao detectá-lo (inflava AUC 0.702→0.6425 no dataset original).
 - **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (65%) fica abaixo do baseline majoritário (73%) → é uma camada de scoring/filtro, não um decisor autônomo. **E com markout exato + walk-forward temporal, o filtro ainda NÃO gera P&L líquido positivo** (-$225 sem filtro vs -$514 com filtro @0.7, OOS).
+
+## Venue 2 — perpétuos USDT-M da Binance (ativo desde 16-10-2026)
+Segundo venue alimentando o mesmo stack de TimescaleDB, mesmo protocolo de
+sincronização de livro (snapshot + diffs com verificação de cadeia de
+update-ids, detecção de gaps, resync — o algoritmo oficial da Binance):
+aggTrades com lado agressor, livro top-5 a cada 2s, e funding/mark-price a
+cada 5 minutos para BTCUSDT/ETHUSDT/SOLUSDT. Capturado 24/7 por um serviço
+systemd (streams públicos, sem conta envolvida). Taxas sustentadas
+preliminares: ~15 linhas de livro/s + ~9 aggTrades/s em 3 símbolos, latência
+evento→ingestão ~0,3s. Analítica de qualidade de execução (funções puras,
+testada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
+— markout a +5s/+30s/+60s e razão gain/pain por horizonte, sem look-ahead
+(o mid usado é o último conhecido em ou antes de t+h; trades cujo horizonte
+passa a última cotação são excluídos, nunca extrapolados).
 
 ## Próximos passos
 - ~~MLP → LightGBM~~ **feito** — LightGBM AUC OOF **0.765** (MLP 0.751).
