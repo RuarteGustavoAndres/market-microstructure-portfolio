@@ -55,8 +55,8 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 
 - **Multi-horizon labeling:** every fill labeled at 1s/10s/1m/5m.
 - **Validation:** GroupKFold by market (unseen-market generalization) + per-market z-score normalization.
 - **Leakage removed:** `pos_en_spread` and `fill_price` reconstruct the target by construction — dropped them, AUC fell from 0.702 to the honest **0.6425** (MLP).
-- **LightGBM upgrade:** AUC **0.688** out-of-fold, beating the MLP — better for tabular microstructure features.
-- **Honest limitation:** ranks toxicity (AUC) but binary accuracy sits below the majority baseline → it is a scoring/filter layer, not an autonomous decision-maker.
+- **LightGBM upgrade:** AUC **0.765** out-of-fold on the grown dataset (224k fills / 119 markets, re-trained 2026-10-16), beating the MLP (0.751) — better for tabular microstructure features.
+- **Honest limitation:** ranks toxicity (AUC) but binary accuracy sits below the majority baseline → it is a scoring/filter layer, not an autonomous decision-maker. **And under exact-markout walk-forward, the filter does not yet produce positive net P&L** (-$225 unfiltered vs -$514 @0.7, OOS).
 
 | Metric | Value |
 |---|---|
@@ -64,15 +64,19 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 
 | AUC-ROC out-of-fold (MLP baseline) | 0.751 |
 | AUC per-market (mean / median) | 0.688 / 0.701 |
 | Samples / markets (2026-10-16 retrain) | 224,520 / 119 |
-| **Backtest vs net P&L** | filter @0.7: P&L **-$3,857 → +$361** (hit-rate 27%→54%, 42,683 ops) |
+| **Walk-forward vs net P&L** | **no edge yet**: exact-markout walk-forward (temporal splits, 300s embargo) → OOS P&L -$225 without filter, -$514 with filter @0.7. The earlier spread-approximated backtest showed +$361 — an artifact. Gate stays closed; reported anyway. |
 | Domain academic ceiling | ~0.586 |
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
-- ~~Backtest the toxicity filter against net P&L~~ **done (2026-10-16)** — the
-  filter flips net P&L from -$3,857 (always trade) to **+$361** at threshold 0.7:
-  the signal is actionable, not just rankable.
-- Continue incremental re-training as capture grows (auto-revalidate the gate).
+- ~~Backtest the toxicity filter against net P&L~~ **done, honest verdict: no edge yet** —
+  with exact markout (real future mid) and **temporal walk-forward** (contiguous splits,
+  300s embargo), the filter does NOT produce positive OOS P&L at any threshold
+  (-$225 unfiltered vs -$514 @0.7). The earlier spread-approximated K-fold backtest
+  that showed +$361 was an artifact — exactly the failure mode the literature warns
+  about. AUC ranks toxicity; translating it into net P&L remains open work.
+- Investigate why ranking skill does not translate: per-horizon/per-regime P&L,
+  queue-position-aware simulation, cost model calibration.
 
 ---
 <a name="es"></a>
@@ -126,13 +130,19 @@ Clasificador de toxicidad (PyTorch en CUDA)  →  AUC OOF honesto 0.751 (LightGB
 - **Etiquetado multi-horizonte:** cada fill etiquetado a 1s/10s/1m/5m → 224.520 muestras, 119 mercados (re-entreno 2026-10-16).
 - **Validación:** GroupKFold por mercado (generalización a mercados no vistos) + normalización z-score por mercado.
 - **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por construcción — se quitaron al detectarla (corría el AUC 0.702→0.6425 en el dataset original).
-- **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (65%) sigue bajo el baseline de clase mayoritaria (73%) → es una capa de scoring/filtro, no un decisor autónomo. **Pero el filtro SÍ mejora el P&L neto: -$3,857 → +$361 al umbral 0.7.**
+- **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (65%) sigue bajo el baseline de clase mayoritaria (73%) → es una capa de scoring/filtro, no un decisor autónomo. **Y con markout exacto + walk-forward temporal, el filtro todavía NO genera P&L neto positivo** (-$225 sin filtro vs -$514 con filtro @0.7, OOS).
 
 ## Próximos pasos
 - ~~MLP → LightGBM~~ **hecho** — LightGBM AUC OOF **0.765** (MLP 0.751).
 - ~~Escalar a 50k-100k fills~~ **hecho** — 224k muestras / 119 mercados (2026-10-16).
-- ~~Backtestear el filtro contra P&L neto~~ **hecho** — filtro @0.7: P&L -$3,857 → **+$361** (hit-rate 27%→54%). Señal accionable.
-- Re-entrenamiento incremental a medida que crece la captura (re-validar el gate).
+- ~~Backtestear el filtro contra P&L neto~~ **hecho, veredicto honesto: sin edge todavía** —
+  con markout exacto (mid futuro real) y **walk-forward temporal** (splits contiguos,
+  embargo 300s), el filtro NO produce P&L OOS positivo a ningún umbral
+  (-$225 sin filtro vs -$514 @0.7). El backtest anterior (+$361, aproximado por spread
+  y K-fold aleatorio) era un artefacto — el modo de falla que la literatura advierte.
+  El AUC rankea toxicidad; traducirlo a P&L neto sigue abierto.
+- Investigar por qué el ranking no traduce: P&L por horizonte/régimen, simulación
+  con posición en cola, calibración del modelo de costos.
 
 ---
 <a name="pt"></a>
@@ -178,13 +188,18 @@ Classificador de toxicidade (PyTorch em CUDA)  →  AUC OOF honesto 0.751 (Light
 - **Rotulagem multi-horizonte:** cada fill rotulado a 1s/10s/1m/5m → 224.520 amostras, 119 mercados (retreino 2026-10-16).
 - **Validação:** GroupKFold por mercado (generalização a mercados não vistos) + normalização z-score por mercado.
 - **Vazamento removido:** `pos_en_spread` e `fill_price` reconstroem o target por construção — removidos ao detectá-lo (inflava AUC 0.702→0.6425 no dataset original).
-- **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (65%) fica abaixo do baseline majoritário (73%) → é uma camada de scoring/filtro, não um decisor autônomo. **Mas o filtro MELHORA o P&L líquido: -$3,857 → +$361 no limiar 0.7.**
+- **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (65%) fica abaixo do baseline majoritário (73%) → é uma camada de scoring/filtro, não um decisor autônomo. **E com markout exato + walk-forward temporal, o filtro ainda NÃO gera P&L líquido positivo** (-$225 sem filtro vs -$514 com filtro @0.7, OOS).
 
 ## Próximos passos
 - ~~MLP → LightGBM~~ **feito** — LightGBM AUC OOF **0.765** (MLP 0.751).
 - ~~Escalar para 50k-100k fills~~ **feito** — 224k amostras / 119 mercados (2026-10-16).
-- ~~Backtest do filtro contra P&L líquido~~ **feito** — filtro @0.7: P&L -$3,857 → **+$361** (hit-rate 27%→54%). Sinal acionável.
-- Retreino incremental conforme a captura cresce (revalidar o gate).
+- ~~Backtest do filtro contra P&L líquido~~ **feito, veredicto honesto: sem edge ainda** —
+  com markout exato (mid futuro real) e **walk-forward temporal**, o filtro NÃO gera
+  P&L OOS positivo em nenhum limiar (-$225 sem filtro vs -$514 @0.7). O backtest
+  anterior (+$361, aproximado por spread e K-fold aleatório) era artefato.
+  O AUC ranqueia toxicidade; traduzi-lo em P&L líquido segue em aberto.
+- Investigar por que o ranking não traduz: P&L por horizonte/regime, simulação
+  com posição na fila, calibração do modelo de custos.
 
 ---
 
