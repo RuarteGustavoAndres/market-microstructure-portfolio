@@ -27,6 +27,9 @@ features. Every number is real, out-of-sample — including the parts that did n
   all capture services are now `systemctl --user enable`-ed with linger).
 - Any analysis spanning that window must exclude or flag it. We say so because an
   honest dataset declares its holes.
+- **Live status:** [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md) —
+  machine-generated daily from the production database, so what you read is
+  always <24h old.
 
 ## Architecture
 ```
