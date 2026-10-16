@@ -8,13 +8,24 @@ machine-learning model that predicts **fill toxicity (adverse selection)** from 
 features. Every number is real, out-of-sample — including the parts that did not work.
 
 ## Highlights
+- **41.3M+ order-book events** (libro_eventos) + **173k+ fills** (trades_full) captured
+  24/7 into TimescaleDB hypertables — **7,400+ markets tracked, 195 active tokens in
+  the last 7 days** (verified 2026-10-16).
 - **~600k order-book snapshots/hour** sustained, 24/7, into a TimescaleDB hypertable
-  (15M+ rows, compression + retention policies).
+  (compression + retention policies).
 - **Toxicity classifier: AUC 0.688 out-of-fold** (LightGBM) across unseen markets —
   real, honest signal, above the MLP baseline (0.642).
 - Caught and removed a **feature-leakage trap** that had inflated AUC to 0.702.
 - Grounded in the microstructure literature: OFI (Cont 2014), micro-price (Stoikov 2018),
   markout, Glosten-Milgrom / Kyle.
+
+### Data status (declared, as of 2026-10-16)
+- Continuous capture **2026-10-14 → present** (trades stream: no gaps).
+- **Known outage:** order-book stream down **2026-10-15 ~17:00–20:00 UTC** (~3h,
+  systemd services were not `enabled` and died with an interactive session; fixed —
+  all capture services are now `systemctl --user enable`-ed with linger).
+- Any analysis spanning that window must exclude or flag it. We say so because an
+  honest dataset declares its holes.
 
 ## Architecture
 ```
@@ -54,8 +65,9 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest AUC 0.642
 | Domain academic ceiling | ~0.586 |
 
 ## Next steps (scoped)
-- MLP → LightGBM (better for ~40k tabular samples: accuracy, latency, interpretability).
-- Scale to 50k-100k fills.
+- ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.688) beat the MLP baseline.
+- ~~Scale to 50k-100k fills~~ **in progress** — capture now holds 173k+ fills;
+  retrain and re-verify out-of-fold AUC on the grown dataset.
 - Backtest the toxicity filter against **net P&L**, not just AUC.
 
 ---
@@ -71,8 +83,11 @@ modelo de ML que predice la **toxicidad de fills (selección adversa)** desde fe
 libro. Todos los números son reales y out-of-sample — incluidas las partes que no funcionaron.
 
 ## Lo más relevante
+- **41.3M+ eventos de libro** (libro_eventos) + **173k+ fills** (trades_full) capturados
+  24/7 a TimescaleDB — **7,400+ mercados trackeados, 195 tokens activos en los últimos
+  7 días** (verificado 2026-10-16).
 - **~600k snapshots de libro/hora** sostenidos, 24/7, a una hypertable de TimescaleDB
-  (15M+ filas, compresión + retención).
+  (compresión + retención).
 - **Clasificador de toxicidad: AUC 0.688 out-of-fold** (LightGBM) en mercados no vistos —
   señal real y honesta, por encima del baseline MLP (0.642).
 - Se detectó y eliminó una **trampa de fuga de features** que inflaba el AUC a 0.702.
@@ -109,8 +124,9 @@ Clasificador de toxicidad (PyTorch en CUDA)  →  AUC honesto 0.642
 - **Limitación honesta:** rankea toxicidad (AUC) pero el accuracy binario (57%) está bajo el baseline de clase mayoritaria (69%) → es una capa de scoring/filtro, no un decisor autónomo.
 
 ## Próximos pasos
-- MLP → LightGBM (mejor para ~40k muestras tabulares: accuracy, latencia, interpretabilidad).
-- Escalar a 50k-100k fills.
+- ~~MLP → LightGBM~~ **hecho** — LightGBM (AUC 0.688) superó al MLP.
+- ~~Escalar a 50k-100k fills~~ **en curso** — la captura ya tiene 173k+ fills;
+  re-entrenar y re-verificar el AUC out-of-fold sobre el dataset crecido.
 - Backtestear el filtro de toxicidad contra el **P&L neto**, no solo el AUC.
 
 ---
@@ -126,8 +142,11 @@ ML que prevê a **toxicidade de fills (seleção adversa)** a partir de features
 Todos os números são reais e out-of-sample — incluídas as partes que não funcionaram.
 
 ## Destaques
+- **41.3M+ eventos de livro** (libro_eventos) + **173k+ fills** (trades_full) capturados
+  24/7 em TimescaleDB — **7,400+ mercados rastreados, 195 tokens ativos nos últimos
+  7 dias** (verificado 2026-10-16).
 - **~600k snapshots de livro/hora** sustentados, 24/7, em uma hypertable do TimescaleDB
-  (15M+ linhas, compressão + retenção).
+  (compressão + retenção).
 - **Classificador de toxicidade: AUC 0.688 out-of-fold** (LightGBM) em mercados não vistos —
   sinal real e honesto, acima do baseline MLP (0.642).
 - Detectou-se e removeu-se uma **armadilha de vazamento de features** que inflava o AUC a 0.702.
@@ -156,8 +175,9 @@ Classificador de toxicidade (PyTorch em CUDA)  →  AUC honesto 0.642
 - **Limitação honesta:** ordena toxicidade (AUC) mas a acurácia binária (57%) fica abaixo do baseline majoritário (69%) → é uma camada de scoring/filtro, não um decisor autônomo.
 
 ## Próximos passos
-- MLP → LightGBM (melhor para ~40k amostras tabulares: acurácia, latência, interpretabilidade).
-- Escalar para 50k-100k fills.
+- ~~MLP → LightGBM~~ **feito** — LightGBM (AUC 0.688) superou o MLP.
+- ~~Escalar para 50k-100k fills~~ **em curso** — a captura já tem 173k+ fills;
+  retreinar e reverificar o AUC out-of-fold no dataset crescido.
 - Fazer backtest do filtro de toxicidade contra o **P&L líquido**, não só o AUC.
 
 ---
