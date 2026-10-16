@@ -1,0 +1,208 @@
+{
+ "por_horizonte": {
+  "h10s": {
+   "n": 47757,
+   "pnl_usd": -116.89,
+   "pnl_op_c": -0.245,
+   "hit_pct": 23.6
+  },
+  "h1s": {
+   "n": 47926,
+   "pnl_usd": -163.18,
+   "pnl_op_c": -0.34,
+   "hit_pct": 15.9
+  },
+  "h300s": {
+   "n": 44505,
+   "pnl_usd": 109.97,
+   "pnl_op_c": 0.247,
+   "hit_pct": 36.3
+  },
+  "h60s": {
+   "n": 47131,
+   "pnl_usd": -55.4,
+   "pnl_op_c": -0.118,
+   "hit_pct": 31.1
+  }
+ },
+ "por_lado": {
+  "BUY": {
+   "n": 150153,
+   "pnl_usd": 97.53,
+   "pnl_op_c": 0.065,
+   "hit_pct": 27.2
+  },
+  "SELL": {
+   "n": 37166,
+   "pnl_usd": -323.02,
+   "pnl_op_c": -0.869,
+   "hit_pct": 23.8
+  }
+ },
+ "por_agresividad": {
+  "maker_like": {
+   "n": 13303,
+   "pnl_usd": 113.2,
+   "pnl_op_c": 0.851,
+   "hit_pct": 55.3
+  },
+  "taker_buy": {
+   "n": 8086,
+   "pnl_usd": 97.37,
+   "pnl_op_c": 1.204,
+   "hit_pct": 72.7
+  },
+  "taker_sell": {
+   "n": 165930,
+   "pnl_usd": -436.06,
+   "pnl_op_c": -0.263,
+   "hit_pct": 22.0
+  }
+ },
+ "por_spread": {
+  "2-5c": {
+   "n": 18202,
+   "pnl_usd": 18.84,
+   "pnl_op_c": 0.103,
+   "hit_pct": 42.6
+  },
+  ">=5c": {
+   "n": 2637,
+   "pnl_usd": 11.62,
+   "pnl_op_c": 0.441,
+   "hit_pct": 49.2
+  },
+  "spread<2c": {
+   "n": 166480,
+   "pnl_usd": -255.95,
+   "pnl_op_c": -0.154,
+   "hit_pct": 24.4
+  }
+ },
+ "por_horizonte_FILTRADO": {
+  "h10s": {
+   "n": 43204,
+   "pnl_usd": -141.54,
+   "pnl_op_c": -0.328,
+   "hit_pct": 20.8
+  },
+  "h1s": {
+   "n": 46752,
+   "pnl_usd": -168.37,
+   "pnl_op_c": -0.36,
+   "hit_pct": 15.1
+  },
+  "h300s": {
+   "n": 32769,
+   "pnl_usd": -76.99,
+   "pnl_op_c": -0.235,
+   "hit_pct": 29.4
+  },
+  "h60s": {
+   "n": 37814,
+   "pnl_usd": -127.04,
+   "pnl_op_c": -0.336,
+   "hit_pct": 25.9
+  }
+ },
+ "por_lado_FILTRADO": {
+  "BUY": {
+   "n": 125812,
+   "pnl_usd": -291.93,
+   "pnl_op_c": -0.232,
+   "hit_pct": 22.1
+  },
+  "SELL": {
+   "n": 34727,
+   "pnl_usd": -222.01,
+   "pnl_op_c": -0.639,
+   "hit_pct": 22.0
+  }
+ },
+ "por_agresividad_FILTRADO": {
+  "maker_like": {
+   "n": 9210,
+   "pnl_usd": 42.74,
+   "pnl_op_c": 0.464,
+   "hit_pct": 51.9
+  },
+  "taker_buy": {
+   "n": 5711,
+   "pnl_usd": 50.23,
+   "pnl_op_c": 0.879,
+   "hit_pct": 73.9
+  },
+  "taker_sell": {
+   "n": 145618,
+   "pnl_usd": -606.9,
+   "pnl_op_c": -0.417,
+   "hit_pct": 18.2
+  }
+ },
+ "por_spread_FILTRADO": {
+  "2-5c": {
+   "n": 12862,
+   "pnl_usd": -39.17,
+   "pnl_op_c": -0.305,
+   "hit_pct": 37.4
+  },
+  ">=5c": {
+   "n": 1584,
+   "pnl_usd": -17.27,
+   "pnl_op_c": -1.09,
+   "hit_pct": 40.1
+  },
+  "spread<2c": {
+   "n": 146093,
+   "pnl_usd": -457.51,
+   "pnl_op_c": -0.313,
+   "hit_pct": 20.5
+  }
+ },
+ "maker_ajustado": {
+  "maker_like": {
+   "n": 13303,
+   "pnl_usd": 291.75,
+   "pnl_op_c": 2.193
+  },
+  "taker_buy": {
+   "n": 8086,
+   "pnl_usd": 97.37,
+   "pnl_op_c": 1.204
+  },
+  "taker_sell": {
+   "n": 165930,
+   "pnl_usd": -436.06,
+   "pnl_op_c": -0.263
+  }
+ },
+ "maker_ajustado_FILTRADO": {
+  "maker_like": {
+   "n": 9210,
+   "pnl_usd": 156.48,
+   "pnl_op_c": 1.699
+  },
+  "taker_buy": {
+   "n": 5711,
+   "pnl_usd": 50.23,
+   "pnl_op_c": 0.879
+  },
+  "taker_sell": {
+   "n": 145618,
+   "pnl_usd": -606.9,
+   "pnl_op_c": -0.417
+  }
+ },
+ "TOTAL": {
+  "sin_filtro": {
+   "n": 187319,
+   "pnl_usd": -225.49,
+   "pnl_op_c": -0.12
+  },
+  "filtrado_0.7": {
+   "n": 160539,
+   "pnl_usd": -513.94,
+   "pnl_op_c": -0.32
+  }
+ }
+}
