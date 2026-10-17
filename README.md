@@ -94,10 +94,18 @@ is the last one known at or before t+h; trades whose horizon passes the last
 quote are excluded, never extrapolated).
 Venue 1 (Polymarket CLOB, above) = discrete-event prediction markets; this
 venue 2 = continuous high-frequency books — same schema, same analytics.
-First real markout over the first ~2h of capture (**preliminary, few hours
-of data, trend-biased — do not read as edge**): mean markout at +5s
-BTCUSDT +2.67 USD (54% toxic), ETHUSDT +0.09 (46%), SOLUSDT -0.004
-(83% toxic — the classic spread-donation signature of taker flow).
+First real markout over ~12h of continuous capture (Fri night → Sat morning,
+**still preliminary: single-session window, weekend microstructure, do not
+read as edge**; the definitive rerun covers 72h incl. a full weekday):
+mean markout per aggressive trade at +5s / +30s / +60s —
+**BTCUSDT** +1.66 / +2.18 / +1.84 USD (63% / 53% / 50% toxic),
+**ETHUSDT** +0.069 / +0.084 / +0.077 USD (52% / 47% / 48% toxic),
+**SOLUSDT** −0.0039 / −0.0040 / −0.0045 USD (78% / 58% / 55% toxic —
+taker flow still donates the spread, but toxicity decays with horizon).
+~640k aggressive trades evaluated. Toxicity at +5s > +30s > +60s for every
+symbol: aggressive flow pays the spread instantly and the markout mean
+recovers with time — consistent with spread compensation, not informed
+predation. Regenerate with `bot/markout_binance.py` (read-only, live DB).
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
