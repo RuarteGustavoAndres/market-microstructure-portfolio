@@ -8,11 +8,11 @@ machine-learning model that predicts **fill toxicity (adverse selection)** from 
 features. Every number is real, out-of-sample — including the parts that did not work.
 
 ## Highlights
-- **41.3M+ order-book events** (libro_eventos) + **173k+ fills** (trades_full) captured
-  24/7 into TimescaleDB hypertables — **7,400+ markets tracked, 195 active tokens in
-  the last 7 days** (verified 2026-10-16).
-- **~600k order-book snapshots/hour** sustained, 24/7, into a TimescaleDB hypertable
-  (compression + retention policies).
+- **85M+ order-book events** (libro_eventos) + **382k+ fills** (trades_full) captured
+  24/7 into TimescaleDB hypertables — **9,900+ markets tracked, 362 active tokens in
+  the last 7 days** (verified 2026-10-18).
+- **hundreds of thousands of order-book events per hour, sustained 24/7**, into a
+  TimescaleDB hypertable (compression + retention policies).
 - **Toxicity classifier: LightGBM AUC 0.765 out-of-fold** on 224k labeled fills
   across 119 unseen markets (re-trained 2026-10-16; up from 0.688 at 42k samples —
   scaling data scaled the signal; fold AUCs are consistent 0.75–0.79, no leakage).
@@ -49,7 +49,7 @@ WebSocket (market channel)
 In-memory order book per token (snapshot + incremental diffs)
    │  micro-batch flush: 500 rows / 2s
    ▼
-TimescaleDB hypertables (libro_snapshots, trades_ml)
+TimescaleDB hypertables (libro_eventos, trades_full, libro_top5, market_meta)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
 Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 0.765)
@@ -131,11 +131,11 @@ modelo de ML que predice la **toxicidad de fills (selección adversa)** desde fe
 libro. Todos los números son reales y out-of-sample — incluidas las partes que no funcionaron.
 
 ## Lo más relevante
-- **41.3M+ eventos de libro** (libro_eventos) + **173k+ fills** (trades_full) capturados
-  24/7 a TimescaleDB — **7,400+ mercados trackeados, 195 tokens activos en los últimos
-  7 días** (verificado 2026-10-16).
-- **~600k snapshots de libro/hora** sostenidos, 24/7, a una hypertable de TimescaleDB
-  (compresión + retención).
+- **85M+ eventos de libro** (libro_eventos) + **382k+ fills** (trades_full) capturados
+  24/7 a TimescaleDB — **9,900+ mercados trackeados, 362 tokens activos en los últimos
+  7 días** (verificado 2026-10-18).
+- **cientos de miles de eventos de libro por hora, sostenido 24/7**, a una hypertable
+  de TimescaleDB (compresión + retención).
 - **Clasificador de toxicidad: LightGBM AUC 0.765 out-of-fold** sobre 224k fills
   etiquetados en 119 mercados no vistos (re-entrenado 2026-10-16; antes 0.688 con
   42k muestras — más data, más señal; folds consistentes 0.75–0.79, sin fuga).
@@ -162,7 +162,7 @@ WebSocket (canal market)
 Libro en memoria por token (snapshot + diffs incrementales)
    │  flush micro-batch: 500 filas / 2s
    ▼
-Hypertables TimescaleDB (libro_snapshots, trades_ml)
+Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
 Clasificador de toxicidad (PyTorch en CUDA)  →  AUC OOF honesto 0.751 (LightGBM 0.765)
@@ -229,11 +229,11 @@ ML que prevê a **toxicidade de fills (seleção adversa)** a partir de features
 Todos os números são reais e out-of-sample — incluídas as partes que não funcionaram.
 
 ## Destaques
-- **41.3M+ eventos de livro** (libro_eventos) + **173k+ fills** (trades_full) capturados
-  24/7 em TimescaleDB — **7,400+ mercados rastreados, 195 tokens ativos nos últimos
-  7 dias** (verificado 2026-10-16).
-- **~600k snapshots de livro/hora** sustentados, 24/7, em uma hypertable do TimescaleDB
-  (compressão + retenção).
+- **85M+ eventos de livro** (libro_eventos) + **382k+ fills** (trades_full) capturados
+  24/7 em TimescaleDB — **9,900+ mercados rastreados, 362 tokens ativos nos últimos
+  7 dias** (verificado 2026-10-18).
+- **centenas de milhares de eventos de livro por hora, sustentado 24/7**, em uma
+  hypertable do TimescaleDB (compressão + retenção).
 - **Classificador de toxicidade: LightGBM AUC 0.765 out-of-fold** em 224k fills
   rotulados em 119 mercados não vistos (retreinado 2026-10-16; antes 0.688 com
   42k amostras — mais dados, mais sinal; folds consistentes 0.75–0.79, sem vazamento).
@@ -260,7 +260,7 @@ WebSocket (canal market)
 Livro em memória por token (snapshot + diffs incrementais)
    │  flush micro-batch: 500 linhas / 2s
    ▼
-Hypertables TimescaleDB (libro_snapshots, trades_ml)
+Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
 Classificador de toxicidade (PyTorch em CUDA)  →  AUC OOF honesto 0.751 (LightGBM 0.765)
