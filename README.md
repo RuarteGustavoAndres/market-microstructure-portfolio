@@ -105,7 +105,7 @@ taker flow still donates the spread, but toxicity decays with horizon).
 ~640k aggressive trades evaluated. Toxicity at +5s > +30s > +60s for every
 symbol: aggressive flow pays the spread instantly and the markout mean
 recovers with time — consistent with spread compensation, not informed
-predation. Regenerate with `bot/markout_binance.py` (read-only, live DB).
+predation. Regenerate with `microstructure/scripts/markout_binance.py` (read-only, live DB).
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (AUC 0.765) beats the MLP (0.751).
