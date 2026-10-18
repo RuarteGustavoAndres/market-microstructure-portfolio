@@ -58,10 +58,10 @@ Fill-toxicity classifier (PyTorch on CUDA)  →  honest OOF AUC 0.751 (LightGBM 
 ## Pipeline modules
 | Module | Purpose |
 |---|---|
-| `capture/http.py` | ISP-fault-tolerant HTTP + pinned-IP DNS fallback (selective NXDOMAIN resilience) |
-| `data/tsdb.py` | TimescaleDB connection + micro-batch flush helpers |
-| `model/features_ml.py` | Feature engineering: OFI, micro-price, multi-horizon momentum, markout labels |
-| `model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features |
+| `microstructure/capture/http.py` | ISP-fault-tolerant HTTP + pinned-IP DNS fallback (selective NXDOMAIN resilience) |
+| `microstructure/data/tsdb.py` | TimescaleDB connection + micro-batch flush helpers |
+| `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-price, multi-horizon momentum, markout labels |
+| `microstructure/model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features |
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill). Markout < 0 = adversely selected.
@@ -171,10 +171,10 @@ Clasificador de toxicidad (PyTorch en CUDA)  →  AUC OOF honesto 0.751 (LightGB
 ## Módulos
 | Módulo | Propósito |
 |---|---|
-| `capture/http.py` | HTTP tolerante a fallas de ISP + fallback DNS por IP fijada (resiliencia a NXDOMAIN selectivo) |
-| `data/tsdb.py` | Conexión TimescaleDB + helpers de flush micro-batch |
-| `model/features_ml.py` | Feature engineering: OFI, micro-precio, momentum multi-horizonte, etiquetas de markout |
-| `model/entrenar_toxicidad.py` | Entrenamiento: GroupKFold por mercado, z-score por mercado, features sin fuga |
+| `microstructure/capture/http.py` | HTTP tolerante a fallas de ISP + fallback DNS por IP fijada (resiliencia a NXDOMAIN selectivo) |
+| `microstructure/data/tsdb.py` | Conexión TimescaleDB + helpers de flush micro-batch |
+| `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-precio, momentum multi-horizonte, etiquetas de markout |
+| `microstructure/model/entrenar_toxicidad.py` | Entrenamiento: GroupKFold por mercado, z-score por mercado, features sin fuga |
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio de fill). Markout < 0 = selección adversa.
@@ -198,7 +198,7 @@ testeada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
 horizonte pasa la última cita se excluyen, nunca se extrapolan).
 Venue 1 (CLOB de Polymarket, arriba) = mercados de predicción de eventos
 discretos; este venue 2 = libros continuos de alta frecuencia — mismo
-schema, misma analítica. Primer markout real sobre las primeras ~2h de
+schema, misma analítica. Primer markout real sobre las primeras ~12h de
 captura (**preliminar, pocas horas de data, sesgo de tendencia — no leer
 como edge**): markout medio a +5s BTCUSDT +2.67 USD (54% tóxico),
 ETHUSDT +0.09 (46%), SOLUSDT -0.004 (83% tóxico — la firma clásica de
@@ -288,7 +288,7 @@ testada): [`analytics/adverse_selection.py`](analytics/adverse_selection.py)
 passa a última cotação são excluídos, nunca extrapolados).
 Venue 1 (CLOB da Polymarket, acima) = mercados de predição de eventos
 discretos; este venue 2 = livros contínuos de alta frequência — mesmo
-schema, mesma analítica. Primeiro markout real sobre as primeiras ~2h de
+schema, mesma analítica. Primeiro markout real sobre as primeiras ~12h de
 captura (**preliminar, poucas horas de dados, viés de tendência — não ler
 como edge**): markout médio a +5s BTCUSDT +2.67 USD (54% tóxico),
 ETHUSDT +0.09 (46%), SOLUSDT -0.004 (83% tóxico — a assinatura clássica
