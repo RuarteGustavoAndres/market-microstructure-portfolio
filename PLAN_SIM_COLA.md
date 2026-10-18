@@ -76,6 +76,46 @@ folds. An AUC improvement alone never reopens it.
 - GPU/NN re-training (CPU LightGBM + event-driven simulation is sufficient).
 - Binance venue 72h markout rerun (scheduled separately, 2026-10-20).
 
-## Results
+## Results — T2/T3 executed 2026-10-18
 
-_(to be appended after T2/T3 — dated sections, no retro-editing)_
+**T2 — maker simulation on real capture** (`sim_maker_dataset.py`: 41 of the
+top-50 tokens by labeled fills; 7 skipped; quotes at best bid/ask, size 20;
+FIFO queue-ahead from `libro_top5` depth):
+
+- 15,564 rows (fill × horizon): **7,686 filled / 9,380 cancelled / 31
+  unfilled** — fill rate 44.6%.
+- Raw maker P&L (entry at own quote price; no extra spread credit):
+  **+$1,919 @60s / +$2,952 @300s** on 7,782 fill-horizon pairs — positive
+  unfiltered, vs ~breakeven-to-negative for the raw taker-fill markout.
+
+**T3 — toxicity filter applied to simulated maker fills**
+(`backtest_maker_queue.py`: walk-forward, trained on REAL fills, tested on
+simulated maker fills):
+
+- AUC OOS on sim fills: **0.50–0.56 (≈ chance)** — the model trained on real
+  fills does not rank simulated maker fills. Expected: out-of-distribution
+  test (ofi/momentum in the sim are snapshot-level approximations of the
+  event-level features).
+- Consequence: the filter adds nothing. P&L: **+$3,999 unfiltered** vs
+  +$3,317 (@0.7) / +$3,965 (@0.8) / +$3,998 (@0.9); per-fold optimal $4,015.
+- Optimal threshold per fold: [0.65, 0.85, 0.8, 0.9, 0.9] — unstable.
+
+### Gate verdict: **CLOSED**
+
+The rule requires positive OOS P&L **and** threshold stability. The filter
+contributes nothing under the queue model (its ranking power does not
+transfer to the simulated fills), so the AUC→P&L translation via the filter
+remains open.
+
+### Honest reading (what actually changed)
+
+- The maker economics under the queue model are positive **on their own**:
+  ~+$4.0k over 7,782 fills ≈ +51¢ per 20-share fill ≈ **+2.6¢/share**, with
+  no filter.
+- Caveats before treating that as an edge: sample is small (41 tokens);
+  bid-side P&L (+$2,655) ≫ ask-side (+$1,344), consistent with period drift
+  rather than skill; an always-requoting maker earns the spread mechanically
+  in trends; no capital/inventory constraint is modeled.
+- Next validation (does NOT change the gate): extend the simulation to all
+  266 tokens and the full window, add the capital model, and check bid/ask
+  symmetry across sub-periods.
