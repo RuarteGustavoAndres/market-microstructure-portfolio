@@ -1,0 +1,6 @@
+# Only microstructure/model/ (features + toxicity training) needs these.
+# demo/audit_demo.py is stdlib-only — do not install this for the demo.
+numpy
+lightgbm
+scikit-learn
+torch
