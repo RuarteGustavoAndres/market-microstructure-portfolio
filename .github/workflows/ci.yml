@@ -38,8 +38,8 @@ jobs:
                               '--prices', '/tmp/prices.csv', '--spread', str(ad.HALF_SPREAD)],
                              capture_output=True, text=True)
           assert r.returncode == 0, r.stderr
-          assert r.stdout.count('— **FAIL**') == 5, 'trap CSV must fail all 5 checks'
-          print('cli ok: 5/5 checks fired on the trap CSV')
+          assert r.stdout.count('— **FAIL**') == 4 and r.stdout.count('— **WARN**') == 1, 'trap CSV: 4 FAIL (look-ahead/candela/costo/overlay) + 1 WARN (capturabilidad, alpha rapido no distinguible de look-ahead)'
+          print('cli ok: 4 FAIL + 1 WARN fired on the trap CSV')
           EOF
 
   tests:
