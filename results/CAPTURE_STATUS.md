@@ -6,21 +6,21 @@
 
 | Metric | Value |
 |---|---|
-| Generated | 2026-10-18 16:02 UTC |
-| trades_full (fills captured, exact count) | 389050 |
-| Last fill timestamp (exact) | 2026-10-18_16:00_UTC |
-| libro_eventos (order-book events, chunk-estimate) | 85059216 |
-| Last book-event timestamp (exact) | 2026-10-18_16:00_UTC |
-| libro_top5 (top-5 snapshots, exact count) | 494324 |
-| Active tokens last 7 days (exact, indexed) | 363 |
-| Fills last 7 days (exact, indexed) | 389050 |
-| Markets tracked (market_meta) | 9968 |
+| Generated | 2026-10-19 10:48 UTC |
+| trades_full (fills captured, exact count) | 458449 |
+| Last fill timestamp (exact) | 2026-10-19_10:47_UTC |
+| libro_eventos (order-book events, chunk-estimate) | 88011096 |
+| Last book-event timestamp (exact) | 2026-10-19_10:47_UTC |
+| libro_top5 (top-5 snapshots, exact count) | 571556 |
+| Active tokens last 7 days (exact, indexed) | 366 |
+| Fills last 7 days (exact, indexed) | 458449 |
+| Markets tracked (market_meta) | 10924 |
 
 **Liveness:** Healthy: last trade 0 min ago.
 
 Known declared outage (unchanged): order-book stream down 2026-10-15 ~17:00–20:00
 UTC (~3h). Trades stream: no gaps. See README "Data status".
 
-Model re-training is NOT run daily — the out-of-fold AUC (0.765, 224k fills / 119
-markets, 2026-10-16) is re-validated on explicit cadence, not automatically, so
-the number always has a human-reviewed provenance.
+Model re-training is NOT run daily — model metrics are re-validated on explicit
+cadence and always cite a human-reviewed provenance: see results/MODEL_STATUS.md
+(current: leak-free re-run 2026-10-19, AUC 0.739 pooled OOS / PR-AUC 0.514).
