@@ -186,6 +186,33 @@ def test_cli_rejects_bad_schema(tmp_path, capsys):
 
 
 # ── report ────────────────────────────────────────────────────────────
+def test_cli_demo_seed_flag(capsys):
+    """--seed keeps the demo deterministic per seed and actually varies it."""
+    rc = ad.main(["--seed", "7", "--n-perm", "99"])
+    out1 = capsys.readouterr().out
+    assert rc == 0
+    rc = ad.main(["--seed", "7", "--n-perm", "99"])
+    out2 = capsys.readouterr().out
+    assert rc == 0 and out1 == out2  # deterministic given the seed
+    rc = ad.main(["--seed", "8", "--n-perm", "99"])
+    out3 = capsys.readouterr().out
+    assert rc == 0 and out3 != out1  # the seed actually changes the run
+
+
+def test_monte_carlo_driver_runs(capsys):
+    """The Monte Carlo driver runs the pipeline N times and prints rates."""
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "..", "demo"))
+    import monte_carlo_audit as mca
+    rc = mca.main(["--runs", "3", "--seed-start", "0", "--n-perm", "99",
+                   "--no-write"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "N = 3 runs" in out and "FP" in out and "FN" in out
+    for seed, tv in ((0, "WFFFF"), (1, "WFFFF"), (2, "WFFFF")):
+        assert "%5d  %-9s" % (seed, tv) in out  # known-deterministic verdicts
+
+
 def test_report_contains_both_cases(cases, audited):
     trap_f, m_trap, clean_f, m_clean = audited
     rep = ad.build_report([

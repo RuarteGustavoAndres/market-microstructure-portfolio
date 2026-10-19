@@ -79,8 +79,10 @@ CLI (the service, in a box) — audit the client's own data:
 Demo mode:
     python3 demo/audit_demo.py            # prints TRAP vs CLEAN verdicts
     python3 demo/audit_demo.py --write    # also writes results/AUDIT_DEMO.md
+    python3 demo/audit_demo.py --seed 4   # vary the market + permutation seed
 
-Deterministic (fixed seed). Standard library only — no dependencies.
+Deterministic for a given seed (SEED = 7 by default, override with --seed).
+Standard library only — no dependencies.
 """
 import argparse
 import csv
@@ -720,6 +722,9 @@ def main(argv=None):
                          "(round trip = 2 x spread)")
     ap.add_argument("--n-perm", type=int, default=N_PERM,
                     help="permutation resamples per test (default %d)" % N_PERM)
+    ap.add_argument("--seed", type=int, default=SEED,
+                    help="seed for the synthetic market and the permutation "
+                         "tests (default %d)" % SEED)
     ap.add_argument("--fills-net-of-costs", action="store_true",
                     help="client fills are already net of costs: SKIP check 2")
     ap.add_argument("--stop-loss", action="store_true",
@@ -727,7 +732,7 @@ def main(argv=None):
     ap.add_argument("--write", action="store_true",
                     help="also write the report to results/")
     args = ap.parse_args(argv)
-    rng = random.Random(SEED)
+    rng = random.Random(args.seed)
 
     if args.csv:
         booked, hold = load_trades_csv(args.csv)
@@ -750,7 +755,7 @@ def main(argv=None):
         return 0
 
     # Demo mode: trap vs clean on the same synthetic market.
-    cases_raw = build_cases(rng)
+    cases_raw = build_cases(rng, seed=args.seed)
     trap_f, m_trap = run_audit(cases_raw["trap"]["booked"], cases_raw["px"],
                                cases_raw["trap"]["sig"],
                                half_spread=HALF_SPREAD, rng=rng, n_perm=args.n_perm)
