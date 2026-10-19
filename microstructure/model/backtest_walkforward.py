@@ -44,9 +44,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "dataset", "ml_features.csv")
 OUT = os.path.join(HERE, "dataset", "walkforward_toxicidad.json")
 
+# fill_size y size_rel_depth EXCLUÍDOS: características del trade entrante que
+# un maker no conoce al cotizar (fuga para la estrategia maker — revisión
+# Claude 19-oct). Las columnas siguen en el CSV para análisis, no como features.
 FEATURES = ["spread_rel", "imbalance", "depth_total", "n_total",
-            "momentum_60s", "momentum_300s", "fill_size",
-            "size_rel_depth", "ofi", "microprice_bias",
+            "momentum_60s", "momentum_300s", "ofi", "microprice_bias",
             "side_buy", "horizonte_s"]
 EMBARGO_S = 300          # = horizonte máximo de etiqueta
 K_BLOQUES = 6            # bloques temporales contiguos
@@ -177,7 +179,16 @@ def main():
     oos_sin = suma(resultados, "sin_filtro")
     oos_opt = sum(r["mejor_umbral_pnl"] or 0 for r in resultados)
     is_fijo_total = suma(resultados, "in_sample_fijo")
-    wfe = round(100 * oos_fijo / is_fijo_total, 1) if is_fijo_total > 0 else None
+    # WFE POR OPERACIÓN: los n de IS y OOS difieren (IS acumula folds);
+    # comparar P&L por op, no totales (revisión Claude 19-oct).
+    oos_n = sum(r[f"fijo_{UMBRAL_FIJO}"]["n"] for r in resultados)
+    is_n_total = sum(r["in_sample_fijo"]["n"] for r in resultados)
+    wfe_totals = round(100 * oos_fijo / is_fijo_total, 1) if is_fijo_total > 0 else None
+    wfe = None
+    if oos_n and is_n_total:
+        is_op = is_fijo_total / is_n_total
+        oos_op = oos_fijo / oos_n
+        wfe = round(100 * oos_op / is_op, 1) if is_op > 0 else None
     thresholds = [t for t in umbral_optimo_por_fold if t is not None]
 
     resumen = {
@@ -196,8 +207,12 @@ def main():
         "umbral_optimo_por_fold": umbral_optimo_por_fold,
         "umbral_estable": (len(set(thresholds)) == 1 if thresholds else None),
         "in_sample_fijo_usd": is_fijo_total,
-        "wfe_maker_pct": wfe,
-        "nota_wfe": "WFE <30% = aviso de sobreajuste (literatura walk-forward)",
+        "in_sample_fijo_n": is_n_total,
+        "oos_fijo_n": oos_n,
+        "wfe_maker_per_op_pct": wfe,
+        "wfe_totals_pct": wfe_totals,
+        "nota_wfe": "WFE POR OPERACIÓN (OOS pnl/op vs IS pnl/op a umbral fijo); "
+                    "<30% = aviso de sobreajuste (literatura walk-forward)",
         "folds": resultados,
     }
     with open(OUT, "w") as f:
@@ -211,7 +226,8 @@ def main():
     log(f"P&L OOS maker umbral óptimo c/fold (techo): {round(oos_opt, 2)}$")
     log(f"Umbrales óptimos por fold: {umbral_optimo_por_fold} "
         f"-> estable: {resumen['umbral_estable']}")
-    log(f"WFE maker (OOS/IS a umbral fijo): {wfe}%")
+    log(f"WFE maker por-operación (OOS/IS a umbral fijo): {wfe}% "
+        f"(por totales: {wfe_totals}%)")
 
 
 if __name__ == "__main__":

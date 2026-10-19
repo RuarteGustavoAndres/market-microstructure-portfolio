@@ -32,9 +32,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "dataset", "ml_features.csv")
 OUT = os.path.join(HERE, "dataset", "desglose_walkforward.json")
 
+# fill_size y size_rel_depth EXCLUÍDOS (fuga para maker: el trade entrante no
+# se conoce al cotizar — revisión Claude 19-oct). Columnas siguen en el CSV.
 FEATURES = ["spread_rel", "imbalance", "depth_total", "n_total",
-            "momentum_60s", "momentum_300s", "fill_size",
-            "size_rel_depth", "ofi", "microprice_bias",
+            "momentum_60s", "momentum_300s", "ofi", "microprice_bias",
             "side_buy", "horizonte_s"]
 EMBARGO_S, K, UMBRAL = 300, 6, 0.7
 

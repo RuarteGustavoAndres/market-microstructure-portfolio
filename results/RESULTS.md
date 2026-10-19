@@ -9,18 +9,24 @@ size features removed; causal standardization fit on train only). Artifacts:
 `walkforward_toxicidad.json`, `desglose_walkforward.json`,
 `folds_mercado_toxicidad.json`.
 
+**Reproducibility:** the labeled dataset (`bot/dataset/ml_features.csv`) is not
+in the repo (private capture host). Provenance: `sha256 = 7e94c09061836d1607a4c3a1659e6faedfbc99c4b773373bd73dc0bfa88bcbe5`
+(285,764 labeled rows); a 300-row stratified sample ships as
+`results/dataset_sample.csv` so the schema is inspectable, and the JSONs are
+regenerated weekly by cron with their own timestamps.
+
 | Scheme | Unfiltered | Filtered | Notes |
 |---|---|---|---|
-| Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$111.08** | WFE **2.1%** — in-sample P&L decays ~98% OOS; per-fold thresholds [0.6, 0.5, 0.5, 0.5, 0.55] not stable |
-| Per-market GroupKFold K=5 (upper bound) | −$117.00 | quantile-0.5: **+$512.34** | **5/5 folds positive**; retention 48.8%; lets future data of other markets into train — read as ceiling, not production estimate |
+| Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$112.05** | WFE **9.5% per fill** (2.1% per total) — in-sample decays ~90% per fill; per-fold thresholds [0.6, 0.75, 0.6, 0.5, 0.5] not stable |
+| Per-market GroupKFold K=5 (upper bound) | −$117.00 | quantile-0.5: **+$490.11** | **5/5 folds positive**; retention 49%; out-of-market but NOT out-of-time (train sees other markets' same-regime data) — read as ceiling, not production estimate |
 
 | Metric | Value |
 |---|---|
-| AUC pooled OOS | **0.739** (was 0.765 with leaks — horizon-inflated) |
-| AUC per horizon | 0.719 − 0.731 (flat: pooled was inflated by horizon) |
-| PR-AUC OOS / prevalence | **0.514 / 0.314** |
-| Filtered edge by horizon | h≤60s positive; **h300s −$120 (negative)** |
-| Filtered edge by segment | taker_sell **+$231** (+0.16¢/fill); maker-like **−$61.5** (only positive with the ½-spread credit: +$76.8) |
+| AUC pooled OOS (unseen markets) | **0.7356** (was 0.765 with leaks — horizon-inflated) |
+| AUC per temporal fold | 0.672 − 0.786 |
+| PR-AUC OOS / prevalence | **0.5135 / 0.314** |
+| Filtered edge by horizon | h≤60s positive; **h300s −$111 (negative)** |
+| Filtered edge by segment | SELL **+$235.55** (+0.68¢/fill); maker-like negative raw, **+$77.7 with the ½-spread credit** (+0.71¢/fill) |
 
 **Verdict: the old "no edge" verdict does not survive the leak-free re-run —
 the filter reduces tape adverse selection in maker perspective and OOS maker

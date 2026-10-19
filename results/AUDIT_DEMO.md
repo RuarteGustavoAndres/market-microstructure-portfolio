@@ -4,6 +4,12 @@ Deterministic synthetic market (seed 7, 90 days of 1-min bars, standard-library-
 
 The market is a pure random walk: it contains **no edge by construction**. Two clients report on it: a TRAP client with every classic bias planted on purpose, and a CLEAN control with honest plumbing. The audit runs the same five checks on both — each one a detector with a formal statistical test (permutation / exact binomial at alpha=0.01), not a hand-picked threshold.
 
+**Scope (honest):** this synthetic case is a SMOKE TEST of the detectors — it
+proves the checks fire on planted defects and stay silent on honest plumbing.
+It is NOT a validation of the service. Validating on real third-party
+backtests (with measured false-positive / false-negative rates) is the next
+step before selling the audit as a standalone engagement.
+
 ## Case 1 — the trap client — every classic bias planted on purpose
 
 ### As the client reports it

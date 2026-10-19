@@ -1,0 +1,331 @@
+{
+ "fecha": "2026-10-19 11:00 UTC",
+ "paso": 2,
+ "metodologia": "GroupKFold por mercado (K=5), estandarizaci\u00f3n fit con train, umbral por cuantil de predicciones de train (pol\u00edtica a priori), PR-AUC con baseline de prevalencia, P&L MAKER exacto (pnl = -(agresor), mid_futuro real)",
+ "convencion": "MAKER: el filtro retiene p<thr (flujo benigno para LP)",
+ "filas": 285764,
+ "mercados": 215,
+ "k_folds": 5,
+ "cuantil": 0.5,
+ "auc_pooled_honesto": 0.7356,
+ "pr_auc_oos": 0.5135,
+ "prevalencia_positiva": 0.3144,
+ "auc_por_horizonte": {
+  "h1s": {
+   "n": 35287,
+   "auc": 0.7191,
+   "pr_auc": 0.3439
+  },
+  "h10s": {
+   "n": 69706,
+   "auc": 0.7212,
+   "pr_auc": 0.4593
+  },
+  "h60s": {
+   "n": 87234,
+   "auc": 0.7285,
+   "pr_auc": 0.5338
+  },
+  "h300s": {
+   "n": 93537,
+   "auc": 0.7182,
+   "pr_auc": 0.5386
+  }
+ },
+ "umbral_cuantil_por_fold": [
+  0.5016,
+  0.4937,
+  0.4991,
+  0.481,
+  0.4854
+ ],
+ "retencion_cuantil": 0.4857,
+ "maker_pnl": {
+  "sin_filtro": {
+   "n": 285764,
+   "pnl": -117.0,
+   "pnl_op": -0.0004,
+   "hit": 66.8
+  },
+  "cuantil": {
+   "n": 138805,
+   "pnl": 490.11
+  },
+  "fijo_0.7": {
+   "n": 239880,
+   "pnl": 282.05
+  }
+ },
+ "folds": [
+  {
+   "fold": 0,
+   "train_n": 228609,
+   "test_n": 57155,
+   "mercados_test": 42,
+   "auc_oos": 0.7512,
+   "pr_auc_oos": 0.4972,
+   "umbral_cuantil": 0.5016,
+   "retencion": 0.5656,
+   "sin_filtro": {
+    "n": 57155,
+    "pnl": -66.89,
+    "pnl_op": -0.0012,
+    "hit": 70.8
+   },
+   "cuantil": {
+    "n": 32329,
+    "pnl": 146.59,
+    "pnl_op": 0.0045,
+    "hit": 84.3
+   },
+   "sensibilidad_cuantil": {
+    "cuantil_0.3": {
+     "umbral": 0.3213,
+     "retencion": 0.3544,
+     "n": 20257,
+     "pnl": 97.38,
+     "pnl_op": 0.0048,
+     "hit": 91.0
+    },
+    "cuantil_0.5": {
+     "umbral": 0.5016,
+     "retencion": 0.5656,
+     "n": 32329,
+     "pnl": 146.59,
+     "pnl_op": 0.0045,
+     "hit": 84.3
+    },
+    "cuantil_0.7": {
+     "umbral": 0.6286,
+     "retencion": 0.7566,
+     "n": 43246,
+     "pnl": 133.1,
+     "pnl_op": 0.0031,
+     "hit": 77.6
+    }
+   },
+   "fijo_0.7": {
+    "n": 51699,
+    "pnl": 85.08,
+    "pnl_op": 0.0016,
+    "hit": 73.9
+   }
+  },
+  {
+   "fold": 1,
+   "train_n": 228609,
+   "test_n": 57155,
+   "mercados_test": 43,
+   "auc_oos": 0.7236,
+   "pr_auc_oos": 0.5126,
+   "umbral_cuantil": 0.4937,
+   "retencion": 0.4667,
+   "sin_filtro": {
+    "n": 57155,
+    "pnl": 103.51,
+    "pnl_op": 0.0018,
+    "hit": 66.0
+   },
+   "cuantil": {
+    "n": 26672,
+    "pnl": 105.46,
+    "pnl_op": 0.004,
+    "hit": 81.3
+   },
+   "sensibilidad_cuantil": {
+    "cuantil_0.3": {
+     "umbral": 0.3051,
+     "retencion": 0.243,
+     "n": 13891,
+     "pnl": 60.38,
+     "pnl_op": 0.0043,
+     "hit": 88.8
+    },
+    "cuantil_0.5": {
+     "umbral": 0.4937,
+     "retencion": 0.4667,
+     "n": 26672,
+     "pnl": 105.46,
+     "pnl_op": 0.004,
+     "hit": 81.3
+    },
+    "cuantil_0.7": {
+     "umbral": 0.6316,
+     "retencion": 0.6853,
+     "n": 39169,
+     "pnl": 142.29,
+     "pnl_op": 0.0036,
+     "hit": 74.9
+    }
+   },
+   "fijo_0.7": {
+    "n": 47011,
+    "pnl": 132.46,
+    "pnl_op": 0.0028,
+    "hit": 71.0
+   }
+  },
+  {
+   "fold": 2,
+   "train_n": 228610,
+   "test_n": 57154,
+   "mercados_test": 43,
+   "auc_oos": 0.7849,
+   "pr_auc_oos": 0.5263,
+   "umbral_cuantil": 0.4991,
+   "retencion": 0.5871,
+   "sin_filtro": {
+    "n": 57154,
+    "pnl": -60.2,
+    "pnl_op": -0.0011,
+    "hit": 70.7
+   },
+   "cuantil": {
+    "n": 33553,
+    "pnl": 104.12,
+    "pnl_op": 0.0031,
+    "hit": 85.7
+   },
+   "sensibilidad_cuantil": {
+    "cuantil_0.3": {
+     "umbral": 0.3241,
+     "retencion": 0.3933,
+     "n": 22479,
+     "pnl": 86.62,
+     "pnl_op": 0.0039,
+     "hit": 91.8
+    },
+    "cuantil_0.5": {
+     "umbral": 0.4991,
+     "retencion": 0.5871,
+     "n": 33553,
+     "pnl": 104.12,
+     "pnl_op": 0.0031,
+     "hit": 85.7
+    },
+    "cuantil_0.7": {
+     "umbral": 0.6235,
+     "retencion": 0.7583,
+     "n": 43342,
+     "pnl": 70.98,
+     "pnl_op": 0.0016,
+     "hit": 79.4
+    }
+   },
+   "fijo_0.7": {
+    "n": 50932,
+    "pnl": 4.88,
+    "pnl_op": 0.0001,
+    "hit": 74.5
+   }
+  },
+  {
+   "fold": 3,
+   "train_n": 228619,
+   "test_n": 57145,
+   "mercados_test": 44,
+   "auc_oos": 0.6964,
+   "pr_auc_oos": 0.5303,
+   "umbral_cuantil": 0.481,
+   "retencion": 0.3433,
+   "sin_filtro": {
+    "n": 57145,
+    "pnl": -61.04,
+    "pnl_op": -0.0011,
+    "hit": 60.6
+   },
+   "cuantil": {
+    "n": 19618,
+    "pnl": 72.96,
+    "pnl_op": 0.0037,
+    "hit": 79.7
+   },
+   "sensibilidad_cuantil": {
+    "cuantil_0.3": {
+     "umbral": 0.2831,
+     "retencion": 0.1552,
+     "n": 8867,
+     "pnl": 24.64,
+     "pnl_op": 0.0028,
+     "hit": 89.1
+    },
+    "cuantil_0.5": {
+     "umbral": 0.481,
+     "retencion": 0.3433,
+     "n": 19618,
+     "pnl": 72.96,
+     "pnl_op": 0.0037,
+     "hit": 79.7
+    },
+    "cuantil_0.7": {
+     "umbral": 0.6292,
+     "retencion": 0.5803,
+     "n": 33164,
+     "pnl": 49.99,
+     "pnl_op": 0.0015,
+     "hit": 71.1
+    }
+   },
+   "fijo_0.7": {
+    "n": 42184,
+    "pnl": -6.47,
+    "pnl_op": -0.0002,
+    "hit": 66.6
+   }
+  },
+  {
+   "fold": 4,
+   "train_n": 228609,
+   "test_n": 57155,
+   "mercados_test": 43,
+   "auc_oos": 0.7052,
+   "pr_auc_oos": 0.4967,
+   "umbral_cuantil": 0.4854,
+   "retencion": 0.466,
+   "sin_filtro": {
+    "n": 57155,
+    "pnl": -32.38,
+    "pnl_op": -0.0006,
+    "hit": 65.8
+   },
+   "cuantil": {
+    "n": 26633,
+    "pnl": 60.98,
+    "pnl_op": 0.0023,
+    "hit": 80.0
+   },
+   "sensibilidad_cuantil": {
+    "cuantil_0.3": {
+     "umbral": 0.3028,
+     "retencion": 0.2449,
+     "n": 13997,
+     "pnl": 49.47,
+     "pnl_op": 0.0035,
+     "hit": 88.4
+    },
+    "cuantil_0.5": {
+     "umbral": 0.4854,
+     "retencion": 0.466,
+     "n": 26633,
+     "pnl": 60.98,
+     "pnl_op": 0.0023,
+     "hit": 80.0
+    },
+    "cuantil_0.7": {
+     "umbral": 0.6337,
+     "retencion": 0.7136,
+     "n": 40788,
+     "pnl": 72.94,
+     "pnl_op": 0.0018,
+     "hit": 72.8
+    }
+   },
+   "fijo_0.7": {
+    "n": 48054,
+    "pnl": 66.1,
+    "pnl_op": 0.0014,
+    "hit": 69.9
+   }
+  }
+ ]
+}

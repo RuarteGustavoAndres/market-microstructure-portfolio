@@ -43,9 +43,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "dataset", "ml_features.csv")
 OUT = os.path.join(HERE, "dataset")
 
+# fill_size y size_rel_depth EXCLUÍDOS (fuga para maker — revisión Claude 19-oct).
 FEATURES = ["spread_rel", "imbalance", "depth_total", "n_total",
-            "momentum_60s", "momentum_300s", "fill_size",
-            "size_rel_depth", "ofi", "microprice_bias",
+            "momentum_60s", "momentum_300s", "ofi", "microprice_bias",
             "side_buy", "horizonte_s"]
 # EXCLUIDOS a propósito (leakage conceptual del target):
 #   - pos_en_spread: deriva de dónde cayó el fill en el spread; un BUY pegado

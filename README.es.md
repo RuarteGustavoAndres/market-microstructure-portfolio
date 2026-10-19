@@ -15,13 +15,11 @@ partes que no funcionaron**.
 1. **85M+ eventos de libro y 382k+ fills reales** capturados 24/7 a hypertables
    de TimescaleDB (9,900+ mercados trackeados, 362 tokens activos en los
    últimos 7 días).
-2. **Clasificador de toxicidad: AUC 0.739 OOS pooled, folds 0.68-0.80 (sin fugas); PR-AUC 0.514 vs prevalencia 0.314
-   por-mercado** (media de 119 mercados) — una capa de scoring/filtro, **no**
-   un decisor.
+2. **Clasificador de toxicidad: AUC 0.736 OOS en mercados no vistos (folds 0.67-0.79, sin fugas); PR-AUC 0.514 vs prevalencia 0.314** — una capa de scoring/filtro, **no** un decisor.
 3. **Veredicto walk-forward: el filtro reduce la selección adversa del tape en
-   perspectiva maker (+$111 temporal estricto OOS / +$512 folds por mercado 5/5); falta simular la
+   perspectiva maker: **+$112 OOS temporal estricto** (el titular); +$490 en folds por mercado 5/5 es techo optimista — la brecha ~4x viene de que ese esquema no es fuera-de-tiempo; falta simular la
    cola ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) para cerrar el gate** — con
-   la eficiencia walk-forward es 2.1% (el in-sample decae ~98% OOS);
+   la eficiencia walk-forward es 9.5% por operación (el in-sample decae ~90% por op);
    cola y costos pendientes (números completos en la tabla de
    abajo). El gate sigue cerrado y se mantiene el veredicto.
 
@@ -36,7 +34,7 @@ Contacto: abrir un issue en GitHub.
   362 tokens activos en los últimos 7 días** (verificado 2026-10-18).
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una
   hypertable de TimescaleDB (compresión + retención).
-- **Clasificador de toxicidad: LightGBM AUC 0.739 OOS pooled (sin fugas)**, folds **0.68-0.80
+- **Clasificador de toxicidad: LightGBM AUC 0.736 OOS pooled en mercados no vistos (sin fugas)**, folds **0.67-0.79
   media / 0.701 mediana por mercado sobre 119 mercados** — la brecha
   pooled/por-mercado es diferencia de tasas base, y se declara. Folds
   consistentes (0.75–0.79), sin fuga.
@@ -81,7 +79,7 @@ Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta
                           + tablas binance_* del venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Clasificador de toxicidad (LightGBM)  →  AUC 0.739 OOS pooled (sin fugas)
+Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vistos (sin fugas)
 ```
 
 ## Módulos
@@ -104,7 +102,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.739 OOS pooled (sin fugas)
 - **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por
   construcción — se quitaron al detectarla, el AUC bajó de 0.702 a 0.6425
   (baseline MLP).
-- **Upgrade a LightGBM:** AUC pooled **0.739** OOS (re-corrída sin fugas);
+- **Upgrade a LightGBM:** AUC pooled **0.736** OOS en mercados no vistos (re-corrída sin fugas);
   (0.751) — mejor para features tabulares de microestructura.
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
@@ -113,12 +111,12 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.739 OOS pooled (sin fugas)
 
 | Métrica | Valor |
 |---|---|
-| AUC-ROC pooled OOS (LightGBM, leak-free) | **0.739** |
+| AUC-ROC pooled OOS (LightGBM, leak-free, mercados no vistos) | **0.7356** |
 | AUC-ROC out-of-fold (baseline MLP) | 0.751 |
 | AUC por fold temporal (rango, 5 folds) | **0.675 / 0.796** |
 | Fills distintos | 107,362 |
 | Filas de entrenamiento (107,362 fills × 4 horizontes) | 429,448 |
-| **P&L maker walk-forward OOS (dataset 19-10-2026 sin fugas, 285,764 filas)** | **POSITIVO PERO FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **−208.84 USD** · filtro @0.7 **+111.08** · óptimo por fold (0.6/0.5/0.5/0.5/0.55 — no estable). WFE **2.1%** (el in-sample decae ~98% OOS). GroupKFold por mercado (techo optimista): sin filtro −117 · umbral cuantil 0.5 **+512.34, 5/5 folds positivos** (retención 48.8%). Gate cerrado hasta simular cola + costos; números reportados igual. |
+| **P&L maker walk-forward OOS (dataset 19-10-2026 sin fugas, 285,764 filas)** | **POSITIVO PERO FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **−208.84 USD** · filtro @0.7 **+112.05** · óptimo por fold (0.6/0.75/0.6/0.5/0.5 — no estable). WFE **9.5% por operación** (2.1% por totales). GroupKFold por mercado (techo optimista): sin filtro −117 · umbral cuantil 0.5 **+490.11, 5/5 folds positivos** (retención 49%). Gate cerrado hasta simular cola + costos; números reportados igual. |
 
 ## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
 Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
@@ -164,15 +162,16 @@ en vivo; último reporte machine-readable en
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Próximos pasos (acotados)
-- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.739 pooled OOS).
+- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.736 pooled OOS).
 - ~~Backtestear el filtro contra P&L neto~~ **hecho sobre features sin fugas
   (snapshots con tope de frescura, estandarización causal, folds por mercado,
   PR-AUC 0.514 vs prevalencia 0.314) — el filtro reduce la selección adversa
-  del tape en perspectiva maker: +$111 OOS en walk-forward temporal estricto
-  (embargo 300s) y +$512 en GroupKFold por mercado (5/5 folds positivos —
-  techo optimista); pero la eficiencia walk-forward es 2.1% (el P&L
-  in-sample decae ~98% OOS) y falta simular la cola (PLAN_SIM_COLA.md) — el
-  gate sigue cerrado.** El AUC rankea el flujo; convertirlo a P&L neto del
+  del tape en perspectiva maker: **+$112 OOS en walk-forward temporal
+  estricto** (embargo 300s) — el titular; +$490 en GroupKFold por mercado
+  (5/5 folds positivos) es techo optimista porque ese esquema no es
+  fuera-de-tiempo (de ahí la brecha ~4x). La eficiencia walk-forward es
+  **9.5% por operación** (2.1% por totales; el in-sample decae ~90% por op)
+  y falta simular la cola (PLAN_SIM_COLA.md) — el gate sigue cerrado.** El AUC rankea el flujo; convertirlo a P&L neto del
   maker (cola, rewards, fees) sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,
   simulación con posición en cola, calibración del modelo de costos.
