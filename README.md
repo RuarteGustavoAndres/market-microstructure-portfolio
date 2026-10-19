@@ -19,7 +19,7 @@ number here is real, out-of-sample — **including the parts that did not work**
 3. **Walk-forward verdict: the filter reduces tape adverse selection in maker
    perspective: **+$112 strict temporal OOS** (the headline); +$490 per-market folds 5/5 is an optimistic ceiling — the ~4x gap comes from that scheme not being out-of-time; queue simulation
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) still pending to close the gate** —
-   walk-forward efficiency is 9.5% per fill (in-sample decays ~90% per fill);
+   walk-forward efficiency is 9.5% per row (rows = fill×horizon pairs; in-sample decays ~90% per row);
    queue simulation and costs still pending (full numbers in the table
    below). The gate stays closed and we keep the verdict.
 
@@ -34,11 +34,11 @@ Contact: open a GitHub issue.
   active tokens in the last 7 days** (verified 2026-10-18).
 - **Hundreds of thousands of order-book events per hour, sustained 24/7**, into
   a TimescaleDB hypertable (compression + retention policies).
-- **Toxicity classifier: LightGBM AUC 0.736 pooled OOS on unseen markets (leak-free)**, folds **0.67-0.79
-  per-market mean / 0.701 median over 119 markets** — the pooled/per-market gap
-  is a difference in base rates, and we declare it. Fold AUCs are consistent
-  (0.75–0.79), no leakage.
-- Caught and removed a **feature-leakage trap** that had inflated AUC to 0.702.
+- **Toxicity classifier: LightGBM AUC 0.736 pooled OOS on unseen markets
+  (leak-free)**, per-fold range **0.67-0.79** — rows are fill×horizon pairs
+  (each fill appears once per horizon), so every P&L table sums each fill 4×.
+  The pooled/per-market gap is a difference in base rates, and we declare it.
+- Caught and removed **feature-leakage traps** (incoming-trade size, stale snapshots, horizon pooling) that had inflated AUC from 0.736 to 0.765.
 - Grounded in the microstructure literature: OFI (Cont 2014), micro-price
   (Stoikov 2018), markout, Glosten-Milgrom / Kyle.
 - **Backtest Audit Demo** — a runnable, dependency-free teardown
@@ -115,7 +115,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.736 pooled OOS, unseen markets (
 | AUC per temporal fold (range, 5 folds) | **0.672 / 0.786** |
 | Distinct fills (pre freshness-cap) | 107,362 |
 | Training rows (pre freshness-cap; post-cap 285,764) | 429,448 |
-| **Walk-forward OOS maker P&L (2026-10-19 leak-free dataset, 285,764 rows)** | **POSITIVE BUT FRAGILE** — exact-markout, temporal splits, 300s embargo: unfiltered **−208.84 USD** · filter @0.7 **+112.05** · per-fold-optimal (0.6/0.75/0.6/0.5/0.5 — not stable). WFE **9.5% per fill** (2.1% per total). Per-market GroupKFold upper bound: unfiltered −117 · quantile-0.5 threshold **+490.11, 5/5 positive folds** (retention 49%). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
+| **Walk-forward OOS maker P&L (2026-10-19 leak-free dataset, 285,764 rows)** | **POSITIVE BUT FRAGILE** — exact-markout, temporal splits, 300s embargo: unfiltered **−208.84 USD** · filter @0.7 **+112.05** · per-fold-optimal (0.6/0.75/0.6/0.5/0.5 — not stable). WFE **9.5% per row** (2.1% per total; rows = fill×horizon pairs). Per-market GroupKFold optimistic estimate: unfiltered −117 · quantile-0.5 threshold **+490.11, 5/5 positive folds** (retention 49%). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol
@@ -167,7 +167,7 @@ DB; latest machine-readable report in
   GroupKFold (5/5 positive folds) is an optimistic ceiling, because that
   scheme is out-of-market but not out-of-time (train sees other markets'
   same-regime data, hence the ~4x gap). Walk-forward efficiency is **9.5%
-  per fill** (2.1% per total; in-sample decays ~90% per fill) and queue
+  per row** (2.1% per total; in-sample decays ~90% per row) and queue
   simulation (PLAN_SIM_COLA.md) is still pending — the gate stays closed.** AUC ranks flow; converting it
   into net maker P&L (queue position, rewards, fees) remains open work.
 - Investigate why ranking skill does not translate: per-horizon/per-regime

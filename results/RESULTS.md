@@ -2,8 +2,9 @@
 
 ## CURRENT: leak-free re-run (2026-10-19)
 
-All numbers out-of-sample, **maker perspective** (P&L per fill = −(aggressor
-markout)), on the leak-free dataset: **285,764 labeled rows across 215
+All numbers out-of-sample, **maker perspective** (P&L per row = −(aggressor
+markout); rows are fill×horizon pairs, each fill appears once per horizon so
+P&L tables sum every fill 4×), on the leak-free dataset: **285,764 labeled rows across 215
 markets** (freshness-capped snapshots: 136,294 rows dropped; incoming-trade
 size features removed; causal standardization fit on train only). Artifacts:
 `walkforward_toxicidad.json`, `desglose_walkforward.json`,
@@ -17,8 +18,8 @@ regenerated weekly by cron with their own timestamps.
 
 | Scheme | Unfiltered | Filtered | Notes |
 |---|---|---|---|
-| Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$112.05** | WFE **9.5% per fill** (2.1% per total) — in-sample decays ~90% per fill; per-fold thresholds [0.6, 0.75, 0.6, 0.5, 0.5] not stable |
-| Per-market GroupKFold K=5 (upper bound) | −$117.00 | quantile-0.5: **+$490.11** | **5/5 folds positive**; retention 49%; out-of-market but NOT out-of-time (train sees other markets' same-regime data) — read as ceiling, not production estimate |
+| Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$112.05** | WFE **9.5% per row** (2.1% per total) — in-sample decays ~90% per row; per-fold thresholds [0.6, 0.75, 0.6, 0.5, 0.5] not stable |
+| Per-market GroupKFold K=5 (optimistic estimate) | −$117.00 | quantile-0.5: **+$490.11** | **5/5 folds positive**; retention 49%; out-of-market but NOT out-of-time (train sees other markets' same-regime data) — read as an optimistic estimate, not a bound |
 
 | Metric | Value |
 |---|---|

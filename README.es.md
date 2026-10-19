@@ -17,9 +17,9 @@ partes que no funcionaron**.
    últimos 7 días).
 2. **Clasificador de toxicidad: AUC 0.736 OOS en mercados no vistos (folds 0.67-0.79, sin fugas); PR-AUC 0.514 vs prevalencia 0.314** — una capa de scoring/filtro, **no** un decisor.
 3. **Veredicto walk-forward: el filtro reduce la selección adversa del tape en
-   perspectiva maker: **+$112 OOS temporal estricto** (el titular); +$490 en folds por mercado 5/5 es techo optimista — la brecha ~4x viene de que ese esquema no es fuera-de-tiempo; falta simular la
+   perspectiva maker: **+$112 OOS temporal estricto** (el titular); +$490 en folds por mercado 5/5 es estimación optimista — la brecha ~4x viene de que ese esquema no es fuera-de-tiempo; falta simular la
    cola ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) para cerrar el gate** — con
-   la eficiencia walk-forward es 9.5% por operación (el in-sample decae ~90% por op);
+   la eficiencia walk-forward es 9.5% por fila (las filas son pares fill×horizonte; el in-sample decae ~90% por fila);
    cola y costos pendientes (números completos en la tabla de
    abajo). El gate sigue cerrado y se mantiene el veredicto.
 
@@ -34,12 +34,12 @@ Contacto: abrir un issue en GitHub.
   362 tokens activos en los últimos 7 días** (verificado 2026-10-18).
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una
   hypertable de TimescaleDB (compresión + retención).
-- **Clasificador de toxicidad: LightGBM AUC 0.736 OOS pooled en mercados no vistos (sin fugas)**, folds **0.67-0.79
-  media / 0.701 mediana por mercado sobre 119 mercados** — la brecha
-  pooled/por-mercado es diferencia de tasas base, y se declara. Folds
-  consistentes (0.75–0.79), sin fuga.
-- Se detectó y eliminó una **trampa de fuga de features** que inflaba el AUC a
-  0.702.
+- **Clasificador de toxicidad: LightGBM AUC 0.736 OOS pooled en mercados no
+  vistos (sin fugas)**, rango por fold **0.67-0.79** — las filas son pares
+  fill×horizonte (cada fill aparece una vez por horizonte), así que las tablas
+  de P&L suman cada fill 4×. La brecha pooled/por-mercado es diferencia de
+  tasas base, y se declara.
+- Se detectaron y eliminaron **trampas de fuga de features** (tamaño del trade entrante, snapshots viejos, pooling de horizontes) que inflaban el AUC de 0.736 a 0.765.
 - Fundamentado en la literatura: OFI (Cont 2014), micro-precio (Stoikov 2018),
   markout, Glosten-Milgrom / Kyle.
 - **Demo de auditoría de backtests** — teardown ejecutable, sin dependencias
@@ -116,7 +116,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 | AUC por fold temporal (rango, 5 folds) | **0.675 / 0.796** |
 | Fills distintos | 107,362 |
 | Filas de entrenamiento (107,362 fills × 4 horizontes) | 429,448 |
-| **P&L maker walk-forward OOS (dataset 19-10-2026 sin fugas, 285,764 filas)** | **POSITIVO PERO FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **−208.84 USD** · filtro @0.7 **+112.05** · óptimo por fold (0.6/0.75/0.6/0.5/0.5 — no estable). WFE **9.5% por operación** (2.1% por totales). GroupKFold por mercado (techo optimista): sin filtro −117 · umbral cuantil 0.5 **+490.11, 5/5 folds positivos** (retención 49%). Gate cerrado hasta simular cola + costos; números reportados igual. |
+| **P&L maker walk-forward OOS (dataset 19-10-2026 sin fugas, 285,764 filas)** | **POSITIVO PERO FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **−208.84 USD** · filtro @0.7 **+112.05** · óptimo por fold (0.6/0.75/0.6/0.5/0.5 — no estable). WFE **9.5% por fila** (2.1% por totales; filas = pares fill×horizonte). GroupKFold por mercado (estimación optimista): sin filtro −117 · umbral cuantil 0.5 **+490.11, 5/5 folds positivos** (retención 49%). Gate cerrado hasta simular cola + costos; números reportados igual. |
 
 ## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
 Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
@@ -168,9 +168,9 @@ en vivo; último reporte machine-readable en
   PR-AUC 0.514 vs prevalencia 0.314) — el filtro reduce la selección adversa
   del tape en perspectiva maker: **+$112 OOS en walk-forward temporal
   estricto** (embargo 300s) — el titular; +$490 en GroupKFold por mercado
-  (5/5 folds positivos) es techo optimista porque ese esquema no es
+  (5/5 folds positivos) es una estimación optimista porque ese esquema no es
   fuera-de-tiempo (de ahí la brecha ~4x). La eficiencia walk-forward es
-  **9.5% por operación** (2.1% por totales; el in-sample decae ~90% por op)
+  **9.5% por fila** (2.1% por totales; el in-sample decae ~90% por fila)
   y falta simular la cola (PLAN_SIM_COLA.md) — el gate sigue cerrado.** El AUC rankea el flujo; convertirlo a P&L neto del
   maker (cola, rewards, fees) sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,

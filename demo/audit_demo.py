@@ -20,9 +20,12 @@ and says so.
 
 Each check is a detector with a formal test (PASO 4a-4b of the audit):
 
-  1. Look-ahead signal    — mean(direction x next-bar return) tested against
-                            0 by sign-flip permutation. A causal signal
-                            cannot predict the bar right after entry.
+  1. Look-ahead signal    — edge at bar+1 after entry vs the SAME strategy's
+                            edge at a later bar of the same holding period
+                            (two-pool permutation, H1: bar-1 > later). A
+                            causal signal cannot predict the bar right after
+                            entry; a REAL short-horizon edge decays smoothly
+                            and does not fire this check.
   2. Fills at mid         — the reported edge re-priced with the spread;
                             one-sided sign-flip test that the charged mean
                             is <= 0. Firing only if the client CLAIMS an
@@ -59,10 +62,17 @@ CLI (the service, in a box) — audit the client's own data:
       bar,price[,signal]
 
   --spread is the HALF-spread per side (a round trip costs 2 x spread).
+  --fills-net-of-costs : the client already reports fills net of costs —
+                         check 2 is SKIPPED (charging twice would be our bug).
+  --stop-loss          : the strategy uses stops — the left tail is truncated
+                         by design, check 5 is SKIPPED (asymmetry expected).
   Without --prices only the checks that need no re-execution run (5);
   the rest report SKIP. The audit re-derives the canonical rule (enter when
   |signal| > threshold, direction = sign(signal), hold = median holding
   period) — a production service would parse the client's declared ruleset.
+  SCOPE: checks 3 and 4 re-tune a threshold over a standardized signal
+  (grid 0.3-2.0, annualization for 30-min holds) — they only apply to that
+  strategy class; for other strategies they report SKIP in production use.
 
 Demo mode:
     python3 demo/audit_demo.py            # prints TRAP vs CLEAN verdicts
@@ -303,7 +313,8 @@ def tune_threshold(px, sig, indices=None, entry_lag=1, price_book=True,
 # The audit engine — five detectors, each with a formal statistical test
 # ──────────────────────────────────────────────────────────────────────
 def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
-              rng=None, n_perm=N_PERM):
+              rng=None, n_perm=N_PERM, fills_net_of_costs=False,
+              stop_loss=False):
     """Audit a client's reported trade list.
 
     booked : list of (entry_bar, direction, pnl) exactly as the client
@@ -312,6 +323,10 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
     sig    : per-bar signal series, if the client submitted one (re-tuning
              checks 3/4). None = SKIP.
     half_spread : half-spread charged by check 2 (0 = SKIP).
+    fills_net_of_costs : True = client's fills already net of costs —
+             check 2 SKIPPED (charging twice would be our bug).
+    stop_loss : True = strategy uses stops — left tail truncated by design,
+             check 5 SKIPPED (asymmetry expected, not survivorship).
 
     Returns five findings: {"check", "verdict" (FAIL/PASS/SKIP), "detail"}.
     Verdict = FAIL only when the formal test rejects at ALPHA *and* the
@@ -324,32 +339,58 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
     f = []
 
     # CHECK 1 — look-ahead: does the direction "know" the next bar?
+    # Reworked (review Claude 19-oct): a strategy with REAL short-term edge
+    # also predicts the next bar, so testing bar-1 edge vs 0 gives false
+    # positives. The look-ahead SIGNATURE is edge CONCENTRATION: all of it in
+    # the bar right after the decision (the one the signal saw), none at a
+    # later bar of the same holding period. Two-pool permutation, H1 bar-1 >
+    # later, and a practical guard (later edge <= half the bar-1 edge).
     if prices is None:
         f.append({"check": "Decision-time computability (look-ahead signal)",
                   "verdict": "SKIP",
                   "detail": "Needs the price series (--prices) to re-execute."})
     else:
         n = len(prices)
-        kick, claimed = [], []
+        bar1, later = [], []
+        # EXACT decomposition of the reported edge: pnl = bar1 + later where
+        # bar1 = the bar right after the decision (the one a look-ahead
+        # signal "sees") and later = the REST of the holding period.
         for t, pos, pnl in booked:
             if t + 1 >= n:
                 continue
-            kick.append(pos * (prices[t + 1] - prices[t]) / prices[t])
-            claimed.append(pnl)
-        p = perm_test_mean(kick, 0.0, "greater", rng, n_perm)
-        obs = _mean(kick) if kick else 0.0
-        fail = p is not None and p <= ALPHA and obs > 0
+            bar1.append(pos * (prices[t + 1] - prices[t]) / prices[t])
+            k = t + hold
+            if k < n:
+                later.append(pos * (prices[k] - prices[t + 1]) / prices[t])
+        obs1 = _mean(bar1) if bar1 else 0.0
+        obsL = _mean(later) if later else 0.0
+        p = perm_test_two_pool(bar1, later, rng, n_perm)
+        # Fire on CONCENTRATION: of the reported per-trade edge, the single
+        # bar right after the decision explains almost ALL of it (> 80%).
+        # The remainder carries the market's drift for any strategy, so an
+        # absolute "remainder = 0" test would be wrong; the share is the
+        # signature. A real edge spread over a `hold`-bar holding period
+        # cannot have > 80% in bar 1 unless hold is trivially short (guard:
+        # hold >= 5). A look-ahead signal explains ~100% by construction.
+        share = obs1 / m_booked["mean"] if m_booked["mean"] > 0 else 0.0
+        fail = (p is not None and p <= ALPHA and m_booked["mean"] > 0
+                and obs1 > 0 and share > 0.8 and hold >= 5)
         f.append({
             "check": "Decision-time computability (look-ahead signal)",
             "verdict": "FAIL" if fail else "PASS",
-            "detail": ("A causal signal cannot predict the bar right after "
-                       "entry. mean(direction x next-bar return) = %+.5f "
-                       "(%s, %d sign-flip permutations, H0: 0).%s"
-                       % (obs, _fmt_p(p, n_perm), n_perm,
+            "detail": ("Edge decomposition per trade: bar+1 after decision "
+                       "%+.5f = %.0f%% of the reported edge; remainder of "
+                       "the holding period %+.5f (%s, %d permutations, H1: "
+                       "bar-1 > remainder). A causal signal cannot predict "
+                       "the bar right after entry; a REAL short-horizon "
+                       "edge spreads across the holding period and does not "
+                       "fire.%s"
+                       % (obs1, 100.0 * share, obsL, _fmt_p(p, n_perm), n_perm,
                           "" if not fail else
-                          " The direction anticipates the very next bar: "
-                          "the indicator is trading information that does "
-                          "not exist yet.")),
+                          " The direction anticipates the very next bar — "
+                          "the reported edge is almost entirely the one bar "
+                          "the indicator could see: the signal is trading "
+                          "information that does not exist yet.")),
         })
 
     # CHECK 2 — book pricing: does the claimed edge survive the spread?
@@ -358,6 +399,12 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
                   "verdict": "SKIP",
                   "detail": "No spread supplied (--spread); the round-trip "
                             "cost cannot be charged."})
+    elif fills_net_of_costs:
+        f.append({"check": "Fills priced at the book (spread on every round trip)",
+                  "verdict": "SKIP",
+                  "detail": "Client declares fills already NET of costs "
+                            "(--fills-net-of-costs); charging the spread "
+                            "again would double-count — our bug, not theirs."})
     else:
         charged = [p - 2 * half_spread for p in pnls]
         p = perm_test_mean(charged, 0.0, "less", rng, n_perm)
@@ -465,13 +512,21 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         })
 
     # CHECK 5 — survivorship: is the reported universe missing its left tail?
-    ts = tail_symmetry_test(pnls)
-    if ts is None:
+    if stop_loss:
+        f.append({"check": "Survivorship (universe filtered by outcome)",
+                  "verdict": "SKIP",
+                  "detail": "Strategy uses stops (--stop-loss): the left "
+                            "tail is truncated BY DESIGN — tail asymmetry "
+                            "here is expected, not survivorship evidence."})
+        ts = None
+    else:
+        ts = tail_symmetry_test(pnls)
+    if ts is None and not stop_loss:
         f.append({"check": "Survivorship (universe filtered by outcome)",
                   "verdict": "PASS" if len(pnls) < 200 else "SKIP",
                   "detail": "Too few trades (%d) to test tail symmetry."
                             % len(pnls)})
-    else:
+    elif ts is not None:
         nl, nr, p = ts
         fail = p <= ALPHA and nl < nr
         f.append({
@@ -656,6 +711,10 @@ def main(argv=None):
                          "(round trip = 2 x spread)")
     ap.add_argument("--n-perm", type=int, default=N_PERM,
                     help="permutation resamples per test (default %d)" % N_PERM)
+    ap.add_argument("--fills-net-of-costs", action="store_true",
+                    help="client fills are already net of costs: SKIP check 2")
+    ap.add_argument("--stop-loss", action="store_true",
+                    help="strategy uses stops: SKIP check 5 (left tail by design)")
     ap.add_argument("--write", action="store_true",
                     help="also write the report to results/")
     args = ap.parse_args(argv)
@@ -667,7 +726,9 @@ def main(argv=None):
         if args.prices:
             px, sig = load_prices_csv(args.prices)
         findings, m = run_audit(booked, px, sig, half_spread=args.spread,
-                                hold=hold, rng=rng, n_perm=args.n_perm)
+                                hold=hold, rng=rng, n_perm=args.n_perm,
+                                fills_net_of_costs=args.fills_net_of_costs,
+                                stop_loss=args.stop_loss)
         report = build_report([("Client submission — %s" % os.path.basename(args.csv),
                                 "as reported by the client", findings, m)])
         print(report)
