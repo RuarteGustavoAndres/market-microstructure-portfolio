@@ -160,11 +160,13 @@ DB; latest machine-readable report in
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (0.765 pooled) beats the MLP (0.751).
 - ~~Backtest the toxicity filter against net P&L~~ **done — the filter reduces
-  tape adverse selection in maker perspective (+$514 vs +$225 in the 16-oct
+  tape adverse selection in maker perspective (+$537 vs -$8 in the 19-oct
   run); queue simulation (PLAN_SIM_COLA.md) still pending to close the gate** —
-  with exact markout (real future mid) and temporal walk-forward
-  (contiguous splits, 300s embargo), the filter does not produce positive OOS
-  P&L at any threshold. AUC ranks toxicity; translating it into net P&L remains
+  walk-forward with exact markout (real future mid), contiguous splits and a
+  300s embargo: OOS maker P&L is positive filtered (+$537 @0.7), but
+  walk-forward efficiency is 8.8% (in-sample P&L decays ~91% OOS) and per-fold
+  optimal thresholds are not stable — the gate stays closed. AUC ranks flow;
+  converting it into net maker P&L (queue position, rewards, fees) remains
   open work.
 - Investigate why ranking skill does not translate: per-horizon/per-regime
   P&L, queue-position-aware simulation, cost model calibration.

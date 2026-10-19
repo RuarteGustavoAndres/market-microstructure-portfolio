@@ -167,10 +167,13 @@ en vivo; último reporte machine-readable en
 - ~~MLP → LightGBM~~ **hecho** — LightGBM (0.765 pooled) supera al MLP (0.751).
 - ~~Backtestear el filtro contra P&L neto~~ **hecho — el filtro reduce la
   selección adversa del tape en perspectiva maker (+$537 vs -$8 en la corrida
-  16-oct); falta simular la cola (PLAN_SIM_COLA.md) para cerrar el gate** —
-  con markout exacto (mid futuro real) y walk-forward temporal
-  (splits contiguos, embargo 300s), el filtro no produce P&L OOS positivo a
-  ningún umbral. El AUC rankea toxicidad; traducirlo a P&L neto sigue abierto.
+  19-oct); falta simular la cola (PLAN_SIM_COLA.md) para cerrar el gate** —
+  walk-forward con markout exacto (mid futuro real), splits contiguos y
+  embargo de 300s: el P&L OOS maker filtrado es positivo (+$537 @0.7), pero la
+  eficiencia walk-forward es 8.8% (el P&L in-sample decae ~91% OOS) y los
+  umbrales óptimos por fold no son estables — el gate sigue cerrado. El AUC
+  rankea el flujo; convertirlo a P&L neto del maker (cola, rewards, fees)
+  sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,
   simulación con posición en cola, calibración del modelo de costos.
 
