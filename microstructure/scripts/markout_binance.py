@@ -16,9 +16,20 @@ Metrics per symbol and horizon:
       entry = sign * (mid(t)   - price)   # spread paid at entry
   - mid freshness at exit: (t+h) - ts_of_last_snapshot_at_or_before(t+h)
 
+Freshness cap (--max-mid-age, default 5 s): a trade is DISCARDED at horizon h
+when the last mid snapshot at or before t+h is older than the cap. Metrics
+are computed ONLY over used trades; n_usados and n_descartados_por_frescura
+are reported per symbol/horizon. Without the cap, stale mids (data gaps)
+contaminate the means even though the median freshness stays low.
+
+NOTE on the window: the declared window is the REAL capture window
+(~49h, starting 2026-10-16T22:54:29Z = min(ts) across both tables).
+Do not describe it as 72h — the 72h capture is a separate, scheduled rerun.
+
 Usage:
     python markout_binance.py [--since YYYY-MM-DD[THH:MM]] [--until ...]
-                              [--symbols BTCUSDT,ETHUSDT] [--json]
+                              [--symbols BTCUSDT,ETHUSDT] [--max-mid-age N]
+                              [--json]
 
 Requires:
     - psycopg2
@@ -62,6 +73,8 @@ def parse_args():
     p.add_argument("--since", type=str, default=None, help="YYYY-MM-DD[THH:MM] (default: min(ts) in DB)")
     p.add_argument("--until", type=str, default=None, help="YYYY-MM-DD[THH:MM] (default: now)")
     p.add_argument("--symbols", type=str, default=DEFAULT_SYMBOLS, help="Comma-separated symbols")
+    p.add_argument("--max-mid-age", type=float, default=5.0, dest="max_mid_age",
+                   help="Discard trades whose exit mid (last snapshot <= t+h) is older than N seconds (default: 5)")
     p.add_argument("--json", action="store_true", help="Output raw JSON to stdout")
     return p.parse_args()
 
@@ -128,11 +141,13 @@ def cargar(since, until, symbols):
     return trades_por_sym, mids_por_sym, since, until
 
 
-def analyze(trades, mids, raw_freshness_out=None):
+def analyze(trades, mids, max_mid_age=5.0, raw_freshness_out=None):
     """Extended markout: bps, median, decomposition and freshness.
     trades: list of (t_sec, price, aggressor).
     mids:   sorted list of (t_sec, mid).
-    Returns {horizon: {...metrics...}}"""
+    max_mid_age: discard trade at horizon h if the exit mid is older
+                 than this many seconds (freshness cap).
+    Returns {horizon: {...metrics..., n_usados, n_descartados_por_frescura}}"""
     mt = [t for t, _ in mids]
     mv = [v for _, v in mids]
     last_t = mt[-1] if mt else None
@@ -141,7 +156,8 @@ def analyze(trades, mids, raw_freshness_out=None):
     for h in HORIZONS:
         acc[h] = {
             "usd": [], "bps": [], "buy_bps": [], "sell_bps": [],
-            "toxic": 0, "excluded": 0, "raw_bps": [], "drift_bps": [],
+            "toxic": 0, "excluded": 0, "discarded_freshness": 0,
+            "raw_bps": [], "drift_bps": [],
             "entry_bps": [], "freshness": []
         }
 
@@ -171,6 +187,10 @@ def analyze(trades, mids, raw_freshness_out=None):
             mid_th = mv[i]
             ts_mid_th = mt[i]
             fresh = th - ts_mid_th
+            if fresh > max_mid_age:
+                r = acc[h]
+                r["discarded_freshness"] += 1
+                continue
 
             raw_usd = sign * (mid_th - price)
             drift_usd = sign * (mid_th - mid_t)
@@ -205,6 +225,8 @@ def analyze(trades, mids, raw_freshness_out=None):
         n = len(r["bps"])
         out[h] = {
             "n": n,
+            "n_usados": n,
+            "n_descartados_por_frescura": r["discarded_freshness"],
             "excluded": r["excluded"],
             "mean_usd": sum(r["usd"]) / n if n else None,
             "mean_bps": sum(r["bps"]) / n if n else None,
@@ -232,6 +254,8 @@ def main():
 
     resumen = {}
     trades_input_totales = 0
+    n_usados_total = 0          # (trade, horizon) observations used
+    n_descartados_frescura = 0  # (trade, horizon) discarded by --max-mid-age
     global_freshness = []
 
     for sym in sorted(trades):
@@ -239,18 +263,32 @@ def main():
         m_list = mids.get(sym, [])
         trades_input_totales += len(t_list)
 
-        ext = analyze(t_list, m_list, raw_freshness_out=global_freshness)
+        ext = analyze(t_list, m_list, max_mid_age=args.max_mid_age,
+                      raw_freshness_out=global_freshness)
         resumen[sym] = {
             "trades_input": len(t_list),
             "por_horizonte": ext,
         }
+        for h, v in ext.items():
+            n_usados_total += v["n_usados"]
+            n_descartados_frescura += v["n_descartados_por_frescura"]
 
     duracion_seg = time.time() - t_start
+    ventana_horas = (until - since) / 3600.0 if until and since else None
 
     report = {
-        "window": {"since": to_iso(since), "until": to_iso(until)},
+        "window": {
+            "since": to_iso(since),
+            "until": to_iso(until),
+            "horas_reales": round(ventana_horas, 2) if ventana_horas is not None else None,
+            "nota": ("ventana real de captura (~49h desde 2026-10-16T22:54:29Z); "
+                     "NO es una ventana de 72h — esa captura es un rerun separado y programado"),
+        },
+        "max_mid_age_s": args.max_mid_age,
         "symbols_usados": sorted(trades.keys()),
         "trades_input_totales": trades_input_totales,
+        "n_usados_total": n_usados_total,
+        "n_descartados_por_frescura": n_descartados_frescura,
         "resumen_por_simbolo": resumen,
         "frescura_mid_mediana_s": statistics.median(global_freshness) if global_freshness else None,
         "duracion_seg": round(duracion_seg, 3),
@@ -268,15 +306,15 @@ def main():
         return
 
     # Human readable table
-    print(f"Window: {to_iso(since)} -> {to_iso(until)}")
+    print(f"Window: {to_iso(since)} -> {to_iso(until)} ({report['window']['horas_reales']}h real)")
     print(f"Symbols: {', '.join(sorted(trades.keys()))}")
-    print(f"Trades input: {trades_input_totales}")
+    print(f"Trades input: {trades_input_totales}  (max_mid_age={args.max_mid_age:g}s)")
     print("-" * 110)
     for sym, s in resumen.items():
         print(f"== {sym} == (trades_input={s['trades_input']})")
         for h, v in s["por_horizonte"].items():
             if v["n"] > 0:
-                print(f"  +{h:>3}s: n={v['n']:>6} excl={v['excluded']:>5} "
+                print(f"  +{h:>3}s: n_usados={v['n_usados']:>6} fresh_disc={v['n_descartados_por_frescura']:>5} excl={v['excluded']:>5} "
                       f"mean_usd={v['mean_usd']:>10.4f} mean_bps={v['mean_bps']:>8.3f} "
                       f"med_bps={v['median_bps']:>8.3f} toxic={v['toxic_frac']:.1%} "
                       f"[buy={v['buy_mean_bps'] or 0:.2f} sell={v['sell_mean_bps'] or 0:.2f}] "
