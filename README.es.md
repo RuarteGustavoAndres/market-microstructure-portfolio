@@ -18,10 +18,12 @@ partes que no funcionaron**.
 2. **Clasificador de toxicidad: AUC 0.765 pooled out-of-fold / 0.688
    por-mercado** (media de 119 mercados) — una capa de scoring/filtro, **no**
    un decisor.
-3. **Veredicto walk-forward: SIN EDGE TODAVÍA** — con markout exacto y
-   walk-forward temporal, el filtro no produce P&L neto positivo out-of-sample
-   a ningún umbral (números completos en la tabla de abajo). El gate sigue
-   cerrado y se mantiene el veredicto.
+3. **Veredicto walk-forward: el filtro reduce la selección adversa del tape en
+   perspectiva maker (+$514 vs +$225 en la corrida 16-oct); falta simular la
+   cola ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) para cerrar el gate** — con
+   markout exacto y walk-forward temporal, el filtro no produce P&L neto
+   positivo out-of-sample a ningún umbral (números completos en la tabla de
+   abajo). El gate sigue cerrado y se mantiene el veredicto.
 
 Estado de captura en vivo (generado a diario desde la base de producción):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
@@ -146,8 +148,10 @@ misma analítica.
 **Descomposición (BTCUSDT @5s): deriva +0.75 bps vs entrada −0.53 bps.** Esto
 cambia la lectura honesta del markout: el markout USD positivo que reportamos
 primero sobre la ventana inicial de captura era **deriva del mercado, no
-habilidad de ejecución** — el taker igual **paga el spread de entrada**. SOL es
-tóxico directo a horizontes cortos (mediana −0.48 bps, 66% de los trades taker
+habilidad de ejecución** — el taker igual **paga el spread de entrada**; y para
+un maker, el flujo que gana el agresor es adverse selection en su contra
+(P&L del maker = −(markout del agresor)). SOL es tóxico directo a horizontes
+cortos (mediana −0.48 bps, 66% de los trades taker
 pierden).
 
 **Limitación declarada — frescura del mid de salida:** el mid de salida se
@@ -161,8 +165,10 @@ en vivo; último reporte machine-readable en
 
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — LightGBM (0.765 pooled) supera al MLP (0.751).
-- ~~Backtestear el filtro contra P&L neto~~ **hecho, veredicto honesto: sin
-  edge todavía** — con markout exacto (mid futuro real) y walk-forward temporal
+- ~~Backtestear el filtro contra P&L neto~~ **hecho — el filtro reduce la
+  selección adversa del tape en perspectiva maker (+$514 vs +$225 en la corrida
+  16-oct); falta simular la cola (PLAN_SIM_COLA.md) para cerrar el gate** —
+  con markout exacto (mid futuro real) y walk-forward temporal
   (splits contiguos, embargo 300s), el filtro no produce P&L OOS positivo a
   ningún umbral. El AUC rankea toxicidad; traducirlo a P&L neto sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,

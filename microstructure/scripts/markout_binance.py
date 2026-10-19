@@ -16,6 +16,14 @@ Metrics per symbol and horizon:
       entry = sign * (mid(t)   - price)   # spread paid at entry
   - mid freshness at exit: (t+h) - ts_of_last_snapshot_at_or_before(t+h)
 
+CONVENCIÓN DE PERSPECTIVA: toxic_frac and every markout mean/median here
+are measured on the AGGRESSOR's side. toxic_frac = fraction of aggressive
+trades whose markout is negative, i.e. trades where the AGGRESSOR loses
+post-fill. For a maker who received those fills, aggressor-loss flow is
+BENIGN (it pays the maker): official convention P&L_maker =
+-(markout_aggressor). Flow the aggressor wins (positive markout) is adverse
+selection AGAINST the maker.
+
 Freshness cap (--max-mid-age, default 5 s): a trade is DISCARDED at horizon h
 when the last mid snapshot at or before t+h is older than the cap. Metrics
 are computed ONLY over used trades; n_usados and n_descartados_por_frescura

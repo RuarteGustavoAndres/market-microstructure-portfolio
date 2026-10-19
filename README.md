@@ -16,10 +16,12 @@ number here is real, out-of-sample — **including the parts that did not work**
    last 7 days).
 2. **Toxicity classifier: AUC 0.765 pooled out-of-fold / 0.688 per-market**
    (mean over 119 markets) — a scoring/filter layer, **not** a decision-maker.
-3. **Walk-forward verdict: NO EDGE YET** — under exact-markout temporal
-   walk-forward, the toxicity filter does not produce positive net P&L
-   out-of-sample at any threshold (full numbers in the table below). The gate
-   stays closed and we keep the verdict.
+3. **Walk-forward verdict: the filter reduces tape adverse selection in maker
+   perspective (+$514 vs +$225 in the 16-oct run); queue simulation
+   ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) still pending to close the gate** —
+   under exact-markout temporal walk-forward the filter does not produce
+   positive net P&L out-of-sample at any threshold (full numbers in the table
+   below). The gate stays closed and we keep the verdict.
 
 Live capture status (machine-generated daily from the production database):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
@@ -141,7 +143,9 @@ venue 2 = continuous high-frequency books — same schema, same analytics.
 **Decomposition (BTCUSDT @5s): drift +0.75 bps vs entry −0.53 bps.** This
 changes the honest reading of the markout: the positive USD markout we first
 reported over the early capture window was **market drift, not execution
-skill** — the taker still **pays the spread at entry**. SOL is directly toxic
+skill** — the taker still **pays the spread at entry**; and for a maker, the
+flow the aggressor wins is adverse selection against it (maker P&L =
+−(aggressor markout)). SOL is directly toxic
 at short horizons (median −0.48 bps, 66% of taker trades lose).
 
 **Declared limitation — exit-mid freshness:** the exit mid is reconstructed
@@ -155,8 +159,10 @@ DB; latest machine-readable report in
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — LightGBM (0.765 pooled) beats the MLP (0.751).
-- ~~Backtest the toxicity filter against net P&L~~ **done, honest verdict: no
-  edge yet** — with exact markout (real future mid) and temporal walk-forward
+- ~~Backtest the toxicity filter against net P&L~~ **done — the filter reduces
+  tape adverse selection in maker perspective (+$514 vs +$225 in the 16-oct
+  run); queue simulation (PLAN_SIM_COLA.md) still pending to close the gate** —
+  with exact markout (real future mid) and temporal walk-forward
   (contiguous splits, 300s embargo), the filter does not produce positive OOS
   P&L at any threshold. AUC ranks toxicity; translating it into net P&L remains
   open work.

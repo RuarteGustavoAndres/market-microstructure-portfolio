@@ -12,6 +12,13 @@ trades this is the Loss-Versus-Rebalancing / adverse-selection ratio that
 tells a market maker (or an LP in an AMM pool) whether flow is paying or
 predatory.
 
+CONVENCIÓN DE PERSPECTIVA: every markout here measures the AGGRESSOR, not
+the maker. A negative aggressor markout ('toxic') means the aggressor
+LOSES post-fill — that flow is BENIGN for the maker who received the fill.
+Official project convention: P&L of the maker = -(markout of the aggressor).
+So 'toxic' in this module = flow the aggressor wins = adverse selection
+AGAINST the maker; flow the aggressor loses pays the maker.
+
 Definitions (deliberate):
   - mid lookup uses the LAST KNOWN mid at or before t+h (no look-ahead: if
     the book is missing at t+h we do not interpolate the future).
@@ -71,9 +78,12 @@ def markouts(trades, mid, horizons=DEFAULT_HORIZONS):
 
 
 def gp_ratio(values):
-    """Gain/Pain ratio: sum(markouts) / sum(|markouts|). >0 = the aggressor
-    keeps more than it loses (flow pays the LP); <0 = flow is adversely
-    selected. Returns None on empty input."""
+    """Gain/Pain ratio: sum(markouts) / sum(|markouts|). The markouts are
+    the AGGRESSOR's (see the module's perspective convention). >0 = the
+    aggressor keeps more than it loses = for the MAKER who fills that flow
+    this is adverse selection against the maker (maker loses);
+    <0 = the aggressor loses post-fill = benign flow for the maker.
+    Returns None on empty input."""
     values = list(values or [])
     if not values:
         return None
