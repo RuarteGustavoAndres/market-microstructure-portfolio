@@ -14,13 +14,13 @@ number here is real, out-of-sample — **including the parts that did not work**
 1. **85M+ order-book events and 382k+ real fills** captured 24/7 into
    TimescaleDB hypertables (9,900+ markets tracked, 362 active tokens in the
    last 7 days).
-2. **Toxicity classifier: AUC 0.765 pooled out-of-fold / 0.688 per-market**
+2. **Toxicity classifier: AUC 0.739 pooled OOS, folds 0.68-0.80 (leak-free); PR-AUC 0.514 vs 0.314 prevalence**
    (mean over 119 markets) — a scoring/filter layer, **not** a decision-maker.
 3. **Walk-forward verdict: the filter reduces tape adverse selection in maker
-   perspective (+$537 vs -$8 in the 19-oct run); queue simulation
+   perspective (+$111 strict temporal OOS / +$512 per-market folds 5/5); queue simulation
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) still pending to close the gate** —
-   under exact-markout temporal walk-forward the filter does not produce
-   positive net P&L out-of-sample at any threshold (full numbers in the table
+   walk-forward efficiency is 2.1% (in-sample decays ~98% OOS);
+   queue simulation and costs still pending (full numbers in the table
    below). The gate stays closed and we keep the verdict.
 
 Live capture status (machine-generated daily from the production database):
@@ -34,7 +34,7 @@ Contact: open a GitHub issue.
   active tokens in the last 7 days** (verified 2026-10-18).
 - **Hundreds of thousands of order-book events per hour, sustained 24/7**, into
   a TimescaleDB hypertable (compression + retention policies).
-- **Toxicity classifier: LightGBM AUC 0.765 pooled out-of-fold**, **0.688
+- **Toxicity classifier: LightGBM AUC 0.739 pooled OOS (leak-free)**, folds **0.68-0.80
   per-market mean / 0.701 median over 119 markets** — the pooled/per-market gap
   is a difference in base rates, and we declare it. Fold AUCs are consistent
   (0.75–0.79), no leakage.
@@ -76,7 +76,7 @@ TimescaleDB hypertables (libro_eventos, trades_full, libro_top5, market_meta
                           + binance_* tables for venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Fill-toxicity classifier (LightGBM)  →  AUC 0.765 pooled OOF / 0.688 per-market
+Fill-toxicity classifier (LightGBM)  →  AUC 0.739 pooled OOS (leak-free)
 ```
 
 ## Pipeline modules
@@ -101,7 +101,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.765 pooled OOF / 0.688 per-marke
 - **Leakage removed:** `pos_en_spread` and `fill_price` reconstruct the target
   by construction — dropped them, AUC fell from 0.702 to the honest 0.6425
   (MLP baseline).
-- **LightGBM upgrade:** pooled AUC **0.765** out-of-fold, beating the MLP
+- **Leak-free re-run:** pooled AUC **0.739** out-of-fold (freshness-capped snapshots, causal standardization, per-market folds);
   (0.751) — better for tabular microstructure features.
 - **Honest limitations:** the model ranks toxicity (AUC) but binary accuracy
   sits below the majority baseline → it is a scoring/filter layer, not an
@@ -110,12 +110,12 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.765 pooled OOF / 0.688 per-marke
 
 | Metric | Value |
 |---|---|
-| AUC-ROC pooled out-of-fold (LightGBM) | **0.765** |
-| AUC-ROC out-of-fold (MLP baseline) | 0.751 |
-| AUC per-market (mean / median, 119 markets evaluated) | **0.688 / 0.701** |
-| Distinct fills | 107,362 |
-| Training rows (107,362 fills × 4 horizons) | 429,448 |
-| **Walk-forward OOS net P&L (2026-10-18 dataset)** | **NO EDGE YET** — exact-markout, temporal splits, 300s embargo, 5 folds (test sizes 62,064 / 56,210 / 56,847 / 99,021 / 17,532 fill×horizon pairs). Unfiltered **−1.75 USD** · filter @0.7 **−561.58** · @0.8 **−171.00** · per-fold-optimal threshold (0.9/0.9/0.9/0.9/0.85 — stable) **−8.57**. Filtering does not improve OOS P&L at any threshold; the gate stays closed and the result is reported anyway. |
+| AUC-ROC pooled OOS (LightGBM, leak-free) | **0.739** |
+| PR-AUC OOS / prevalence | **0.514 / 0.314** |
+| AUC per temporal fold (range, 5 folds) | **0.675 / 0.796** |
+| Distinct fills (pre freshness-cap) | 107,362 |
+| Training rows (pre freshness-cap; post-cap 285,764) | 429,448 |
+| **Walk-forward OOS maker P&L (2026-10-19 leak-free dataset, 285,764 rows)** | **POSITIVE BUT FRAGILE** — exact-markout, temporal splits, 300s embargo: unfiltered **−208.84 USD** · filter @0.7 **+111.08** · per-fold-optimal (0.6/0.5/0.5/0.5/0.55 — not stable). WFE **2.1%** (in-sample decays ~98% OOS). Per-market GroupKFold upper bound: unfiltered −117 · quantile-0.5 threshold **+512.34, 5/5 positive folds** (retention 48.8%). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol
@@ -158,16 +158,16 @@ DB; latest machine-readable report in
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Next steps (scoped)
-- ~~MLP → LightGBM~~ **done** — LightGBM (0.765 pooled) beats the MLP (0.751).
-- ~~Backtest the toxicity filter against net P&L~~ **done — the filter reduces
-  tape adverse selection in maker perspective (+$537 vs -$8 in the 19-oct
-  run); queue simulation (PLAN_SIM_COLA.md) still pending to close the gate** —
-  walk-forward with exact markout (real future mid), contiguous splits and a
-  300s embargo: OOS maker P&L is positive filtered (+$537 @0.7), but
-  walk-forward efficiency is 8.8% (in-sample P&L decays ~91% OOS) and per-fold
-  optimal thresholds are not stable — the gate stays closed. AUC ranks flow;
-  converting it into net maker P&L (queue position, rewards, fees) remains
-  open work.
+- ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.739 pooled OOS).
+- ~~Backtest the toxicity filter against net P&L~~ **done on leak-free features
+  (freshness-capped snapshots, causal standardization, per-market folds,
+  PR-AUC 0.514 vs 0.314 prevalence) — the filter reduces tape adverse
+  selection in maker perspective: +$111 OOS under the strict temporal
+  walk-forward (300s embargo) and +$512 under per-market GroupKFold (5/5
+  positive folds — optimistic upper bound); but walk-forward efficiency is
+  2.1% (in-sample P&L decays ~98% OOS) and queue simulation (PLAN_SIM_COLA.md)
+  is still pending — the gate stays closed.** AUC ranks flow; converting it
+  into net maker P&L (queue position, rewards, fees) remains open work.
 - Investigate why ranking skill does not translate: per-horizon/per-regime
   P&L, queue-position-aware simulation, cost model calibration.
 
