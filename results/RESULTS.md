@@ -1,10 +1,47 @@
-# Honest results — toxicity filter validation (2026-10-16)
+# Honest results — toxicity filter validation
+
+## CURRENT: leak-free re-run (2026-10-19)
+
+All numbers out-of-sample, **maker perspective** (P&L per fill = −(aggressor
+markout)), on the leak-free dataset: **285,764 labeled rows across 215
+markets** (freshness-capped snapshots: 136,294 rows dropped; incoming-trade
+size features removed; causal standardization fit on train only). Artifacts:
+`walkforward_toxicidad.json`, `desglose_walkforward.json`,
+`folds_mercado_toxicidad.json`.
+
+| Scheme | Unfiltered | Filtered | Notes |
+|---|---|---|---|
+| Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$111.08** | WFE **2.1%** — in-sample P&L decays ~98% OOS; per-fold thresholds [0.6, 0.5, 0.5, 0.5, 0.55] not stable |
+| Per-market GroupKFold K=5 (upper bound) | −$117.00 | quantile-0.5: **+$512.34** | **5/5 folds positive**; retention 48.8%; lets future data of other markets into train — read as ceiling, not production estimate |
+
+| Metric | Value |
+|---|---|
+| AUC pooled OOS | **0.739** (was 0.765 with leaks — horizon-inflated) |
+| AUC per horizon | 0.719 − 0.731 (flat: pooled was inflated by horizon) |
+| PR-AUC OOS / prevalence | **0.514 / 0.314** |
+| Filtered edge by horizon | h≤60s positive; **h300s −$120 (negative)** |
+| Filtered edge by segment | taker_sell **+$231** (+0.16¢/fill); maker-like **−$61.5** (only positive with the ½-spread credit: +$76.8) |
+
+**Verdict: the old "no edge" verdict does not survive the leak-free re-run —
+the filter reduces tape adverse selection in maker perspective and OOS maker
+P&L is positive in both schemes. But WFE 2.1% (severe in-sample→OOS decay),
+unstable per-fold thresholds, and missing queue-position/cost models keep the
+trading gate CLOSED. The gate closes for real with the queue-aware maker
+simulation (PLAN_SIM_COLA.md).**
+
+## History: 2026-10-16 first validation (aggressor perspective, leaky features)
+
+> Superseded by the section above, kept on record. Its P&L numbers measure the
+> AGGRESSOR side of each fill and were computed on leaky features (incoming
+> trade size, stale snapshots, non-causal scaling) — the 2026-10-19 re-run
+> corrects both. We keep it verbatim because publishing our own corrections is
+> the product.
 
 All numbers below are out-of-sample, computed on **224,590 labeled fills across
 119 markets** captured live 2026-10-14 → 2026-10-16 (Polymarket CLOB, own
-24/7 capture). Artifacts: `walkforward_toxicidad.json`, `desglose_walkforward.json`.
+24/7 capture).
 
-## Ranking quality (real, improves with data)
+### Ranking quality (real, improves with data)
 
 | Model | AUC out-of-fold | Samples / markets |
 |---|---|---|
@@ -13,10 +50,10 @@ All numbers below are out-of-sample, computed on **224,590 labeled fills across
 | **LightGBM (re-trained 2026-10-16)** | **0.765** | 224,520 / 119 |
 | MLP (re-trained 2026-10-16) | 0.751 | 224,520 / 119 |
 
-Folds are consistent (0.75–0.79) — no leakage. **But ranking quality does not
+Folds are consistent (0.75–0.79). **But ranking quality does not
 translate into net P&L. That is the honest headline.**
 
-## The arbiter: temporal walk-forward with exact markout
+### The arbiter: temporal walk-forward with exact markout
 
 Method: contiguous time blocks (6), train only on the past, embargo 300 s
 (= max label horizon), P&L per fill = side × (real future mid − fill price),
@@ -35,7 +72,7 @@ the filter "flipping" P&L from -$3,857 to +$361. **That was an artifact** —
 exactly the failure mode the walk-forward literature warns about. We keep the
 wrong number on record in git history and correct it here.
 
-## Where the loss actually lives (OOS breakdown)
+### Where the loss actually lived (OOS breakdown, aggressor perspective)
 
 | Segment | n | P&L | P&L/fill | Hit |
 |---|---|---|---|---|
@@ -48,21 +85,15 @@ wrong number on record in git history and correct it here.
 | horizon +300s | 44,505 | **+$110** | +0.25¢ | 36% |
 | horizon ≤ 60s | all negative | — | — | — |
 
-Findings:
-1. **The loss is concentrated in taker-side SELL fills in ultra-tight books.**
-   The profitable pockets (maker-like fills, wider books, 5-min horizon) are
-   real but small.
-2. **The filter @0.7 hurts every profitable segment** (e.g. BUY +$98 → -$292;
-   +300s +$110 → -$77): a ranker trained on all fills mixed does not know
-   which fills a maker actually profits from.
-3. **A fill-based P&L ignores the maker's spread income.** Adding the
-   half-spread credit to maker-like fills moves the aggregate from -$225 to
-   positive (maker-like: +$292) — but the filter still reduces it (+$156).
-   The next validation step is a queue-position-aware maker simulation, not a
-   better classifier.
+Findings (of that run):
+1. **The loss was concentrated in taker-side SELL fills in ultra-tight books.**
+2. **The filter @0.7 hurt every profitable segment** — later identified as a
+   perspective error (maker vs aggressor), not a filter failure.
+3. **A fill-based P&L ignores the maker's spread income** — the queue-aware
+   maker simulation is the next validation step, not a better classifier.
 
-## Verdict
-- Toxicity **ranking**: real signal (AUC 0.765 OOF, scales with data).
+### Verdict of that run
+- Toxicity **ranking**: real signal (AUC 0.765 OOF — later corrected to 0.739 leak-free).
 - Toxicity **filter as a trading rule**: **no demonstrated edge yet** — gate
   stays closed. No real order will be placed on it.
 - We publish the failure because an honest audit that reports its own negative
