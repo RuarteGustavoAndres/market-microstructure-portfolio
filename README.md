@@ -17,7 +17,7 @@ number here is real, out-of-sample — **including the parts that did not work**
 2. **Toxicity classifier: AUC 0.765 pooled out-of-fold / 0.688 per-market**
    (mean over 119 markets) — a scoring/filter layer, **not** a decision-maker.
 3. **Walk-forward verdict: the filter reduces tape adverse selection in maker
-   perspective (+$514 vs +$225 in the 16-oct run); queue simulation
+   perspective (+$537 vs -$8 in the 19-oct run); queue simulation
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) still pending to close the gate** —
    under exact-markout temporal walk-forward the filter does not produce
    positive net P&L out-of-sample at any threshold (full numbers in the table

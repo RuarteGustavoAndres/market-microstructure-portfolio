@@ -19,7 +19,7 @@ partes que no funcionaron**.
    por-mercado** (media de 119 mercados) — una capa de scoring/filtro, **no**
    un decisor.
 3. **Veredicto walk-forward: el filtro reduce la selección adversa del tape en
-   perspectiva maker (+$514 vs +$225 en la corrida 16-oct); falta simular la
+   perspectiva maker (+$537 vs -$8 en la corrida 16-oct); falta simular la
    cola ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) para cerrar el gate** — con
    markout exacto y walk-forward temporal, el filtro no produce P&L neto
    positivo out-of-sample a ningún umbral (números completos en la tabla de
@@ -166,7 +166,7 @@ en vivo; último reporte machine-readable en
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — LightGBM (0.765 pooled) supera al MLP (0.751).
 - ~~Backtestear el filtro contra P&L neto~~ **hecho — el filtro reduce la
-  selección adversa del tape en perspectiva maker (+$514 vs +$225 en la corrida
+  selección adversa del tape en perspectiva maker (+$537 vs -$8 en la corrida
   16-oct); falta simular la cola (PLAN_SIM_COLA.md) para cerrar el gate** —
   con markout exacto (mid futuro real) y walk-forward temporal
   (splits contiguos, embargo 300s), el filtro no produce P&L OOS positivo a
