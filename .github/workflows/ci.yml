@@ -15,6 +15,32 @@ jobs:
           python-version: "3.12"
       - name: Run deterministic audit demo (stdlib only)
         run: python3 demo/audit_demo.py
+      - name: Smoke — audit a client CSV end to end (the CLI product path)
+        run: |
+          python3 - <<'EOF'
+          import random, sys, csv, subprocess
+          sys.path.insert(0, 'demo')
+          import audit_demo as ad
+          rng = random.Random(ad.SEED)
+          cases = ad.build_cases(rng, n_days=10)
+          px, sig = cases['px'], cases['trap']['sig']
+          with open('/tmp/trades.csv', 'w', newline='') as fh:
+              w = csv.writer(fh)
+              w.writerow(['entry_bar', 'exit_bar', 'direction', 'entry_price', 'exit_price'])
+              for t, pos, _p in cases['trap']['booked']:
+                  w.writerow([t, t + ad.HOLD, pos, px[t], px[t + ad.HOLD]])
+          with open('/tmp/prices.csv', 'w', newline='') as fh:
+              w = csv.writer(fh)
+              w.writerow(['bar', 'price', 'signal'])
+              for b in range(len(px)):
+                  w.writerow([b, px[b], sig[b]])
+          r = subprocess.run(['python3', 'demo/audit_demo.py', '--csv', '/tmp/trades.csv',
+                              '--prices', '/tmp/prices.csv', '--spread', str(ad.HALF_SPREAD)],
+                             capture_output=True, text=True)
+          assert r.returncode == 0, r.stderr
+          assert r.stdout.count('— **FAIL**') == 5, 'trap CSV must fail all 5 checks'
+          print('cli ok: 5/5 checks fired on the trap CSV')
+          EOF
 
   tests:
     runs-on: ubuntu-latest

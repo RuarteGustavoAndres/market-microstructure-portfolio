@@ -1,47 +1,61 @@
 # Backtest Audit Demo — planted biases, quantified
 
-Deterministic synthetic backtest (seed 7, 90 days of 1-min bars,
-standard-library-only script: [`demo/audit_demo.py`](../demo/audit_demo.py)).
+Deterministic synthetic market (seed 7, 90 days of 1-min bars, standard-library-only script: [`demo/audit_demo.py`](../demo/audit_demo.py)).
 
-The market is a pure random walk: it contains **no edge by construction**.
-The 'client backtest' below has biases planted on purpose.
+The market is a pure random walk: it contains **no edge by construction**. Two clients report on it: a TRAP client with every classic bias planted on purpose, and a CLEAN control with honest plumbing. The audit runs the same five checks on both — each one a detector with a formal statistical test (permutation / exact binomial at alpha=0.01), not a hand-picked threshold.
 
-## The backtest as the client would report it
+## Case 1 — the trap client — every classic bias planted on purpose
 
-```
-n=5836  mean=0.0034  Sharpe=34.03  win=68%   (threshold 2.00 tuned in-sample, fills at mid, trades on future data)
-```
-
-## Audit findings
-
-### 1. Decision-time computability (signal uses data that does not exist yet) — **FAIL**
-
-The indicator at bar t is bar t+1's return. Entering at bar t trades information that does not exist yet. Forced to enter at the first executable bar (t+1): Sharpe 34.03 -> 1.13, mean trade 0.0034 -> 0.0001. The 'edge' was unexecutable information.
-
-### 2. Fills priced at the book (spread on every round trip) — **FAIL**
-
-With honest fills, mean trade 0.0001 -> -0.0079: exactly the spread (2 x 40bps). On a market with no edge, every round trip is a donation to the market makers.
-
-### 3. In-sample parameter tuning (threshold fit on the reported window) — **FAIL**
-
-Tuned in-sample: Sharpe 34.03 reported. Walk-forward (tune on first half, report second half, honest plumbing): Sharpe -63.46. Tuning on the reported window is fitting the answer.
-
-### 4. Random K-fold CV on temporal data — **FAIL**
-
-Shuffled 5-fold 'validation' reports Sharpe 34.01 for the look-ahead pipeline. It happily validates unexecutable information. Time-series validation must respect time order and embargo.
-
-### 5. Survivorship (universe filtered by outcome) — **FAIL**
-
-Dropping the worst decile of trades flips mean trade 0.0001 -> 0.0017. If the asset universe was chosen knowing which markets survived, the report is self-fulfilling.
-
-## What survives the audit
+### As the client reports it
 
 ```
-honest walk-forward:  n=3694  mean=-0.0078  Sharpe=-63.46  win=20%   (threshold 1.90)
+n=5253  mean=0.0049  Sharpe=98.33 (overlap-corrected)  win=75%   (threshold 2.00 tuned in-sample, fills at mid, trades on future data, worst decile dropped)
 ```
 
-> The reported Sharpe was an artifact of the plumbing. On a market with no
-> edge, an honest backtest loses exactly the spread. That gap — between what
-> the backtest claims and what survives the audit — is what we measure.
-> This demo is the checklist; the service runs it against YOUR backtest,
-> with your data, your fills, your costs.
+### Audit findings
+
+1. Decision-time computability (look-ahead signal) — **FAIL**
+   A causal signal cannot predict the bar right after entry. mean(direction x next-bar return) = +0.00475 (p <= 1e-03, 999 sign-flip permutations, H0: 0). The direction anticipates the very next bar: the indicator is trading information that does not exist yet.
+
+2. Fills priced at the book (spread on every round trip) — **FAIL**
+   Round trip costs 2 x 40 bps. Reported mean trade 0.0049; spread-charged -0.0031 (p <= 1e-03, 999 permutations, H0: charged mean = 0). The reported edge does not survive the book: every round trip was a donation to the market makers.
+
+3. In-sample parameter tuning (threshold fit on the reported window) — **FAIL**
+   Walk-forward: tune the threshold on the first half only (thr 1.30), report the second half with honest plumbing: Sharpe -104.18, mean trade -0.0079 — vs reported Sharpe 95.06, mean 0.0049 (p <= 1e-03, 999 permutations). Tuning on the reported window is fitting the answer.
+
+4. Random K-fold CV on temporal data — **FAIL**
+   Shuffled 5-fold 'validation' reports Sharpe 95.90 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks, hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -125.23, mean trade -0.0080 (p <= 1e-03, 999 permutations). Random K-fold on temporal data happily validates what honest execution denies.
+
+5. Survivorship (universe filtered by outcome) — **FAIL**
+   Reported trade list (n=5253). Deep tails beyond median +/- 1.5*IQR: left 0 vs right 324 trades (exact binomial, p <= 3e-98). The left tail is missing: a universe filtered by outcome. Trimming the worst decile of any sample always raises its mean — the trim itself is arithmetic; the missing tail is the evidence.
+
+## Case 2 — the clean control — same market, honest plumbing
+
+### As the client reports it
+
+```
+n=10336  mean=-0.0078  Sharpe=-106.72 (overlap-corrected)  win=19%   (threshold 1.40 tuned walk-forward (first half only), spread paid, causal signal)
+```
+
+### Audit findings
+
+1. Decision-time computability (look-ahead signal) — **PASS**
+   A causal signal cannot predict the bar right after entry. mean(direction x next-bar return) = -0.00003 (p = 0.875, 999 sign-flip permutations, H0: 0).
+
+2. Fills priced at the book (spread on every round trip) — **PASS**
+   Round trip costs 2 x 40 bps. Reported mean trade -0.0078; spread-charged -0.0158 (p <= 1e-03, 999 permutations, H0: charged mean = 0). The client reports no positive edge to begin with — a reported loss is not a leak, nothing to catch here (the small p only says the charged mean sits below zero, as expected).
+
+3. In-sample parameter tuning (threshold fit on the reported window) — **PASS**
+   Walk-forward: tune the threshold on the first half only (thr 1.40), report the second half with honest plumbing: Sharpe -106.72, mean trade -0.0078 — vs reported Sharpe -104.35, mean -0.0078 (p = 0.481, 999 permutations).
+
+4. Random K-fold CV on temporal data — **PASS**
+   Shuffled 5-fold 'validation' reports Sharpe -105.51 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks, hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -144.23, mean trade -0.0081 (p = 0.211, 999 permutations).
+
+5. Survivorship (universe filtered by outcome) — **PASS**
+   Reported trade list (n=10336). Deep tails beyond median +/- 1.5*IQR: left 345 vs right 359 trades (exact binomial, p = 0.312).
+
+## What the demo proves
+
+> The audit **detects**: the trap client — Sharpe 98.33 and a plausible win rate — fails every check; the clean control — a losing strategy on a no-edge market — passes every one. The audit punishes broken plumbing, not losing strategies: an honest backtest of a no-edge market loses exactly the spread and says so.
+
+> Every claim must be checked against the plumbing, not the numbers. This demo is the checklist; the service runs it against YOUR backtest — `--csv` takes your trades and signal series, your fills, your costs.
