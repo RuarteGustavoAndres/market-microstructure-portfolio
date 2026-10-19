@@ -36,7 +36,8 @@ import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.path.dirname(__file__))
+# tsdb.py lives in microstructure/data/ — point sys.path there, not at model/.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
 import tsdb
 
 DATASET_DIR = os.path.join(os.path.dirname(__file__), "dataset")

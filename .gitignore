@@ -10,6 +10,7 @@
 *.log
 __pycache__/
 *.pyc
+microstructure/model/dataset/
 
 # OS
 .DS_Store

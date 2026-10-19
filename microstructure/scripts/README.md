@@ -20,3 +20,20 @@ python microstructure/scripts/markout_binance.py --json
 ```
 
 The script never writes to the database.
+
+## Related: ML backtests
+
+The toxicity-filter backtests do **not** touch the live database — they
+consume the feature dataset written by `microstructure/model/features_ml.py`,
+so they live next to it in `microstructure/model/`:
+
+- `microstructure/model/backtest_walkforward.py` — walk-forward OOS P&L
+  (temporal splits, 300s embargo, exact fill P&L). Reads
+  `model/dataset/ml_features.csv`, writes `model/dataset/walkforward_toxicidad.json`.
+- `microstructure/model/backtest_desglose.py` — OOS P&L breakdown by
+  horizon/side/fill aggressiveness/spread + maker-realistic adjustment.
+  Reads `model/dataset/ml_features.csv`, writes
+  `model/dataset/desglose_walkforward.json`.
+
+Both run with the ML stack (`requirements-ml.txt`) and no dataset is
+committed: `microstructure/model/dataset/` is generated locally.

@@ -1,0 +1,206 @@
+"""Walk-Forward HONESTO del filtro de toxicidad: ¿se mantiene el P&L neto
+cuando el modelo solo ve el PASADO y el umbral no se ajusta por fold?
+
+Metodología (López de Prado 2018 ch.7/12; Pardo 1992 walk-forward):
+  1. Splits TEMPORALES contiguos (K bloques por tiempo, no aleatorios):
+     para cada bloque de test k, se entrena SOLO con datos estrictamente
+     anteriores al inicio del bloque, con EMBARGO de 300s (= horizonte máximo
+     de etiqueta) entre el último dato de train y el primer dato de test.
+     Purga: ninguna etiqueta del train usa información posterior al inicio
+     del test (el embargo lo garantiza porque horizonte_max = 300s).
+  2. P&L EXACTO por fill (no aproximado por spread):
+     BUY : (mid_futuro - fill_price)   [centavos/share]
+     SELL: (fill_price - mid_futuro)
+     con mid_futuro = mid del libro REAL a t+horizonte (columna del dataset,
+     misma fuente que las etiquetas: libro_snapshots).
+  3. Grilla de umbrales por fold: si cada fold elige un umbral distinto ->
+     señal de sobreajuste del umbral. Se reporta además el P&L agregado a
+     umbral FIJO 0.7 (sin mirar el futuro al elegir) y el Walk-Forward
+     Efficiency (OOS/IS): <30% = aviso de sobreajuste (literatura).
+
+Uso: ./venv-ml/bin/python backtest_walkforward.py
+Salida: dataset/walkforward_toxicidad.json
+"""
+
+import csv
+import json
+import os
+import time
+from collections import defaultdict
+
+import numpy as np
+import lightgbm as lgb
+from sklearn.metrics import roc_auc_score
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(HERE, "dataset", "ml_features.csv")
+OUT = os.path.join(HERE, "dataset", "walkforward_toxicidad.json")
+
+FEATURES = ["spread_rel", "imbalance", "depth_total", "n_total",
+            "momentum_60s", "momentum_300s", "fill_size",
+            "size_rel_depth", "ofi", "microprice_bias",
+            "side_buy", "horizonte_s"]
+EMBARGO_S = 300          # = horizonte máximo de etiqueta
+K_BLOQUES = 6            # bloques temporales contiguos
+UMBRAL_FIJO = 0.7        # elegido a priori (no se ajusta con el futuro)
+UMBRAL_FIJO_CONSERV = 0.8  # variante conservadora
+GRILLA = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+
+
+def log(m):
+    print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
+
+
+def load():
+    """Filas etiquetadas con P&L exacto: pnl = side*(mid_futuro-price)."""
+    rows = []
+    with open(DATA) as f:
+        for r in csv.DictReader(f):
+            if r["target"] == "" or r["mid_futuro"] == "":
+                continue
+            mf, fp = float(r["mid_futuro"]), float(r["fill_price"])
+            side = 1.0 if float(r["side_buy"]) > 0.5 else -1.0
+            rows.append({
+                "ts": float(r["ts_epoch"]),
+                "token": r["token_id"],
+                "h": int(float(r["horizonte_s"])),
+                "pnl": side * (mf - fp) * 100.0,  # centavos/share
+                "x": [float(r[k]) if r[k] not in ("", None) else 0.0
+                      for k in FEATURES],
+                "y": 1 if float(r["target"]) > 0.5 else 0,
+            })
+    rows.sort(key=lambda r: r["ts"])
+    return rows
+
+
+def pnl_stats(sub, thr=None, proba=None):
+    """P&L (USD a $1/share nominal), ops y hit-rate de un subconjunto."""
+    if thr is not None:
+        sub = [r for r, p in zip(sub, proba) if p < thr]
+    if not sub:
+        return {"n": 0, "pnl": 0.0, "pnl_op": 0.0, "hit": 0.0}
+    pnls = [r["pnl"] for r in sub]
+    return {
+        "n": len(sub),
+        "pnl": round(sum(pnls) / 100.0, 2),       # centavos -> USD/share
+        "pnl_op": round(float(np.mean(pnls)) / 100.0, 4),
+        "hit": round(100.0 * sum(1 for p in pnls if p > 0) / len(sub), 1),
+    }
+
+
+def main():
+    t0 = time.time()
+    rows = load()
+    log(f"filas etiquetadas con mid_futuro: {len(rows)} | "
+        f"{len(set(r['token'] for r in rows))} tokens")
+
+    # bloques temporales contiguos
+    ts_all = [r["ts"] for r in rows]
+    tmin, tmax = ts_all[0], ts_all[-1]
+    bordes = np.linspace(tmin, tmax, K_BLOQUES + 1)
+    bloques = []
+    for k in range(K_BLOQUES):
+        b = [r for r in rows if bordes[k] <= r["ts"] < bordes[k + 1]]
+        if k == K_BLOQUES - 1:
+            b = [r for r in rows if r["ts"] >= bordes[k]]
+        bloques.append(b)
+        log(f"  bloque {k+1}: {len(b)} filas "
+            f"({time.strftime('%m-%d %H:%M', time.gmtime(bordes[k]))} -> "
+            f"{time.strftime('%m-%d %H:%M', time.gmtime(bordes[k+1]))} UTC)")
+
+    resultados, umbral_optimo_por_fold = [], []
+    for k in range(1, K_BLOQUES):  # fold k: test = bloque k+1
+        test = bloques[k]
+        test_start = test[0]["ts"]
+        # train = todo lo anterior al inicio del test MENOS el embargo
+        train = [r for r in rows if r["ts"] < test_start - EMBARGO_S]
+        if len(train) < 5000 or len(test) < 500:
+            log(f"fold {k}: datos insuficientes, se omite")
+            continue
+        Xtr = np.array([r["x"] for r in train])
+        ytr = np.array([r["y"] for r in train])
+        Xte = np.array([r["x"] for r in test])
+        yte = np.array([r["y"] for r in test])
+        n1 = ytr.sum(); n0 = len(ytr) - n1
+        model = lgb.train(
+            {"objective": "binary", "metric": "auc", "learning_rate": 0.05,
+             "num_leaves": 31, "min_child_samples": 30,
+             "scale_pos_weight": n0 / max(n1, 1), "verbose": -1, "seed": 42},
+            lgb.Dataset(Xtr, label=ytr), num_boost_round=200)
+        proba = model.predict(Xte)
+        auc = roc_auc_score(yte, proba)
+
+        sin_filtro = pnl_stats(test)
+        grid = {t: pnl_stats(test, thr=t, proba=proba) for t in GRILLA}
+        viable = {t: s for t, s in grid.items() if s["n"] >= 0.05 * len(test)}
+        mejor_t = max(viable, key=lambda t: viable[t]["pnl"]) if viable else None
+        umbral_optimo_por_fold.append(mejor_t)
+        fijo = pnl_stats(test, thr=UMBRAL_FIJO, proba=proba)
+        conserv = pnl_stats(test, thr=UMBRAL_FIJO_CONSERV, proba=proba)
+
+        # in-sample (mismo umbral fijo, sobre train) para WFE
+        proba_tr = model.predict(Xtr)
+        is_fijo = pnl_stats(train, thr=UMBRAL_FIJO, proba=proba_tr)
+
+        resultados.append({
+            "fold": k,
+            "train_n": len(train), "test_n": len(test),
+            "auc_oos": round(float(auc), 4),
+            "sin_filtro": sin_filtro,
+            "mejor_umbral": mejor_t,
+            "mejor_umbral_pnl": viable[mejor_t]["pnl"] if mejor_t else None,
+            f"fijo_{UMBRAL_FIJO}": fijo,
+            f"fijo_{UMBRAL_FIJO_CONSERV}": conserv,
+            "in_sample_fijo": is_fijo,
+            "grilla": grid,
+        })
+        log(f"fold {k}: AUC={auc:.3f} | sin filtro {sin_filtro['pnl']}$ "
+            f"({sin_filtro['n']} ops) | mejor t={mejor_t} "
+            f"({viable[mejor_t]['pnl'] if mejor_t else 0}$) | "
+            f"fijo {UMBRAL_FIJO}: {fijo['pnl']}$ ({fijo['n']} ops)")
+
+    # agregados
+    def suma(d, key):
+        return round(sum(r[key]["pnl"] for r in resultados if r[key]["n"] > 0), 2)
+
+    oos_fijo = suma(resultados, f"fijo_{UMBRAL_FIJO}")
+    oos_conserv = suma(resultados, f"fijo_{UMBRAL_FIJO_CONSERV}")
+    oos_sin = suma(resultados, "sin_filtro")
+    oos_opt = sum(r["mejor_umbral_pnl"] or 0 for r in resultados)
+    is_fijo_total = suma(resultados, "in_sample_fijo")
+    wfe = round(100 * oos_fijo / is_fijo_total, 1) if is_fijo_total > 0 else None
+    thresholds = [t for t in umbral_optimo_por_fold if t is not None]
+
+    resumen = {
+        "fecha": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
+        "metodologia": "walk-forward temporal contiguo, embargo 300s, "
+                       "P&L exacto vs mid_futuro real, umbral fijo a priori",
+        "filas": len(rows), "bloques": K_BLOQUES,
+        "umbral_fijo": UMBRAL_FIJO,
+        "oos_sin_filtro_usd": oos_sin,
+        f"oos_fijo_{UMBRAL_FIJO}_usd": oos_fijo,
+        f"oos_fijo_{UMBRAL_FIJO_CONSERV}_usd": oos_conserv,
+        "oos_umbral_optimo_por_fold_usd": round(oos_opt, 2),
+        "umbral_optimo_por_fold": umbral_optimo_por_fold,
+        "umbral_estable": (len(set(thresholds)) <= 2 if thresholds else None),
+        "in_sample_fijo_usd": is_fijo_total,
+        "walk_forward_efficiency_pct": wfe,
+        "nota_wfe": "WFE <30% = aviso de sobreajuste (literatura walk-forward)",
+        "folds": resultados,
+    }
+    with open(OUT, "w") as f:
+        json.dump(resumen, f, indent=1)
+    log(f"resultados -> {OUT}")
+
+    log("=== RESUMEN ===")
+    log(f"P&L OOS sin filtro:      {oos_sin}$")
+    log(f"P&L OOS umbral fijo {UMBRAL_FIJO}:  {oos_fijo}$")
+    log(f"P&L OOS umbral fijo {UMBRAL_FIJO_CONSERV}:  {oos_conserv}$")
+    log(f"P&L OOS umbral óptimo c/fold (techo): {round(oos_opt, 2)}$")
+    log(f"Umbrales óptimos por fold: {umbral_optimo_por_fold} "
+        f"-> estable: {resumen['umbral_estable']}")
+    log(f"WFE (OOS/IS a umbral fijo): {wfe}%")
+
+
+if __name__ == "__main__":
+    main()

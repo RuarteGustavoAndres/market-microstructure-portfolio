@@ -84,6 +84,8 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.765 pooled OOF / 0.688 per-marke
 | `microstructure/data/tsdb.py` | TimescaleDB connection + micro-batch flush helpers |
 | `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-price, multi-horizon momentum, markout labels |
 | `microstructure/model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features |
+| `microstructure/model/backtest_walkforward.py` | Walk-forward backtest of the toxicity filter: temporal splits, 300s embargo, exact fill P&L — published verbatim from the private bot |
+| `microstructure/model/backtest_desglose.py` | OOS P&L breakdown of the walk-forward verdict: by horizon, side, fill aggressiveness, spread + maker-realistic adjustment |
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill price).

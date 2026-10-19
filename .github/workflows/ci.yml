@@ -27,3 +27,19 @@ jobs:
         run: pip install numpy lightgbm scikit-learn pytest
       - name: Run tests
         run: pytest tests/ -q
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install import deps (tsdb + backtests)
+        run: pip install psycopg2-binary orjson numpy lightgbm scikit-learn
+      - name: Smoke — package import resolves (tsdb lives in microstructure/data)
+        run: python3 -c "import sys; sys.path.insert(0,'.'); from microstructure.data import tsdb; print('tsdb ok')"
+      - name: Smoke — features_ml CLI (fixed sys.path to ../data)
+        run: python3 microstructure/model/features_ml.py --help > /dev/null
+      - name: Smoke — backtest scripts import (module-level code only, main is guarded)
+        run: python3 -c "import sys; sys.path.insert(0,'microstructure/model'); import backtest_walkforward, backtest_desglose; print('backtests ok')"
