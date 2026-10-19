@@ -6,15 +6,15 @@
 
 | Metric | Value |
 |---|---|
-| Generated | 2026-10-19 10:48 UTC |
-| trades_full (fills captured, exact count) | 458449 |
-| Last fill timestamp (exact) | 2026-10-19_10:47_UTC |
+| Generated | 2026-10-19 16:01 UTC |
+| trades_full (fills captured, exact count) | 478118 |
+| Last fill timestamp (exact) | 2026-10-19_16:00_UTC |
 | libro_eventos (order-book events, chunk-estimate) | 88011096 |
-| Last book-event timestamp (exact) | 2026-10-19_10:47_UTC |
-| libro_top5 (top-5 snapshots, exact count) | 571556 |
+| Last book-event timestamp (exact) | 2026-10-19_16:00_UTC |
+| libro_top5 (top-5 snapshots, exact count) | 593693 |
 | Active tokens last 7 days (exact, indexed) | 366 |
-| Fills last 7 days (exact, indexed) | 458449 |
-| Markets tracked (market_meta) | 10924 |
+| Fills last 7 days (exact, indexed) | 478118 |
+| Markets tracked (market_meta) | 11061 |
 
 **Liveness:** Healthy: last trade 0 min ago.
 
