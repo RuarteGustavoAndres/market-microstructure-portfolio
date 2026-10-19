@@ -14,6 +14,10 @@ Además prueba un ajuste "maker-realista": al P&L de un fill maker-like se le
 acredita medio spread capturado (el ingreso del maker que la simulación de
 taker-fills no tiene) y se reintenta el filtro.
 
+CONVENCIÓN MAKER (veredicto del arbitraje 19-oct): el P&L por fill se
+reporta desde el lado del LP = -(P&L del agresor del tape). El filtro
+p<UMBRAL retiene el flujo benigno para el maker y NO se invierte.
+
 Uso: ./venv-ml/bin/python backtest_desglose.py
 Salida: dataset/desglose_walkforward.json + tabla en stdout.
 """
@@ -54,7 +58,8 @@ def load():
                 pos = 1 - pos
             rows.append({
                 "ts": float(r["ts_epoch"]), "h": int(float(r["horizonte_s"])),
-                "pnl": side * (mf - fp) * 100.0,
+                # convención MAKER: P&L del LP = -(P&L del agresor del tape)
+                "pnl": -side * (mf - fp) * 100.0,
                 "x": [float(r[k]) if r[k] not in ("", None) else 0.0 for k in FEATURES],
                 "y": 1 if float(r["target"]) > 0.5 else 0,
                 "spread": spread, "pos": pos, "side": side,
@@ -143,6 +148,9 @@ def main():
     tot_sin = seg(oos)
     tot_con = seg(oos, filtrado=True)
     desglose["TOTAL"] = {"sin_filtro": tot_sin, "filtrado_0.7": tot_con}
+    desglose["convencion"] = ("MAKER: pnl por fill = -(P&L del agresor del "
+                              "tape); el filtro retiene p<0.7 (flujo benigno "
+                              "para el LP). Veredicto arbitraje 19-oct.")
 
     with open(OUT, "w") as f:
         json.dump(desglose, f, indent=1)

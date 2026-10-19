@@ -8,11 +8,19 @@ Metodología (López de Prado 2018 ch.7/12; Pardo 1992 walk-forward):
      de etiqueta) entre el último dato de train y el primer dato de test.
      Purga: ninguna etiqueta del train usa información posterior al inicio
      del test (el embargo lo garantiza porque horizonte_max = 300s).
-  2. P&L EXACTO por fill (no aproximado por spread):
-     BUY : (mid_futuro - fill_price)   [centavos/share]
-     SELL: (fill_price - mid_futuro)
+  2. P&L EXACTO por fill, en CONVENCIÓN MAKER (el bot es LP: cota pasiva y
+     el fill llega cuando un AGRESOR cruza; el tape registra fills de
+     agresores, así que el P&L del maker por fill = -(P&L del agresor)):
+     agresor BUY : su P&L = (mid_futuro - fill_price)
+     agresor SELL: su P&L = (fill_price - mid_futuro)
+     pnl_maker = -side*(mid_futuro - fill_price)   [centavos/share]
      con mid_futuro = mid del libro REAL a t+horizonte (columna del dataset,
      misma fuente que las etiquetas: libro_snapshots).
+     El filtro p<thr RETIENE el flujo con baja P(favorable al agresor) =
+     flujo no informado, que es el que conviene recibir como LP (el costo
+     adverso del maker = el agresor gana post-fill). Veredicto del
+     arbitraje 19-oct (Claude): el filtro p<thr es CORRECTO para maker;
+     el bug era reportar el P&L del lado del agresor.
   3. Grilla de umbrales por fold: si cada fold elige un umbral distinto ->
      señal de sobreajuste del umbral. Se reporta además el P&L agregado a
      umbral FIJO 0.7 (sin mirar el futuro al elegir) y el Walk-Forward
@@ -52,7 +60,7 @@ def log(m):
 
 
 def load():
-    """Filas etiquetadas con P&L exacto: pnl = side*(mid_futuro-price)."""
+    """Filas etiquetadas, convención MAKER: pnl = -side*(mid_futuro-price)."""
     rows = []
     with open(DATA) as f:
         for r in csv.DictReader(f):
@@ -60,11 +68,12 @@ def load():
                 continue
             mf, fp = float(r["mid_futuro"]), float(r["fill_price"])
             side = 1.0 if float(r["side_buy"]) > 0.5 else -1.0
+            pnl_agresor = side * (mf - fp) * 100.0  # centavos/share (el tape registra fills de agresores)
             rows.append({
                 "ts": float(r["ts_epoch"]),
                 "token": r["token_id"],
                 "h": int(float(r["horizonte_s"])),
-                "pnl": side * (mf - fp) * 100.0,  # centavos/share
+                "pnl": -pnl_agresor,  # convención MAKER: P&L del LP = -(P&L del agresor)
                 "x": [float(r[k]) if r[k] not in ("", None) else 0.0
                       for k in FEATURES],
                 "y": 1 if float(r["target"]) > 0.5 else 0,
@@ -74,7 +83,7 @@ def load():
 
 
 def pnl_stats(sub, thr=None, proba=None):
-    """P&L (USD a $1/share nominal), ops y hit-rate de un subconjunto."""
+    """P&L MAKER (USD a $1/share nominal), ops y hit-rate de un subconjunto."""
     if thr is not None:
         sub = [r for r, p in zip(sub, proba) if p < thr]
     if not sub:
@@ -173,8 +182,11 @@ def main():
 
     resumen = {
         "fecha": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
+        "convencion": "MAKER: pnl por fill = -(P&L del agresor del tape); "
+                      "el filtro retiene p<thr (flujo benigno para el LP). "
+                      "Veredicto arbitraje 19-oct.",
         "metodologia": "walk-forward temporal contiguo, embargo 300s, "
-                       "P&L exacto vs mid_futuro real, umbral fijo a priori",
+                       "P&L maker exacto vs mid_futuro real, umbral fijo a priori",
         "filas": len(rows), "bloques": K_BLOQUES,
         "umbral_fijo": UMBRAL_FIJO,
         "oos_sin_filtro_usd": oos_sin,
@@ -182,9 +194,9 @@ def main():
         f"oos_fijo_{UMBRAL_FIJO_CONSERV}_usd": oos_conserv,
         "oos_umbral_optimo_por_fold_usd": round(oos_opt, 2),
         "umbral_optimo_por_fold": umbral_optimo_por_fold,
-        "umbral_estable": (len(set(thresholds)) <= 2 if thresholds else None),
+        "umbral_estable": (len(set(thresholds)) == 1 if thresholds else None),
         "in_sample_fijo_usd": is_fijo_total,
-        "walk_forward_efficiency_pct": wfe,
+        "wfe_maker_pct": wfe,
         "nota_wfe": "WFE <30% = aviso de sobreajuste (literatura walk-forward)",
         "folds": resultados,
     }
@@ -192,14 +204,14 @@ def main():
         json.dump(resumen, f, indent=1)
     log(f"resultados -> {OUT}")
 
-    log("=== RESUMEN ===")
-    log(f"P&L OOS sin filtro:      {oos_sin}$")
-    log(f"P&L OOS umbral fijo {UMBRAL_FIJO}:  {oos_fijo}$")
-    log(f"P&L OOS umbral fijo {UMBRAL_FIJO_CONSERV}:  {oos_conserv}$")
-    log(f"P&L OOS umbral óptimo c/fold (techo): {round(oos_opt, 2)}$")
+    log("=== RESUMEN (convención MAKER: pnl = -(agresor)) ===")
+    log(f"P&L OOS maker sin filtro:      {oos_sin}$")
+    log(f"P&L OOS maker umbral fijo {UMBRAL_FIJO}:  {oos_fijo}$")
+    log(f"P&L OOS maker umbral fijo {UMBRAL_FIJO_CONSERV}:  {oos_conserv}$")
+    log(f"P&L OOS maker umbral óptimo c/fold (techo): {round(oos_opt, 2)}$")
     log(f"Umbrales óptimos por fold: {umbral_optimo_por_fold} "
         f"-> estable: {resumen['umbral_estable']}")
-    log(f"WFE (OOS/IS a umbral fijo): {wfe}%")
+    log(f"WFE maker (OOS/IS a umbral fijo): {wfe}%")
 
 
 if __name__ == "__main__":
