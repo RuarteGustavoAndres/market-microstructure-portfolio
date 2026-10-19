@@ -40,7 +40,10 @@ def test_trap_fails_every_check(audited):
     trap_f, m_trap, _, _ = audited
     verdicts = {f["check"]: f["verdict"] for f in trap_f}
     assert len(trap_f) == 5
-    assert all(v == "FAIL" for v in verdicts.values()), verdicts
+    # capturabilidad may WARN (look-ahead vs fast alpha indistinguishable
+    # from prices+trades) — but the trap must never PASS a check
+    assert all(v in ("FAIL", "WARN") for v in verdicts.values()), verdicts
+    assert verdicts["Capturabilidad del edge (re-ejecución con 1 bar de retraso)"] == "WARN"
     # the trap must look attractive as reported: positive mean, big Sharpe
     assert m_trap["mean"] > 0 and m_trap["sharpe"] > 5
 
@@ -160,7 +163,9 @@ def test_cli_full_audit_fires_on_trap_csv(client_csvs, capsys):
                   "In-sample parameter tuning", "Random K-fold CV",
                   "Survivorship"):
         assert check in out
-    assert out.count("— **FAIL**") == 5
+    assert out.count("— **FAIL**") == 4
+    assert out.count("— **WARN**") == 1  # capturabilidad: reported > delayed but survives
+    assert "**PASS**" not in out
     assert "**SKIP**" not in out
 
 
@@ -189,5 +194,6 @@ def test_report_contains_both_cases(cases, audited):
     ])
     assert "Case 1 — the trap client" in rep
     assert "Case 2 — the clean control" in rep
-    assert rep.count("— **FAIL**") == 5
+    assert rep.count("— **FAIL**") == 4
+    assert rep.count("— **WARN**") == 1
     assert rep.count("— **PASS**") == 5

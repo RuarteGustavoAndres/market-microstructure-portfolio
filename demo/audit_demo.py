@@ -20,12 +20,14 @@ and says so.
 
 Each check is a detector with a formal test (PASO 4a-4b of the audit):
 
-  1. Look-ahead signal    — edge at bar+1 after entry vs the SAME strategy's
-                            edge at a later bar of the same holding period
-                            (two-pool permutation, H1: bar-1 > later). A
-                            causal signal cannot predict the bar right after
-                            entry; a REAL short-horizon edge decays smoothly
-                            and does not fire this check.
+  1. Capturabilidad       — every reported trade re-executed with a 1-bar
+                            delay, same direction (permutation test,
+                            H1: reported > delayed). FAIL if the edge
+                            VANISHES with one bar of latency; WARN if it
+                            falls sharply but survives (look-ahead and fast
+                            alpha are indistinguishable from prices+trades
+                            alone — ask the client for signal-entry
+                            timestamps); PASS if the edge survives latency.
   2. Fills at mid         — the reported edge re-priced with the spread;
                             one-sided sign-flip test that the charged mean
                             is <= 0. Firing only if the client CLAIMS an
@@ -338,59 +340,58 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
     pnls = [p for _t, _pos, p in booked]
     f = []
 
-    # CHECK 1 — look-ahead: does the direction "know" the next bar?
-    # Reworked (review Claude 19-oct): a strategy with REAL short-term edge
-    # also predicts the next bar, so testing bar-1 edge vs 0 gives false
-    # positives. The look-ahead SIGNATURE is edge CONCENTRATION: all of it in
-    # the bar right after the decision (the one the signal saw), none at a
-    # later bar of the same holding period. Two-pool permutation, H1 bar-1 >
-    # later, and a practical guard (later edge <= half the bar-1 edge).
+    # CHECK 1 — capturabilidad: does the edge survive a 1-bar entry delay?
+    # Reworked twice (round 2 + 3, review Claude 19-oct):
+    #  - testing bar+1 edge vs 0 flagged REAL short-term edges (false +);
+    #  - the share fix had a UNITS bug: relative return / price-unit P&L is
+    #    inflated by 1/px (fires 2x hard at px=0.5, never fires above $1).
+    #  Final form: re-execute every reported trade ONE bar later, same
+    #  direction, SAME price units as the reported P&L:
+    #    FAIL  — delayed edge <= 0: only the bar the signal saw paid.
+    #    WARN  — delayed edge falls sharply but survives: look-ahead vs fast
+    #            alpha is indistinguishable from prices+trades alone → ask
+    #            the client for signal-entry timestamps.
+    #    PASS  — edge survives latency (what a client can actually trade).
     if prices is None:
-        f.append({"check": "Decision-time computability (look-ahead signal)",
+        f.append({"check": "Capturabilidad del edge (re-ejecución con 1 bar de retraso)",
                   "verdict": "SKIP",
                   "detail": "Needs the price series (--prices) to re-execute."})
     else:
         n = len(prices)
-        bar1, later = [], []
-        # EXACT decomposition of the reported edge: pnl = bar1 + later where
-        # bar1 = the bar right after the decision (the one a look-ahead
-        # signal "sees") and later = the REST of the holding period.
+        rep, dly = [], []
         for t, pos, pnl in booked:
-            if t + 1 >= n:
+            k = t + hold + 1
+            if k >= n:
                 continue
-            bar1.append(pos * (prices[t + 1] - prices[t]) / prices[t])
-            k = t + hold
-            if k < n:
-                later.append(pos * (prices[k] - prices[t + 1]) / prices[t])
-        obs1 = _mean(bar1) if bar1 else 0.0
-        obsL = _mean(later) if later else 0.0
-        p = perm_test_two_pool(bar1, later, rng, n_perm)
-        # Fire on CONCENTRATION: of the reported per-trade edge, the single
-        # bar right after the decision explains almost ALL of it (> 80%).
-        # The remainder carries the market's drift for any strategy, so an
-        # absolute "remainder = 0" test would be wrong; the share is the
-        # signature. A real edge spread over a `hold`-bar holding period
-        # cannot have > 80% in bar 1 unless hold is trivially short (guard:
-        # hold >= 5). A look-ahead signal explains ~100% by construction.
-        share = obs1 / m_booked["mean"] if m_booked["mean"] > 0 else 0.0
-        fail = (p is not None and p <= ALPHA and m_booked["mean"] > 0
-                and obs1 > 0 and share > 0.8 and hold >= 5)
+            rep.append(pnl)
+            dly.append(pos * (prices[k] - prices[t + 1]))  # same price units
+        obsR = _mean(rep) if rep else 0.0
+        obsD = _mean(dly) if dly else 0.0
+        p = perm_test_two_pool(rep, dly, rng, n_perm)
+        ratio = obsD / obsR if obsR > 0 else 1.0
+        if p is not None and p <= ALPHA and obsR > 0 and obsD <= 0:
+            verdict, extra = "FAIL", (
+                " Con 1 bar de retraso el edge DESAPARECE: solo paga la "
+                "barra que la señal pudo ver — la dirección anticipa "
+                "información que no existía al decidir.")
+        elif p is not None and p <= ALPHA and obsR > 0 and ratio < 0.5:
+            verdict, extra = "WARN", (
+                " Con 1 bar de retraso el edge cae a %.0f%% del reportado: "
+                "no se distingue look-ahead de alfa rápido con solo "
+                "precios+trades — pedir timestamps de las entradas de la "
+                "señal." % (100.0 * ratio))
+        else:
+            verdict, extra = "PASS", (
+                " El edge sobrevive a 1 bar de retraso: es capturable a "
+                "latencia realista (o no hay edge que perder).")
         f.append({
-            "check": "Decision-time computability (look-ahead signal)",
-            "verdict": "FAIL" if fail else "PASS",
-            "detail": ("Edge decomposition per trade: bar+1 after decision "
-                       "%+.5f = %.0f%% of the reported edge; remainder of "
-                       "the holding period %+.5f (%s, %d permutations, H1: "
-                       "bar-1 > remainder). A causal signal cannot predict "
-                       "the bar right after entry; a REAL short-horizon "
-                       "edge spreads across the holding period and does not "
-                       "fire.%s"
-                       % (obs1, 100.0 * share, obsL, _fmt_p(p, n_perm), n_perm,
-                          "" if not fail else
-                          " The direction anticipates the very next bar — "
-                          "the reported edge is almost entirely the one bar "
-                          "the indicator could see: the signal is trading "
-                          "information that does not exist yet.")),
+            "check": "Capturabilidad del edge (re-ejecución con 1 bar de retraso)",
+            "verdict": verdict,
+            "detail": ("Edge reportado %+.5f/trade; re-ejecutado 1 bar más "
+                       "tarde (misma dirección, mismo horizonte) %+.5f "
+                       "(%s, %d permutations, H1: reportado > retrasado)."
+                       "%s"
+                       % (obsR, obsD, _fmt_p(p, n_perm), n_perm, extra)),
         })
 
     # CHECK 2 — book pricing: does the claimed edge survive the spread?
@@ -450,7 +451,9 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         f.append({
             "check": "In-sample parameter tuning (threshold fit on the reported window)",
             "verdict": "FAIL" if fail else "PASS",
-            "detail": ("Walk-forward: tune the threshold on the first half "
+            "detail": ("SCOPE: applies only to threshold-over-signal "
+                       "strategies (grid and annualization are demo-tuned). "
+                       "Walk-forward: tune the threshold on the first half "
                        "only (thr %.2f), report the second half with honest "
                        "plumbing: Sharpe %.2f, mean trade %.4f — vs reported "
                        "Sharpe %.2f, mean %.4f (%s, %d permutations).%s"
@@ -497,7 +500,9 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         f.append({
             "check": "Random K-fold CV on temporal data",
             "verdict": "FAIL" if fail else "PASS",
-            "detail": ("Shuffled 5-fold 'validation' reports Sharpe %.2f — "
+            "detail": ("SCOPE: applies only to threshold-over-signal "
+                       "strategies (grid and annualization are demo-tuned). "
+                       "Shuffled 5-fold 'validation' reports Sharpe %.2f — "
                        "but shuffling P&L and averaging fold Sharpes is "
                        "commutative: it returns the full-sample number and "
                        "validates nothing. The audit's validation: contiguous "
@@ -588,11 +593,12 @@ def build_cases(rng, n_days=N_DAYS, seed=SEED):
 
 
 def self_check(trap_findings, clean_findings, m_trap, m_clean):
-    """The demo's own invariant (PASO 4d): the trap client must fail every
-    check, the clean control must pass every one. If not, the demo is
-    broken."""
-    bad = [f["check"] for f in trap_findings if f["verdict"] != "FAIL"]
-    assert not bad, "trap client must fail every check, passed: %r" % bad
+    """The demo's own invariant (PASO 4d): the trap client must be CAUGHT by
+    every check (FAIL, or WARN where look-ahead vs fast alpha is
+    indistinguishable — capturabilidad); the clean control must pass every
+    one. If not, the demo is broken."""
+    bad = [f["check"] for f in trap_findings if f["verdict"] == "PASS"]
+    assert not bad, "trap client must not PASS any check, passed: %r" % bad
     bad = [f["check"] for f in clean_findings if f["verdict"] != "PASS"]
     assert not bad, "clean control must pass every check, failed: %r" % bad
     assert m_clean["mean"] < 0, \
@@ -633,7 +639,10 @@ def build_report(cases):
             L.append("%d. %s — **%s**\n   %s\n" % (j, fd["check"], fd["verdict"], fd["detail"]))
     L.append("## What the demo proves\n")
     L.append("> The audit **detects**: the trap client — Sharpe %s and a "
-             "plausible win rate — fails every check; the clean control — a "
+             "plausible win rate — gets flagged by every check (4 FAIL + "
+             "1 WARN: the capturabilidad check reports WARN where look-ahead "
+             "and fast alpha are indistinguishable from prices+trades, and "
+             "asks for signal-entry timestamps); the clean control — a "
              "losing strategy on a no-edge market — passes every one. The "
              "audit punishes broken plumbing, not losing strategies: an "
              "honest backtest of a no-edge market loses exactly the spread "

@@ -113,7 +113,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 |---|---|
 | AUC-ROC pooled OOS (LightGBM, leak-free, mercados no vistos) | **0.7356** |
 | AUC-ROC out-of-fold (baseline MLP) | 0.751 |
-| AUC por fold temporal (rango, 5 folds) | **0.675 / 0.796** |
+| AUC por fold temporal (rango, 5 folds) | **0.672 / 0.786** |
 | Fills distintos | 107,362 |
 | Filas de entrenamiento (107,362 fills × 4 horizontes) | 429,448 |
 | **P&L maker walk-forward OOS (dataset 19-10-2026 sin fugas, 285,764 filas)** | **POSITIVO PERO FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **−208.84 USD** · filtro @0.7 **+112.05** · óptimo por fold (0.6/0.75/0.6/0.5/0.5 — no estable). WFE **9.5% por fila** (2.1% por totales; filas = pares fill×horizonte). GroupKFold por mercado (estimación optimista): sin filtro −117 · umbral cuantil 0.5 **+490.11, 5/5 folds positivos** (retención 49%). Gate cerrado hasta simular cola + costos; números reportados igual. |
