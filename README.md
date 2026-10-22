@@ -30,7 +30,7 @@ number here is real, out-of-sample — **including the parts that did not work**
 Live capture status (machine-generated daily from the production database):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 
-Contact: open a GitHub issue.
+Contact: open a GitHub issue or email gustavoaruarte@gmail.com.
 
 ## Highlights
 - **119M+ order-book events** (libro_eventos) + **645k+ fills** (trades_full)
@@ -184,4 +184,4 @@ MIT — see [LICENSE](LICENSE). Use freely, attribution appreciated.
 
 ## Author
 Gustavo Ruarte — market microstructure & ML engineering.
-Contact: open a GitHub issue.
+Contact: open a GitHub issue or email gustavoaruarte@gmail.com.

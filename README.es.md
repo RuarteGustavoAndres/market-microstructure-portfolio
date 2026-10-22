@@ -26,7 +26,7 @@ partes que no funcionaron**.
 Estado de captura en vivo (generado a diario desde la base de producción):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 
-Contacto: abrir un issue en GitHub.
+Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
 
 ## Lo más relevante
 - **85M+ eventos de libro** (libro_eventos) + **382k+ fills** (trades_full)
@@ -181,4 +181,4 @@ MIT — ver [LICENSE](LICENSE). Uso libre, atribución apreciada.
 
 ## Autor
 Gustavo Ruarte — market microstructure & ML engineering.
-Contacto: abrir un issue en GitHub.
+Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
