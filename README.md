@@ -11,17 +11,21 @@ number here is real, out-of-sample — **including the parts that did not work**
 
 **Headline results**
 
-1. **85M+ order-book events and 382k+ real fills** captured 24/7 into
-   TimescaleDB hypertables (9,900+ markets tracked, 362 active tokens in the
+1. **119M+ order-book events and 645k+ real fills** captured 24/7 into
+   TimescaleDB hypertables (12,900+ markets tracked, 9,900+ active in the
    last 7 days).
-2. **Toxicity classifier: AUC 0.736 pooled OOS on unseen markets (folds 0.67-0.79, leak-free); PR-AUC 0.514 vs 0.314 prevalence**
-   (mean over 119 markets) — a scoring/filter layer, **not** a decision-maker.
+2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (folds 0.689-0.786, leak-free); PR-AUC 0.506 vs 0.304 prevalence** — a scoring/filter layer, **not** a decision-maker.
 3. **Walk-forward verdict: the filter reduces tape adverse selection in maker
-   perspective: **+$112 strict temporal OOS** (the headline); +$490 per-market folds 5/5 is an optimistic ceiling — the ~4x gap comes from that scheme not being out-of-time; queue simulation
+   perspective: **+$489 strict temporal OOS @0.7** (the headline; unfiltered
+   went from −209 to **+113** as data grew from 286k to 383k rows);
+   +$747 per-market folds (quantile-0.5, 50% retention) is an optimistic
+   ceiling — that scheme is out-of-time but not out-of-market; queue simulation
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) still pending to close the gate** —
-   walk-forward efficiency is 9.5% per row (rows = fill×horizon pairs; in-sample decays ~90% per row);
-   queue simulation and costs still pending (full numbers in the table
-   below). The gate stays closed and we keep the verdict.
+   walk-forward efficiency is 35.4% per row (8.0% per total; rows =
+   fill×horizon pairs); per-fold optimal thresholds are still **not stable**
+   (0.5-0.7), so we run the fixed 0.7 filter. All four horizons positive
+   filtered (+81 h1s / +146 h10s / +167 h60s / +95 h300s). The gate stays
+   closed and we keep the verdict.
 
 Live capture status (machine-generated daily from the production database):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
@@ -29,13 +33,13 @@ Live capture status (machine-generated daily from the production database):
 Contact: open a GitHub issue.
 
 ## Highlights
-- **85M+ order-book events** (libro_eventos) + **382k+ fills** (trades_full)
-  captured 24/7 into TimescaleDB hypertables — **9,900+ markets tracked, 362
-  active tokens in the last 7 days** (verified 2026-10-18).
+- **119M+ order-book events** (libro_eventos) + **645k+ fills** (trades_full)
+  captured 24/7 into TimescaleDB hypertables — **12,900+ markets tracked**
+  (verified 2026-10-22).
 - **Hundreds of thousands of order-book events per hour, sustained 24/7**, into
   a TimescaleDB hypertable (compression + retention policies).
-- **Toxicity classifier: LightGBM AUC 0.736 pooled OOS on unseen markets
-  (leak-free)**, per-fold range **0.67-0.79** — rows are fill×horizon pairs
+- **Toxicity classifier: LightGBM AUC 0.7384 pooled OOS on unseen markets
+  (leak-free)**, per-fold range **0.689-0.786** — rows are fill×horizon pairs
   (each fill appears once per horizon), so every P&L table sums each fill 4×.
   The pooled/per-market gap is a difference in base rates, and we declare it.
 - Caught and removed **feature-leakage traps** (incoming-trade size, stale snapshots, horizon pooling) that had inflated AUC from 0.736 to 0.765.
@@ -52,7 +56,7 @@ Contact: open a GitHub issue.
   BTC/ETH/SOL perps, 24/7 systemd capture. Markout / adverse-selection
   analytics in [`analytics/adverse_selection.py`](analytics/adverse_selection.py).
 
-### Data status (declared, as of 2026-10-18)
+### Data status (declared, as of 2026-10-22)
 - Continuous capture **2026-10-14 → present** (trades stream: no gaps).
 - **Known outage:** order-book stream down **2026-10-15 ~17:00–20:00 UTC** (~3h,
   systemd services were not `enabled` and died with an interactive session;
@@ -76,7 +80,7 @@ TimescaleDB hypertables (libro_eventos, trades_full, libro_top5, market_meta
                           + binance_* tables for venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Fill-toxicity classifier (LightGBM)  →  AUC 0.736 pooled OOS, unseen markets (leak-free)
+Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets (leak-free)
 ```
 
 ## Pipeline modules
@@ -93,29 +97,30 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.736 pooled OOS, unseen markets (
 - **Target:** markout of each real trade at +horizon (book mid vs fill price).
   Markout < 0 = adversely selected.
 - **Multi-horizon labeling:** every fill labeled at 1s/10s/60s/300s. The
-  training set is **107,362 distinct fills × 4 horizons = 429,448 rows** (each
-  fill contributes one row per horizon — these are fill×horizon *pairs*, not
-  distinct fills).
+  freshness-capped walk-forward dataset is **382,582 fill×horizon rows**
+  (268,446 of them out-of-sample; each fill contributes one row per horizon —
+  these are fill×horizon *pairs*, not distinct fills).
 - **Validation:** GroupKFold by market (unseen-market generalization) +
   per-market z-score normalization.
 - **Leakage removed:** `pos_en_spread` and `fill_price` reconstruct the target
   by construction — dropped them, AUC fell from 0.702 to the honest 0.6425
   (MLP baseline).
-- **Leak-free re-run:** pooled AUC **0.736** out-of-fold on unseen markets (freshness-capped snapshots, causal standardization, per-market folds);
+- **Leak-free re-run:** pooled AUC **0.7384** out-of-fold on unseen markets (freshness-capped snapshots, causal standardization, per-market folds);
   (0.751) — better for tabular microstructure features.
 - **Honest limitations:** the model ranks toxicity (AUC) but binary accuracy
   sits below the majority baseline → it is a scoring/filter layer, not an
-  autonomous decision-maker. And under exact-markout walk-forward, the filter
-  does **not yet** produce positive net P&L (below).
+  autonomous decision-maker. Under exact-markout walk-forward the filter
+  **does** produce positive net P&L (+$489 @0.7 on the 2026-10-22 refresh) —
+  but thresholds per fold are not stable and queue simulation is still
+  pending, so the gate stays closed (below).
 
 | Metric | Value |
 |---|---|
-| AUC-ROC pooled OOS (LightGBM, leak-free, unseen markets) | **0.7356** |
-| PR-AUC OOS / prevalence | **0.5135 / 0.314** |
-| AUC per temporal fold (range, 5 folds) | **0.672 / 0.786** |
-| Distinct fills (pre freshness-cap) | 107,362 |
-| Training rows (pre freshness-cap; post-cap 285,764) | 429,448 |
-| **Walk-forward OOS maker P&L (2026-10-19 leak-free dataset, 285,764 rows)** | **POSITIVE BUT FRAGILE** — exact-markout, temporal splits, 300s embargo: unfiltered **−208.84 USD** · filter @0.7 **+112.05** · per-fold-optimal (0.6/0.75/0.6/0.5/0.5 — not stable). WFE **9.5% per row** (2.1% per total; rows = fill×horizon pairs). Per-market GroupKFold optimistic estimate: unfiltered −117 · quantile-0.5 threshold **+490.11, 5/5 positive folds** (retention 49%). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
+| AUC-ROC pooled OOS (LightGBM, leak-free, unseen markets) | **0.7384** |
+| PR-AUC OOS / prevalence | **0.5057 / 0.304** |
+| AUC per temporal fold (range, 5 folds) | **0.689 / 0.786** |
+| Walk-forward rows (freshness-capped, 2026-10-22 refresh) | 382,582 (268,446 OOS) |
+| **Walk-forward OOS maker P&L (2026-10-22 refresh, 382,582 rows)** | **POSITIVE, still fragile** — exact-markout, temporal splits, 300s embargo: unfiltered **+113.47 USD** · filter @0.7 **+488.98** (231,334 ops) · @0.8 **+216.82** · per-fold-optimal (0.65/0.5/0.7/0.65/0.65 — **not stable**). WFE **35.4% per row** (8.0% per total; rows = fill×horizon pairs). Per-market GroupKFold optimistic estimate: unfiltered **+186** · quantile-0.5 threshold **+746.93** (retention 50%) · @0.7 **+560.97**. All horizons positive filtered (+81 h1s / +146 h10s / +167 h60s / +95 h300s). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol
@@ -158,19 +163,20 @@ DB; latest machine-readable report in
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Next steps (scoped)
-- ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.736 pooled OOS).
+- ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7384 pooled OOS).
 - ~~Backtest the toxicity filter against net P&L~~ **done on leak-free features
-  (freshness-capped snapshots, causal standardization, per-market folds,
-  PR-AUC 0.514 vs 0.314 prevalence) — the filter reduces tape adverse
-  selection in maker perspective: **+$112 OOS under the strict temporal
-  walk-forward** (300s embargo) — the headline; +$490 under per-market
-  GroupKFold (5/5 positive folds) is an optimistic ceiling, because that
-  scheme is out-of-market but not out-of-time (train sees other markets'
-  same-regime data, hence the ~4x gap). Walk-forward efficiency is **9.5%
-  per row** (2.1% per total; in-sample decays ~90% per row) and queue
+  (freshness-capped snapshots, causal standardization, per-market folds) —
+  the filter reduces tape adverse
+  selection in maker perspective: **+$489 OOS under the strict temporal
+  walk-forward @0.7** (300s embargo) — the headline (unfiltered +113 vs
+  −209 on the previous refresh, as data grew 286k→383k rows); +$747 under
+  per-market GroupKFold quantile-0.5 (retention 50%) is an optimistic
+  ceiling, because that scheme is out-of-market but not out-of-time.
+  Walk-forward efficiency is **35.4% per row** (8.0% per total) but per-fold
+  optimal thresholds remain **not stable** (0.5-0.7) and queue
   simulation (PLAN_SIM_COLA.md) is still pending — the gate stays closed.** AUC ranks flow; converting it
   into net maker P&L (queue position, rewards, fees) remains open work.
-- Investigate why ranking skill does not translate: per-horizon/per-regime
+- Investigate why ranking skill does not translate fully: per-horizon/per-regime
   P&L, queue-position-aware simulation, cost model calibration.
 
 ## License
