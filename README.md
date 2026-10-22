@@ -15,24 +15,24 @@ number here is real, out-of-sample — **including the parts that did not work**
    TimescaleDB hypertables (12,900+ markets tracked, 9,900+ active in the
    last 7 days).
 2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (folds 0.689-0.786, leak-free); PR-AUC 0.506 vs 0.304 prevalence** — a scoring/filter layer, **not** a decision-maker.
-3. **Walk-forward verdict: the filter consistently reduces tape adverse
-   selection in maker perspective — the filter's P&L delta over unfiltered was
-   positive on every leak-free refresh: **+$321** (2026-10-19, 286k rows) and
-   **+$376** (2026-10-22, 383k rows), while the unfiltered level itself swung
-   from −209 to +113 (all figures GROSS under tape-fill assumptions: every
-   tape fill counted, no queue position, no fees, no costs; confidence
-   interval on the delta pending the null test). Current filtered level
-   @0.7: **+$489**. Per-market folds (quantile-0.5) give +$747, an optimistic
-   ceiling — that scheme is out-of-time but not out-of-market. Queue
-   simulation ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) is still pending to close
-   the gate; a first queue-aware run was **inconclusive** (AUC ~0.50-0.56 on
+3. **Walk-forward verdict (single horizon h=300s): the filter reduces tape
+   adverse selection — the filter's P&L delta over unfiltered is **+$99.24**
+   on the 2026-10-22 single-horizon refresh (129,175 rows, one fill = one
+   sample at h=300s), while the unfiltered level is **−$106.75** and the
+   filtered level @0.7 is **−$7.51** (80,379 ops) — the level @0.7 is still
+   negative in single horizon (all figures GROSS under tape-fill assumptions:
+   every tape fill counted, no queue position, no fees, no costs; confidence
+   interval on the delta pending the null test). The previous **+$489 @0.7**
+   level came from the 382,582-row scheme that summed all four horizons of
+   every fill (fill×horizon pairs), inflating the level ~4×; the current
+   scheme counts one fill once. Queue simulation
+   ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) is still pending to close the gate;
+   a first queue-aware run (T2/T3) was **inconclusive** (AUC ~0.50-0.56 on
    approximated features, out-of-distribution). Walk-forward efficiency is
-   35.4% per row (8.0% per total; rows = fill×horizon pairs; the 19-oct
-   refresh measured 9.5%/2.1% on its 286k-row dataset) — the jump tracks the
-   data refresh, both per-row on fill×horizon pairs; per-fold optimal
-   thresholds are still **not stable** (0.5-0.7), so we run the fixed 0.7
-   filter. All four horizons positive filtered (+81 h1s / +146 h10s / +167
-   h60s / +95 h300s). The gate stays closed.
+   **−0.8% per op** (OOS vs in-sample P&L per op at the fixed threshold —
+   below the 30% overfitting-warning line), and per-fold optimal thresholds
+   are **not stable** (0.6/0.5/0.7/0.6/0.55), so we run the fixed 0.7 filter.
+   The gate stays closed.
 
 Live capture status (machine-generated daily from the production database):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
@@ -116,22 +116,27 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets 
   (freshness-capped snapshots, causal standardization, per-market folds).
 - **Honest limitations:** the model ranks toxicity (AUC) but binary accuracy
   sits below the majority baseline → it is a scoring/filter layer, not an
-  autonomous decision-maker. Under exact-markout walk-forward the filter
-  **does** produce positive GROSS P&L under tape-fill assumptions (+$489 @0.7
-  on the 2026-10-22 refresh; delta +$376 over unfiltered) — but thresholds per
-  fold are not stable, and a first queue-aware simulation (T2/T3, 2026-10-18)
-  was **inconclusive**: the model's AUC on simulated fills is ~0.50-0.56
-  (approximated features, out-of-distribution), so the tape-based numbers
-  assume ideal fills ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). The gate stays
-  closed.
+  autonomous decision-maker. Under exact-markout single-horizon walk-forward
+  (h=300s, 2026-10-22) the filter **reduces** tape adverse selection — a
+  **+$99.24** GROSS P&L delta over unfiltered under tape-fill assumptions —
+  but the absolute level @0.7 is **negative** (−$7.51 over 80,379 ops;
+  unfiltered −$106.75), per-op walk-forward efficiency is **−0.8%** (below the
+  30% overfitting-warning line), thresholds per fold are not stable, and a
+  first queue-aware simulation (T2/T3, 2026-10-18) was **inconclusive**: the
+  model's AUC on simulated fills is ~0.50-0.56 (approximated features,
+  out-of-distribution), so the tape-based numbers assume ideal fills
+  ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). The previous +$489 @0.7 level came
+  from the 382,582-row scheme that summed all four horizons of every fill
+  (fill×horizon pairs) — a previous 4×-counted estimate; the current scheme
+  counts one fill once. The gate stays closed.
 
 | Metric | Value |
 |---|---|
 | AUC-ROC pooled OOS (LightGBM, leak-free, unseen markets) | **0.7384** |
 | PR-AUC OOS / prevalence | **0.5057 / 0.304** |
-| AUC per temporal fold (range, 5 folds) | **0.689 / 0.786** |
-| Walk-forward rows (freshness-capped, 2026-10-22 refresh) | 382,582 (268,446 OOS) |
-| **Walk-forward OOS maker P&L (2026-10-22 refresh, 382,582 rows — gross, tape assumptions; queue+costs pending)** | **POSITIVE, still fragile** — exact-markout, temporal splits, 300s embargo: unfiltered **+113.47 USD** · filter @0.7 **+488.98** (231,334 ops) · @0.8 **+216.82** · per-fold-optimal (0.65/0.5/0.7/0.65/0.65 — **not stable**). WFE **35.4% per row** (8.0% per total; rows = fill×horizon pairs). Per-market GroupKFold optimistic estimate: unfiltered **+186** · quantile-0.5 threshold **+746.93** (retention 50%) · @0.7 **+560.97**. All horizons positive filtered (+81 h1s / +146 h10s / +167 h60s / +95 h300s). Gate stays closed pending queue simulation + costs; numbers reported anyway. |
+| AUC per temporal fold (range, 5 folds, h=300s) | **0.653 / 0.787** |
+| Walk-forward rows (single horizon h=300s, 2026-10-22 refresh) | 129,175 total; 80,379 OOS ops at fixed 0.7 |
+| **Walk-forward OOS maker P&L (single horizon h=300s, 2026-10-22 refresh, 129,175 rows — GROSS, tape-fill assumptions; queue+costs pending)** | **DELTA-POSITIVE, LEVEL-NEGATIVE, still fragile** — exact-markout, temporal splits, 300s embargo, one fill = one sample: unfiltered **−106.75 USD** · filter @0.7 **−7.51** (80,379 ops) · **delta over unfiltered +99.24** · per-fold-optimal thresholds 0.6/0.5/0.7/0.6/0.55 (**not stable**) → fixed 0.7 filter. WFE **−0.8% per op** (OOS vs in-sample P&L per op; below the 30% overfitting-warning line). Previous 4×-counted estimate (382,582-row scheme, all four horizons per fill): +488.98 @0.7. Gate stays closed pending queue simulation + costs; numbers reported anyway. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol
@@ -176,18 +181,17 @@ DB; latest machine-readable report in
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7384 pooled OOS).
 - ~~Backtest the toxicity filter against net P&L~~ **done on leak-free features
-  (freshness-capped snapshots, causal standardization, per-market folds) —
-  the filter reduces tape adverse
-  selection in maker perspective: **+$376 P&L delta over unfiltered** (level
-  @0.7: +$489; gross, tape-fill assumptions) under the strict temporal
-  walk-forward (300s embargo) — positive on every leak-free refresh
-  (+$321 on 2026-10-19, unfiltered −209→+113 as data grew 286k→383k rows);
-  +$747 under per-market GroupKFold quantile-0.5 (retention 50%) is an
-  optimistic ceiling, because that scheme is out-of-time but not out-of-market.
-  Walk-forward efficiency is **35.4% per row** (8.0% per total) but per-fold
-  optimal thresholds remain **not stable** (0.5-0.7) and queue
-  simulation (PLAN_SIM_COLA.md) is still pending — the gate stays closed.** AUC ranks flow; converting it
-  into net maker P&L (queue position, rewards, fees) remains open work.
+  (freshness-capped snapshots, causal standardization, temporal folds) —
+  under the strict single-horizon walk-forward (h=300s, one fill = one
+  sample, 300s embargo) the filter reduces tape adverse selection:
+  **+$99.24 GROSS P&L delta over unfiltered** (level @0.7: −$7.51; gross,
+  tape-fill assumptions; 2026-10-22 refresh, 129,175 rows). The earlier
+  4×-counted scheme (fill×horizon pairs, 382,582 rows) had shown a +$376
+  delta / +$489 level — same qualitative story, inflated level. WFE per op
+  is **−0.8%** and per-fold optimal thresholds remain **not stable**
+  (0.6/0.5/0.7/0.6/0.55); queue simulation (PLAN_SIM_COLA.md) is still
+  pending — the gate stays closed.** AUC ranks flow; converting it into
+  profitable maker P&L (queue position, rewards, fees) remains open work.
 - Investigate why ranking skill does not translate fully: per-horizon/per-regime
   P&L, queue-position-aware simulation, cost model calibration.
 

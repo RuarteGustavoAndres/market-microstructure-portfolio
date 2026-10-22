@@ -16,23 +16,24 @@ partes que no funcionaron**.
    de TimescaleDB (12,900+ mercados trackeados, 9,900+ activos en los
    últimos 7 días).
 2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (folds 0.689-0.786, sin fugas); PR-AUC 0.506 vs prevalencia 0.304** — una capa de scoring/filtro, **no** un decisor.
-3. **Veredicto walk-forward: el filtro reduce consistentemente la selección
-   adversa del tape en perspectiva maker — el delta de P&L del filtro sobre
-   sin-filtro fue positivo en cada refresh sin fugas: **+$321** (19-10, 286k
-   filas) y **+$376** (22-10, 383k filas), mientras el nivel sin filtro cambió
-   de signo (−209 → +113) (todas las cifras son BRUTAS bajo supuestos de
-   cinta: se cuenta cada fill del tape, sin posición en cola, sin fees, sin
-   costos; el IC del delta queda pendiente del test nulo). Nivel actual
-   filtrado @0.7: **+$489**. Folds por mercado (cuantil-0.5) dan +$747, techo
-   optimista — ese esquema es fuera-de-tiempo pero no fuera-de-mercado. La
-   simulación de cola ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) sigue pendiente
-   para cerrar el gate; una primera corrida con cola fue **inconclusa** (AUC
+3. **Veredicto walk-forward (horizonte único h=300s): el filtro reduce la
+   selección adversa del tape — el delta de P&L del filtro sobre sin-filtro es
+   **+$99.24** en el refresh del 22-10 de horizonte único (129,175 filas, 1
+   fill = 1 muestra a h=300s), mientras el nivel sin filtro es **−$106.75** y
+   el nivel filtrado @0.7 es **−$7.51** (80,379 ops) — el nivel @0.7 sigue
+   siendo negativo en horizonte único (todas las cifras son BRUTAS bajo
+   supuestos de cinta: se cuenta cada fill del tape, sin posición en cola, sin
+   fees, sin costos; el IC del delta queda pendiente del test nulo). El nivel
+   anterior **+$489 @0.7** venía del esquema de 382,582 filas que sumaba los
+   cuatro horizontes de cada fill (pares fill×horizonte), inflando el nivel
+   ~4×; el esquema actual cuenta cada fill una sola vez. La simulación de cola
+   ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) sigue pendiente para cerrar el
+   gate; una primera corrida con cola (T2/T3) fue **inconclusa** (AUC
    ~0.50-0.56 sobre features aproximadas, fuera de distribución). La
-   eficiencia walk-forward es 35.4% por fila (8.0% por totales; filas = pares
-   fill×horizonte; el refresh del 19-10 midió 9.5%/2.1% sobre su dataset de
-   286k filas); los umbrales óptimos por fold siguen **inestables** (0.5-0.7),
-   por eso corre el filtro fijo 0.7. Los cuatro horizontes positivos filtrados
-   (+81 h1s / +146 h10s / +167 h60s / +95 h300s). El gate sigue cerrado.
+   eficiencia walk-forward es **−0.8% por operación** (P&L OOS vs in-muestra
+   por op al umbral fijo — por debajo de la línea de aviso de sobreajuste del
+   30%) y los umbrales óptimos por fold son **inestables** (0.6/0.5/0.7/0.6/
+   0.55), por eso corre el filtro fijo 0.7. El gate sigue cerrado.
 
 Estado de captura en vivo (generado a diario desde la base de producción):
 [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
@@ -118,22 +119,28 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
   causal, folds por mercado).
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
-  decisor autónomo. Con markout exacto + walk-forward temporal, el filtro
-  **sí** genera P&L BRUTO positivo bajo supuestos de cinta (+$489 @0.7 en el
-  refresh del 22-10; delta +$376 sobre sin-filtro) — pero los umbrales por
+  decisor autónomo. Con markout exacto + walk-forward de horizonte único
+  (h=300s, 22-10) el filtro **reduce** la selección adversa del tape — un
+  delta de P&L BRUTO de **+$99.24** sobre sin-filtro bajo supuestos de cinta —
+  pero el nivel absoluto @0.7 es **negativo** (−$7.51 sobre 80,379 ops; sin
+  filtro −$106.75), la eficiencia walk-forward por operación es **−0.8%**
+  (por debajo de la línea de aviso de sobreajuste del 30%), los umbrales por
   fold son inestables, y una primera simulación con cola (T2/T3, 18-10) fue
   **inconclusa**: el AUC del modelo sobre fills simulados es ~0.50-0.56
   (features aproximadas, fuera de distribución), así que los números de cinta
-  asumen fills ideales ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). El gate sigue
+  asumen fills ideales ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). El nivel
+  anterior +$489 @0.7 venía del esquema de 382,582 filas que sumaba los cuatro
+  horizontes de cada fill (pares fill×horizonte) — una estimación anterior
+  contada 4×; el esquema actual cuenta cada fill una sola vez. El gate sigue
   cerrado.
 
 | Métrica | Valor |
 |---|---|
 | AUC-ROC pooled OOS (LightGBM, leak-free, mercados no vistos) | **0.7384** |
 | PR-AUC OOS / prevalencia | **0.5057 / 0.304** |
-| AUC por fold temporal (rango, 5 folds) | **0.689 / 0.786** |
-| Filas walk-forward (tope de frescura, refresh 22-10-2026) | 382,582 (268,446 OOS) |
-| **P&L maker walk-forward OOS (refresh 22-10-2026, 382,582 filas — bruto, supuestos de cinta; cola+costos pendientes)** | **POSITIVO, AÚN FRÁGIL** — markout exacto, splits temporales, embargo 300s: sin filtro **+113.47 USD** · filtro @0.7 **+488.98** (231,334 ops) · @0.8 **+216.82** · óptimo por fold (0.65/0.5/0.7/0.65/0.65 — **no estable**). WFE **35.4% por fila** (8.0% por totales; filas = pares fill×horizonte). GroupKFold por mercado (estimación optimista): sin filtro **+186** · umbral cuantil 0.5 **+746.93** (retención 50%) · @0.7 **+560.97**. Los cuatro horizontes positivos filtrados (+81 h1s / +146 h10s / +167 h60s / +95 h300s). Gate cerrado hasta simular cola + costos; números reportados igual. |
+| AUC por fold temporal (rango, 5 folds, h=300s) | **0.653 / 0.787** |
+| Filas walk-forward (horizonte único h=300s, refresh 22-10-2026) | 129,175 totales; 80,379 ops OOS al umbral fijo 0.7 |
+| **P&L maker walk-forward OOS (horizonte único h=300s, refresh 22-10-2026, 129,175 filas — BRUTO, supuestos de cinta; cola+costos pendientes)** | **DELTA-POSITIVO, NIVEL-NEGATIVO, AÚN FRÁGIL** — markout exacto, splits temporales, embargo 300s, 1 fill = 1 muestra: sin filtro **−106.75 USD** · filtro @0.7 **−7.51** (80,379 ops) · **delta sobre sin-filtro +99.24** · umbrales óptimos por fold 0.6/0.5/0.7/0.6/0.55 (**no estables**) → filtro fijo 0.7. WFE **−0.8% por operación** (P&L OOS vs in-muestra por op; por debajo de la línea de aviso de sobreajuste del 30%). Estimación anterior contada 4× (esquema de 382,582 filas, los cuatro horizontes por fill): +488.98 @0.7. Gate cerrado hasta simular cola + costos; números reportados igual. |
 
 ## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
 Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
@@ -181,18 +188,17 @@ en vivo; último reporte machine-readable en
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7384 pooled OOS).
 - ~~Backtestear el filtro contra P&L neto~~ **hecho sobre features sin fugas
-  (snapshots con tope de frescura, estandarización causal, folds por mercado) —
-  el filtro reduce la selección adversa del tape en perspectiva maker:
-  **+$376 de delta de P&L sobre sin-filtro** (nivel @0.7: +$489; bruto,
-  supuestos de cinta) en walk-forward temporal estricto (embargo 300s) —
-  positivo en cada refresh sin fugas (+$321 el 19-10, sin filtro −209→+113
-  cuando el dataset creció 286k→383k filas); +$747 en GroupKFold por mercado
-  cuantil-0.5 (retención 50%) es una estimación optimista porque ese esquema
-  es fuera-de-tiempo pero no fuera-de-mercado. La eficiencia walk-forward es
-  **35.4% por fila** (8.0% por totales) pero los umbrales óptimos por fold
-  siguen **inestables** (0.5-0.7) y falta simular la cola
+  (snapshots con tope de frescura, estandarización causal, folds temporales) —
+  en walk-forward temporal estricto de horizonte único (h=300s, 1 fill = 1
+  muestra, embargo 300s) el filtro reduce la selección adversa del tape:
+  **+$99.24 de delta de P&L BRUTO sobre sin-filtro** (nivel @0.7: −$7.51;
+  bruto, supuestos de cinta; refresh 22-10, 129,175 filas). El esquema
+  anterior que contaba 4× (pares fill×horizonte, 382,582 filas) mostraba
+  delta +$376 / nivel +$489 — misma historia cualitativa, nivel inflado. La
+  eficiencia walk-forward por op es **−0.8%** y los umbrales óptimos por fold
+  siguen **inestables** (0.6/0.5/0.7/0.6/0.55); falta simular la cola
   (PLAN_SIM_COLA.md) — el gate sigue cerrado.** El AUC rankea el flujo;
-  convertirlo a P&L neto del maker (cola, rewards, fees) sigue abierto.
+  convertirlo a P&L maker rentable (cola, rewards, fees) sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,
   simulación con posición en cola, calibración del modelo de costos.
 
