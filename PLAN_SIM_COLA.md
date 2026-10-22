@@ -3,6 +3,14 @@
 Status: **plan** (2026-10-18). Results will be appended below as separate
 dated sections; nothing in this document will be retro-edited.
 
+> **Status update 2026-10-22:** the Background below predates the
+> maker-convention fix and the leak-free re-run — its P&L numbers are
+> aggressor-perspective and superseded (current arbiter numbers: README,
+> 2026-10-22 refresh). The T2/T3 simulation results below remain the best
+> queue-aware estimate to date: AUC on simulated fills ~0.50-0.56
+> (approximated features, out-of-distribution) → inconclusive, not negative.
+> Dated sections are never retro-edited.
+
 ## Background (measured, not claimed)
 
 The fill-toxicity classifier ranks well but does not yet produce positive net
