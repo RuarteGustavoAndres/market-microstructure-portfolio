@@ -1,0 +1,193 @@
+{
+ "fecha": "2026-10-23 09:04 UTC",
+ "dataset": "bot/dataset/ml_features.csv (datos reales)",
+ "horizonte_s": 300,
+ "umbral_fijo": 0.7,
+ "convencion": "MAKER: pnl por fill = -(P&L del agresor del tape); el filtro retiene p<0.7",
+ "decision_rule": "Regla de decisión FIJADA 23/10 (antes de correr): horizonte único a priori h=300s; umbral fijo a priori 0.7; estadístico = DELTA (filtrado@0.7 − sin filtro). Rechazo al 5% si: delta pooled ≥ p95 del nulo A Y delta > 0 en ≥4 de 5 folds.",
+ "filas": 129175,
+ "folds": [
+  1,
+  2,
+  3,
+  4,
+  5
+ ],
+ "observado": {
+  "pooled_delta_usd": 98.23,
+  "deltas_por_fold_usd": [
+   34.29,
+   39.01,
+   2.46,
+   23.23,
+   -0.76
+  ],
+  "n_folds_delta_pos": 4,
+  "delta_mejor_umbral_por_fold_ref_usd": 303.75,
+  "por_fold": [
+   {
+    "fold": 1,
+    "auc_oos": 0.6525,
+    "n_total": 22670,
+    "n_filtrado": 17707,
+    "sin_filtro_usd": -69.53,
+    "filtrado_0p7_usd": -35.24,
+    "delta_usd": 34.29,
+    "mejor_umbral_ref": 0.6,
+    "mejor_umbral_pnl_usd": -14.54
+   },
+   {
+    "fold": 2,
+    "auc_oos": 0.6977,
+    "n_total": 29819,
+    "n_filtrado": 25712,
+    "sin_filtro_usd": -170.23,
+    "filtrado_0p7_usd": -131.22,
+    "delta_usd": 39.01,
+    "mejor_umbral_ref": 0.5,
+    "mejor_umbral_pnl_usd": 6.58
+   },
+   {
+    "fold": 3,
+    "auc_oos": 0.787,
+    "n_total": 6648,
+    "n_filtrado": 6484,
+    "sin_filtro_usd": 18.67,
+    "filtrado_0p7_usd": 21.13,
+    "delta_usd": 2.46,
+    "mejor_umbral_ref": 0.7,
+    "mejor_umbral_pnl_usd": 21.13
+   },
+   {
+    "fold": 4,
+    "auc_oos": 0.7224,
+    "n_total": 25326,
+    "n_filtrado": 23177,
+    "sin_filtro_usd": 93.86,
+    "filtrado_0p7_usd": 117.08,
+    "delta_usd": 23.23,
+    "mejor_umbral_ref": 0.6,
+    "mejor_umbral_pnl_usd": 162.02
+   },
+   {
+    "fold": 5,
+    "auc_oos": 0.7357,
+    "n_total": 7381,
+    "n_filtrado": 7306,
+    "sin_filtro_usd": 20.48,
+    "filtrado_0p7_usd": 19.72,
+    "delta_usd": -0.76,
+    "mejor_umbral_ref": 0.55,
+    "mejor_umbral_pnl_usd": 21.81
+   }
+  ]
+ },
+ "nulo_a": {
+  "descripcion": "filtro aleatorio con la MISMA retención por fold que el @0.7 real (n_filtrado/n_total), subconjunto sin reemplazo",
+  "n_draws": 1000,
+  "seed": 42,
+  "mean_usd": 29.41,
+  "std_usd": 10.03,
+  "p05_usd": 12.53,
+  "p50_usd": 29.86,
+  "p95_usd": 45.27,
+  "p99_usd": 52.01,
+  "max_usd": 61.02,
+  "delta_observado_usd": 98.23,
+  "percentil_observado_pct": 100.0,
+  "condicion_1_obs_ge_p95": true
+ },
+ "nulo_b": {
+  "descripcion": "bootstrap por bloques de mercado (token_id) dentro del test de cada fold, re-muestreo de mercados con reemplazo",
+  "n_draws": 1000,
+  "seed": 43,
+  "por_fold": {
+   "1": {
+    "n_mercados": 93,
+    "ic_low_2_5": -29.67,
+    "ic_high_97_5": 53.04,
+    "mean": 11.78,
+    "delta_obs_usd": 34.29
+   },
+   "2": {
+    "n_mercados": 107,
+    "ic_low_2_5": -1.86,
+    "ic_high_97_5": 106.68,
+    "mean": 48.27,
+    "delta_obs_usd": 39.01
+   },
+   "3": {
+    "n_mercados": 32,
+    "ic_low_2_5": -1.59,
+    "ic_high_97_5": 0.08,
+    "mean": -0.57,
+    "delta_obs_usd": 2.46
+   },
+   "4": {
+    "n_mercados": 97,
+    "ic_low_2_5": -30.59,
+    "ic_high_97_5": 8.57,
+    "mean": -8.47,
+    "delta_obs_usd": 23.23
+   },
+   "5": {
+    "n_mercados": 27,
+    "ic_low_2_5": -0.43,
+    "ic_high_97_5": 1.03,
+    "mean": 0.16,
+    "delta_obs_usd": -0.76
+   }
+  },
+  "pooled": {
+   "ic_low_2_5_usd": -20.45,
+   "ic_high_97_5_usd": 121.74,
+   "mean_usd": 51.16,
+   "delta_observado_usd": 98.23,
+   "ic_excluye_cero": false
+  }
+ },
+ "control_c": {
+  "descripcion": "50 reentrenos del walk-forward con labels PERMUTADAS dentro de cada mercado (token_id) en TRAIN (misma retención @0.7 en test)",
+  "n_reentrenos": 50,
+  "seed": 44,
+  "device": "gpu",
+  "mean_usd": -1.1,
+  "std_usd": 10.21,
+  "min_usd": -22.23,
+  "max_usd": 19.09,
+  "cero_dentro_minmax": true,
+  "nota": "delta permutado ~0: el pipeline no fabrica señal"
+ },
+ "secundario_umbral_reelegido": {
+  "descripcion": "nulo A variante: por cada draw se re-elige un umbral uniforme de la grid 0.5-0.85 (step 0.05); retención por fold = fracción real p<t en ese umbral. Reporte secundario: NO reemplaza la regla primaria (umbral fijo 0.7 a priori).",
+  "grid": [
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7,
+   0.75,
+   0.8,
+   0.85
+  ],
+  "n_draws": 1000,
+  "mean_usd": 37.46,
+  "std_usd": 28.41,
+  "p95_usd": 84.85,
+  "p99_usd": 99.71,
+  "percentil_delta_observado_fijo07_pct": 98.9,
+  "delta_observado_mejor_umbral_por_fold_ref_usd": 303.75
+ },
+ "regla_aplicada": {
+  "delta_pooled_ge_p95_nulo_a": true,
+  "delta_pos_en_al_4_de_5_folds": true,
+  "rechazo_5pct": true
+ },
+ "veredicto": "RECHAZADO al 5%: delta pooled +98.23$ vs nulo A p95 +45.27$ (percentil observado 100.0%) | delta>0 en 4/5 folds | IC nulo B pooled [-20.45, +121.74]$ | control C -1.10±10.21$ (min -22.23, max +19.09). El delta del filtro @0.7 es significativo frente a la nula de filtro aleatorio.",
+ "duracion_s": 340.8,
+ "reproducibilidad": {
+  "referencia_cpu": "results/walkforward_toxicidad_h300.json (repo público, corrida CPU 23/10): delta +99.24 (folds [34.49, 39.18, 2.46, 23.87, -0.76]), sin filtro -106.75, @0.7 -7.51",
+  "esta_corrida_gpu": "delta +98.23 (folds [34.29, 39.01, 2.46, 23.23, -0.76])",
+  "nota": "P&L sin filtro idéntico en los 5 folds; P&L filtrado difiere ~1.01$/99.24 (~1%): flips de filas en el borde p=0.7 por no-determinismo del histograma GPU de LightGBM (AUCs idénticas a 3-4 decimales: 0.6525/0.6528, 0.6977, 0.7870, 0.7224, 0.7357/0.7356). Mismo pipeline, mismos params, misma seed. El veredicto es invariante a esta diferencia (ambos deltas >> p95 del nulo A)."
+ }
+}
