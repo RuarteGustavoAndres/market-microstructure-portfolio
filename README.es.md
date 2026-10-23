@@ -16,14 +16,14 @@ partes que no funcionaron**.
    de TimescaleDB (12,900+ mercados trackeados, 9,900+ activos en los
    últimos 7 días).
 2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (folds 0.689-0.786, sin fugas); PR-AUC 0.506 vs prevalencia 0.304** — una capa de scoring/filtro, **no** un decisor.
-3. **Veredicto walk-forward (horizonte único h=300s): delta positivo, intervalo
-   de confianza pendiente del test nulo — el delta de P&L del filtro sobre sin-filtro es
+3. **Veredicto walk-forward (horizonte único h=300s): delta positivo, nulo de filtro
+   aleatorio rechazado al 5% (IC bootstrap por bloques amplio, incluye 0 — se reporta ambos) — el delta de P&L del filtro sobre sin-filtro es
    **+$99.24** en el refresh del 22-10 de horizonte único (129,175 filas, 1
    fill = 1 muestra a h=300s), mientras el nivel sin filtro es **−$106.75** y
    el nivel filtrado @0.7 es **−$7.51** (80,379 ops) — el nivel @0.7 sigue
    siendo negativo en horizonte único (todas las cifras son BRUTAS bajo
    supuestos de cinta: se cuenta cada fill del tape, sin posición en cola, sin
-   fees, sin costos; el IC del delta queda pendiente del test nulo). El nivel
+   fees, sin costos). El nivel
    anterior **+$489 @0.7** venía del esquema de 382,582 filas que sumaba los
    cuatro horizontes de cada fill (pares fill×horizonte), inflando el nivel
    ~4×; el esquema actual cuenta cada fill una sola vez. La simulación de cola
@@ -110,6 +110,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 | `microstructure/model/backtest_desglose.py` | Desglose OOS del veredicto walk-forward: por horizonte, lado, agresividad del fill, spread + ajuste maker-realista |
 | `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Simulación de fills con cola sobre la captura REAL con tres modos de re-quote comparables (**persist** = honesto, sin auto-cancel / **cancel** = status quo / **contra** = conservador) + su constructor de dataset — publicado verbatim desde el bot privado |
 | `microstructure/model/backtest_walkforward_persist.py` | El mismo walk-forward (solo adaptaciones documentadas) sobre los fills simulados en modo persist — `results/maker_fills_sim_persist.csv` (1.1 MB, incluido) → `results/walkforward_toxicidad_h300_persist.json`, totalmente reproducible |
+| `microstructure/model/backtest_nulo_delta.py` | Test nulo del delta del filtro: nulo de filtro aleatorio (misma retención por fold) + bootstrap por bloques de mercado + control con labels permutadas — publicado verbatim desde el bot privado |
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio
@@ -129,7 +130,9 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
   decisor autónomo. Con markout exacto + walk-forward de horizonte único
-  (h=300s, 22-10) el delta es **positivo** (IC pendiente del test nulo) — un
+  (h=300s, 22-10) el delta es **positivo y rechaza el nulo de filtro aleatorio al 5%**
+  (test nulo 23-10 — fila abajo; el IC bootstrap por bloques es amplio e
+  incluye 0, se reporta ambos) — un
   delta de P&L BRUTO de **+$99.24** sobre sin-filtro bajo supuestos de cinta —
   pero el nivel absoluto @0.7 es **negativo** (−$7.51 sobre 80,379 ops; sin
   filtro −$106.75), la eficiencia walk-forward por operación es **−0.8%**
@@ -161,7 +164,10 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 | AUC por fold temporal (rango, 5 folds, h=300s) | **0.653 / 0.787** |
 | Filas walk-forward (horizonte único h=300s, refresh 22-10-2026) | 129,175 totales; 80,379 ops OOS al umbral fijo 0.7 |
 | **P&L maker walk-forward OOS (horizonte único h=300s, refresh 22-10-2026, 129,175 filas — BRUTO, supuestos de cinta; cola+costos pendientes)** | **DELTA-POSITIVO, NIVEL-NEGATIVO, AÚN FRÁGIL** — markout exacto, splits temporales, embargo 300s, 1 fill = 1 muestra: sin filtro **−106.75 USD** · filtro @0.7 **−7.51** (80,379 ops) · **delta sobre sin-filtro +99.24** · umbrales óptimos por fold 0.6/0.5/0.7/0.6/0.55 (**no estables**) → filtro fijo 0.7. WFE **−0.8% por operación** (P&L OOS vs in-muestra por op; por debajo de la línea de aviso de sobreajuste del 30%). Estimación anterior contada 4× (esquema de 382,582 filas, los cuatro horizontes por fill): +488.98 @0.7. Gate cerrado hasta simular cola + costos; números reportados igual. |
-| **Walk-forward por horizonte (1 fill = 1 muestra por horizonte, fijo 0.7, BRUTO supuestos de cinta, re-corridas 23-10-2026)** | el delta es **positivo en los cuatro** horizontes y crece con el horizonte — h=1s: **+18.49** (AUC folds 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). El NIVEL sin filtro cambia de signo con el horizonte (+77.84 / +101.32 / +40.62 / −106.75) — la selección adversa crece con el horizonte; el delta es la cantidad estable. El **AUC 0.7384** pooled de arriba viene del esquema fill×horizonte (382,582 filas); los AUC por horizonte son los rangos de esta fila (IC de los deltas pendientes del test nulo). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
+| **Walk-forward por horizonte (1 fill = 1 muestra por horizonte, fijo 0.7, BRUTO supuestos de cinta, re-corridas 23-10-2026)** | el delta es **positivo en los cuatro** horizontes y crece con el horizonte — h=1s: **+18.49** (AUC folds 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). El NIVEL sin filtro cambia de signo con el horizonte (+77.84 / +101.32 / +40.62 / −106.75) — la selección adversa crece con el horizonte; el delta es la cantidad estable. El **AUC 0.7384** pooled de arriba viene del esquema fill×horizonte (382,582 filas); los AUC por horizonte son los rangos de esta fila (deltas con test nulo — filas abajo). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
+| **Test nulo del delta (regla de decisión fijada a priori el 23-10-2026, antes de correr: horizonte único h=300s, umbral 0.7, estadístico = delta; rechazo al 5% si delta pooled ≥ p95 de un nulo de filtro aleatorio Y delta > 0 en ≥4/5 folds)** | **RECHAZADO al 5%.** Delta pooled observado **+98.23** (re-corrida GPU; referencia CPU +99.24) vs nulo de filtro aleatorio (misma retención por fold, 1.000 draws seed fija) p95 **+45.27** — el observado queda sobre el percentil 100 del nulo (p99 +52.01, max +61.02), y es > 0 en **4/5 folds**. Control: 50 reentrenos con labels permutadas dentro de cada mercado → delta **−1.10 ± 10.21** (min −22.23, max +19.09): el pipeline no fabrica señal. Secundario (umbral re-elegido por draw): el delta observado queda en p98.9 de ese nulo. **Caveat honesto:** el IC bootstrap por bloques de mercado del delta, **[−20.45, +121.74], incluye 0** (volatilidad de muestreo alta; 2 de 5 folds casi nulos) — se reporta ambos resultados. El gate sigue cerrado (nivel negativo, WFE negativa, cola+costos pendientes). Código y JSON: `microstructure/model/backtest_nulo_delta.py`, `results/nulo_delta_h300.json`. |
+| **El auditor auditado: Monte Carlo de los 5 detectores de fugas (23-10-2026, alpha=0.01, 999 permutaciones/test)** | Sobre 200 estrategias nulas sin edge (4 tipos × 50 seeds, mercados de 90 días, spread 2×40 bps): **tasa de falsos positivos por detector — capturabilidad 0%, fills al book 0%, tuning in-sample 0%, kfold-cv 1.5%, supervivencia 5.0%; unión 6.0%**. **Potencia: 100% (unión) en las tres trampas de look-ahead** (completo: atrapado por tuning/kfold/supervivencia; de 1 barra: por los cinco; 50% parcial: capturabilidad 86%). Un edge real pero chico se acusa **0%** de las veces — los detectores cazan plumbing, no la existencia de edge. Limitación conocida: capturabilidad no ve un look-ahead de hold completo (1 barra de retraso quita solo 1/30 del peek); los otros cuatro detectores lo cubren. JSON: `results/monte_carlo_fp_power.json`. |
+| **El auditor se audita a sí mismo: cinco estrategias ajenas × dos escalas de precio (23-10-2026, 3 honestas + 2 trampas de look-ahead, p0=0.5 vs p0=100)** | **Invariancia de escala restaurada y verificada**: el harness ahora escala el costo de round-trip con la escala del mercado (bps constantes en 80: `half_spread = HALF_SPREAD * p0 / P0`), y el rng de auditoría se siembra idéntico por estrategia entre escalas — 5/5 estrategias devuelven **veredictos idénticos en ambas escalas**, ratio de pnl exactamente 200.0×. Veredictos: las 2 trampas de look-ahead FALLAN/WARNEAN en ambas escalas (tuning in-sample, kfold, fills al book disparan); las 3 honestas PASAN salvo `spread_sniper`, marcada por supervivencia en ambas escalas — **limitación conocida del detector, documentada en el JSON** (`limitaciones_conocidas`): todo trade perdedor paga el mismo costo fijo de round-trip (masa puntual en −2·half_spread), lo que comprime el IQR e infla mecánicamente el conteo de outliers de cola derecha (`nr > nl` en los 7 marcados de 24 seeds de mercado; tasa de falsa marca 29.2% vs alpha=0.01; controles honestos momentum/ruido: 0/16; misma tasa con pnl relativo — no es artefacto de unidades). Script y JSON del estudio: `demo/estudio_limitacion_supervivencia.py`, `results/estudio_limitacion_supervivencia.json`. El edge falso que antes reportaba `momentum_chaser` a p0=100 (media +0.086/trade) venía de un spread aditivo sobre precios lognormales — el fix de escalar el costo lo elimina. |
 
 ## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
 Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
@@ -211,7 +217,9 @@ en vivo; último reporte machine-readable en
 - ~~Backtestear el filtro contra P&L bajo supuestos de cinta~~ **hecho sobre features sin fugas
   (snapshots con tope de frescura, estandarización causal, folds temporales) —
   en walk-forward temporal estricto de horizonte único (h=300s, 1 fill = 1
-  muestra, embargo 300s) el delta es positivo (IC pendiente del test nulo):
+  muestra, embargo 300s) el delta es positivo (nulo de filtro aleatorio
+  rechazado al 5%; IC bootstrap por bloques amplio, incluye 0 — se reporta
+  ambos):
   **+$99.24 de delta de P&L BRUTO sobre sin-filtro** (nivel @0.7: −$7.51;
   bruto, supuestos de cinta; refresh 22-10, 129,175 filas). El esquema
   anterior que contaba 4× (pares fill×horizonte, 382,582 filas) mostraba
