@@ -3,7 +3,7 @@
 
 Evidencia de la limitación conocida del detector "supervivencia"
 (tail_symmetry_test) sobre spread_sniper, documentada en
-results/audit_estrategias_ajenas.json (clave limitaciones_conocidas)
+results/audit_controles_sinteticos.json (clave limitaciones_conocidas)
 y en el README. Correr desde demo/ o cualquier cwd: importa los
 módulos del propio directorio. Stdlib only, solo CPU.
 Salida: resumen impreso + JSON en results/estudio_limitacion_supervivencia.json.
@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RESULTS = os.path.join(os.path.dirname(HERE), "results")
 sys.path.insert(0, HERE)
 import audit_demo as ad               # noqa: E402
-import audit_estrategias_ajenas as aea  # noqa: E402
+import audit_controles_sinteticos as aea  # noqa: E402
 
 # 24 semillas de mercado (primas 7..103; las 6 del probe son un subconjunto).
 SEEDS = [7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,

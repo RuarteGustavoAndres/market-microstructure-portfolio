@@ -60,9 +60,9 @@ invariancia sea exacta — sin ruido de permutación), todas reportadas en
 el JSON. Stdlib only.
 
 CLI:
-    python3 demo/audit_estrategias_ajenas.py [--n-perm 999] [--no-write]
+    python3 demo/audit_controles_sinteticos.py [--n-perm 999] [--no-write]
 
-Escribe results/audit_estrategias_ajenas.json y una tabla resumen a
+Escribe results/audit_controles_sinteticos.json y una tabla resumen a
 stdout. Al final imprime VEREDICTOS_POR_ESTRATEGIA y VEREDICTO (una línea
 cada uno).
 """
@@ -375,7 +375,7 @@ def build_veredicto(lote):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(
-        description="Auditoría de 5 estrategias ajenas x 2 escalas (p0) "
+        description="Auditoría de 5 controles sintéticos x 2 escalas (p0) "
                     "a través del pipeline del auditor.")
     ap.add_argument("--n-perm", type=int, default=ad.N_PERM,
                     help="permutaciones por test (default %d)" % ad.N_PERM)
@@ -522,7 +522,7 @@ def main(argv=None):
 
     if args.write:
         os.makedirs(RESULTS_DIR, exist_ok=True)
-        out = os.path.join(RESULTS_DIR, "audit_estrategias_ajenas.json")
+        out = os.path.join(RESULTS_DIR, "audit_controles_sinteticos.json")
         with open(out, "w") as fh:
             json.dump(result, fh, indent=2, ensure_ascii=False)
         print("written:", out)
