@@ -24,7 +24,7 @@
     "honest_plumbing": "tuning walk-forward (1a mitad), entry_lag=1, price_book=True, half_spread, reporta 2a mitad completa",
     "trap_plumbing": "tuning in-sample, entry_lag=0, price_book=False, drop_worst_decile (mirror TRAP client)",
     "global_definition": "peor veredicto entre los 5 detectores; flagged = al menos un FAIL/WARN",
-    "elapsed_s": 39.8,
+    "elapsed_s": 38.9,
     "cpu": "solo CPU, stdlib"
   },
   "estrategias": {
@@ -262,7 +262,8 @@
   "limitaciones_conocidas": {
     "spread_sniper x supervivencia": {
       "diagnostico": "limitación del detector, no evidencia de trampa: todo trade perdedor paga el mismo costo fijo de round-trip (masa puntual en −2·half_spread), lo que comprime el IQR de los pnls e infla mecánicamente el conteo de outliers de cola derecha (nr > nl) contra el nulo de simetría de tail_symmetry_test",
-      "evidencia": "estudio de 24 seeds de mercado x 2 escalas (2026-10-23): FAIL en 7/24 seeds (29.2%) a cada escala, igual con pnl absoluto y relativo; controles honestos: momentum_chaser 0/8, ruido_puro 0/8; script y JSON del estudio: demo/estudio_limitacion_supervivencia.py y results/estudio_limitacion_supervivencia.json",
+      "evidencia": "estudio de 24 seeds de mercado x 2 escalas (2026-10-23): FAIL en 7/24 seeds (29.2%) a cada escala, mismo set de seeds y mismo signo (nr > nl), igual con pnl absoluto y relativo; controles honestos: momentum_chaser 0/8, ruido_puro 0/8 (bajo poder: 0/8 es compatible con tasas hasta ~29%). La tasa 29.2% NO es un falso positivo aleatorio: vs el FP base de supervivencia medido en el MC (5.0%, results/monte_carlo_fp_power.json), P(X>=7 | Bin(24, 0.05)) = 1.3e-04 — es una asimetria ESTRUCTURAL real de la clase mean-reversion selectiva de nivel, que la familia de nulos del MC no cubre; script y JSON del estudio: demo/estudio_limitacion_supervivencia.py y results/estudio_limitacion_supervivencia.json",
+      "lectura_correcta": "tail_symmetry_test detecta CUALQUIER asimetria de pnl (incluida la estructural de estrategias honestas selectivas de nivel), no solo trampas: un FAIL en el sniper no implica trampa. Un nulo que preserve la estructura de nivel (permutacion de posiciones) distinguiria asimetria estructural de asimetria inducida por trampa (mejora opcional, pendiente).",
       "por_que_no_se_arregla": "el detector sigue siendo conservador (potencia 100% en las trampas de look-ahead, 0% FP en controles, ver results/monte_carlo_fp_power.json) y tocarlo invalidaría el MC ya publicado"
     }
   },
