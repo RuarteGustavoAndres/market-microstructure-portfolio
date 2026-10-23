@@ -16,8 +16,8 @@ partes que no funcionaron**.
    de TimescaleDB (12,900+ mercados trackeados, 9,900+ activos en los
    últimos 7 días).
 2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (folds 0.689-0.786, sin fugas); PR-AUC 0.506 vs prevalencia 0.304** — una capa de scoring/filtro, **no** un decisor.
-3. **Veredicto walk-forward (horizonte único h=300s): el filtro reduce la
-   selección adversa del tape — el delta de P&L del filtro sobre sin-filtro es
+3. **Veredicto walk-forward (horizonte único h=300s): delta positivo, intervalo
+   de confianza pendiente del test nulo — el delta de P&L del filtro sobre sin-filtro es
    **+$99.24** en el refresh del 22-10 de horizonte único (129,175 filas, 1
    fill = 1 muestra a h=300s), mientras el nivel sin filtro es **−$106.75** y
    el nivel filtrado @0.7 es **−$7.51** (80,379 ops) — el nivel @0.7 sigue
@@ -120,7 +120,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
   decisor autónomo. Con markout exacto + walk-forward de horizonte único
-  (h=300s, 22-10) el filtro **reduce** la selección adversa del tape — un
+  (h=300s, 22-10) el delta es **positivo** (IC pendiente del test nulo) — un
   delta de P&L BRUTO de **+$99.24** sobre sin-filtro bajo supuestos de cinta —
   pero el nivel absoluto @0.7 es **negativo** (−$7.51 sobre 80,379 ops; sin
   filtro −$106.75), la eficiencia walk-forward por operación es **−0.8%**
@@ -141,6 +141,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 | AUC por fold temporal (rango, 5 folds, h=300s) | **0.653 / 0.787** |
 | Filas walk-forward (horizonte único h=300s, refresh 22-10-2026) | 129,175 totales; 80,379 ops OOS al umbral fijo 0.7 |
 | **P&L maker walk-forward OOS (horizonte único h=300s, refresh 22-10-2026, 129,175 filas — BRUTO, supuestos de cinta; cola+costos pendientes)** | **DELTA-POSITIVO, NIVEL-NEGATIVO, AÚN FRÁGIL** — markout exacto, splits temporales, embargo 300s, 1 fill = 1 muestra: sin filtro **−106.75 USD** · filtro @0.7 **−7.51** (80,379 ops) · **delta sobre sin-filtro +99.24** · umbrales óptimos por fold 0.6/0.5/0.7/0.6/0.55 (**no estables**) → filtro fijo 0.7. WFE **−0.8% por operación** (P&L OOS vs in-muestra por op; por debajo de la línea de aviso de sobreajuste del 30%). Estimación anterior contada 4× (esquema de 382,582 filas, los cuatro horizontes por fill): +488.98 @0.7. Gate cerrado hasta simular cola + costos; números reportados igual. |
+| **Walk-forward por horizonte (1 fill = 1 muestra por horizonte, fijo 0.7, BRUTO supuestos de cinta, re-corridas 23-10-2026)** | el delta es **positivo en los cuatro** horizontes y crece con el horizonte — h=1s: **+18.49** (AUC folds 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). El NIVEL sin filtro cambia de signo con el horizonte (+77.84 / +101.32 / +40.62 / −106.75) — la selección adversa crece con el horizonte; el delta es la cantidad estable. El **AUC 0.7384** pooled de arriba viene del esquema fill×horizonte (382,582 filas); los AUC por horizonte son los rangos de esta fila (IC de los deltas pendientes del test nulo). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
 
 ## Venue 2 — perpetuos USDT-M de Binance (activo desde el 16-10-2026)
 Segundo venue alimentando el mismo stack de TimescaleDB, mismo protocolo de
@@ -187,10 +188,10 @@ en vivo; último reporte machine-readable en
 
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7384 pooled OOS).
-- ~~Backtestear el filtro contra P&L neto~~ **hecho sobre features sin fugas
+- ~~Backtestear el filtro contra P&L bajo supuestos de cinta~~ **hecho sobre features sin fugas
   (snapshots con tope de frescura, estandarización causal, folds temporales) —
   en walk-forward temporal estricto de horizonte único (h=300s, 1 fill = 1
-  muestra, embargo 300s) el filtro reduce la selección adversa del tape:
+  muestra, embargo 300s) el delta es positivo (IC pendiente del test nulo):
   **+$99.24 de delta de P&L BRUTO sobre sin-filtro** (nivel @0.7: −$7.51;
   bruto, supuestos de cinta; refresh 22-10, 129,175 filas). El esquema
   anterior que contaba 4× (pares fill×horizonte, 382,582 filas) mostraba

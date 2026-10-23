@@ -15,8 +15,8 @@ number here is real, out-of-sample — **including the parts that did not work**
    TimescaleDB hypertables (12,900+ markets tracked, 9,900+ active in the
    last 7 days).
 2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (folds 0.689-0.786, leak-free); PR-AUC 0.506 vs 0.304 prevalence** — a scoring/filter layer, **not** a decision-maker.
-3. **Walk-forward verdict (single horizon h=300s): the filter reduces tape
-   adverse selection — the filter's P&L delta over unfiltered is **+$99.24**
+3. **Walk-forward verdict (single horizon h=300s): delta positive, confidence
+   interval pending the null test — the filter's P&L delta over unfiltered is **+$99.24**
    on the 2026-10-22 single-horizon refresh (129,175 rows, one fill = one
    sample at h=300s), while the unfiltered level is **−$106.75** and the
    filtered level @0.7 is **−$7.51** (80,379 ops) — the level @0.7 is still
@@ -117,8 +117,9 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets 
 - **Honest limitations:** the model ranks toxicity (AUC) but binary accuracy
   sits below the majority baseline → it is a scoring/filter layer, not an
   autonomous decision-maker. Under exact-markout single-horizon walk-forward
-  (h=300s, 2026-10-22) the filter **reduces** tape adverse selection — a
-  **+$99.24** GROSS P&L delta over unfiltered under tape-fill assumptions —
+  (h=300s, 2026-10-22) the delta is **positive** (confidence interval pending
+   the null test) — a **+$99.24** GROSS P&L delta over unfiltered under
+   tape-fill assumptions —
   but the absolute level @0.7 is **negative** (−$7.51 over 80,379 ops;
   unfiltered −$106.75), per-op walk-forward efficiency is **−0.8%** (below the
   30% overfitting-warning line), thresholds per fold are not stable, and a
@@ -137,6 +138,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets 
 | AUC per temporal fold (range, 5 folds, h=300s) | **0.653 / 0.787** |
 | Walk-forward rows (single horizon h=300s, 2026-10-22 refresh) | 129,175 total; 80,379 OOS ops at fixed 0.7 |
 | **Walk-forward OOS maker P&L (single horizon h=300s, 2026-10-22 refresh, 129,175 rows — GROSS, tape-fill assumptions; queue+costs pending)** | **DELTA-POSITIVE, LEVEL-NEGATIVE, still fragile** — exact-markout, temporal splits, 300s embargo, one fill = one sample: unfiltered **−106.75 USD** · filter @0.7 **−7.51** (80,379 ops) · **delta over unfiltered +99.24** · per-fold-optimal thresholds 0.6/0.5/0.7/0.6/0.55 (**not stable**) → fixed 0.7 filter. WFE **−0.8% per op** (OOS vs in-sample P&L per op; below the 30% overfitting-warning line). Previous 4×-counted estimate (382,582-row scheme, all four horizons per fill): +488.98 @0.7. Gate stays closed pending queue simulation + costs; numbers reported anyway. |
+| **Per-horizon walk-forward (one fill = one sample per horizon, fixed 0.7, GROSS tape-fill assumptions, re-runs 2026-10-23)** | delta is positive at **all four** horizons and grows with the horizon — h=1s: **+18.49** (fold AUC 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). The unfiltered LEVEL flips sign with horizon (+77.84 / +101.32 / +40.62 / −106.75) — adverse selection grows with horizon; the delta is the stable quantity. The pooled **AUC 0.7384** above comes from the fill×horizon scheme (382,582 rows); the per-horizon fold AUCs are the ranges in this row (CIs on deltas pending the null test). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol
@@ -180,10 +182,10 @@ DB; latest machine-readable report in
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7384 pooled OOS).
-- ~~Backtest the toxicity filter against net P&L~~ **done on leak-free features
+- ~~Backtest the toxicity filter against P&L under tape-fill assumptions~~ **done on leak-free features
   (freshness-capped snapshots, causal standardization, temporal folds) —
   under the strict single-horizon walk-forward (h=300s, one fill = one
-  sample, 300s embargo) the filter reduces tape adverse selection:
+  sample, 300s embargo) the delta is positive (CI pending the null test):
   **+$99.24 GROSS P&L delta over unfiltered** (level @0.7: −$7.51; gross,
   tape-fill assumptions; 2026-10-22 refresh, 129,175 rows). The earlier
   4×-counted scheme (fill×horizon pairs, 382,582 rows) had shown a +$376

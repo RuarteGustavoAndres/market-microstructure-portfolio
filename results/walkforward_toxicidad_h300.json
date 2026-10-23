@@ -1,5 +1,5 @@
 {
- "fecha": "2026-10-22 21:52 UTC",
+ "fecha": "2026-10-23 08:23 UTC",
  "horizonte_unico": 300,
  "convencion": "MAKER: pnl por fill = -(P&L del agresor del tape); el filtro retiene p<thr (flujo benigno para el LP). Veredicto arbitraje 19-oct.",
  "metodologia": "walk-forward temporal contiguo, embargo 300s, P&L maker exacto vs mid_futuro real, umbral fijo a priori",

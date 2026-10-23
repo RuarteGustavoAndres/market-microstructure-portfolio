@@ -33,6 +33,7 @@ Salida: dataset/walkforward_toxicidad.json
 import csv
 import json
 import os
+import sys
 import time
 from collections import defaultdict
 
@@ -56,6 +57,15 @@ UMBRAL_FIJO = 0.7        # elegido a priori (no se ajusta con el futuro)
 UMBRAL_FIJO_CONSERV = 0.8  # variante conservadora
 GRILLA = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 
+# Horizonte único opcional (--horizonte 300): filtra el dataset a UN horizonte.
+# Motivo (revisión Claude 22-oct): sumar los 4 horizontes de cada fill cuenta el
+# mismo fill 4 veces (los fills no son independientes entre horizontes). Con
+# --horizonte H cada fill entra UNA vez; el OUT usa sufijo _h<H>.
+HORIZONTE_UNICO = None
+if "--horizonte" in sys.argv:
+    HORIZONTE_UNICO = int(float(sys.argv[sys.argv.index("--horizonte") + 1]))
+    OUT = OUT.replace(".json", f"_h{HORIZONTE_UNICO}.json")
+
 
 def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
@@ -67,6 +77,8 @@ def load():
     with open(DATA) as f:
         for r in csv.DictReader(f):
             if r["target"] == "" or r["mid_futuro"] == "":
+                continue
+            if HORIZONTE_UNICO is not None and int(float(r["horizonte_s"])) != HORIZONTE_UNICO:
                 continue
             mf, fp = float(r["mid_futuro"]), float(r["fill_price"])
             side = 1.0 if float(r["side_buy"]) > 0.5 else -1.0
@@ -133,10 +145,14 @@ def main():
         Xte = np.array([r["x"] for r in test])
         yte = np.array([r["y"] for r in test])
         n1 = ytr.sum(); n0 = len(ytr) - n1
+        # device_type por env var (default cpu): benchmark 22-oct en fold corto
+        # (129k filas, 200 rondas, mismos params) dio CPU ~1.0s vs GPU ~1.4s;
+        # la GPU (LGB_DEVICE=gpu) queda disponible sin tocar features/params.
         model = lgb.train(
             {"objective": "binary", "metric": "auc", "learning_rate": 0.05,
              "num_leaves": 31, "min_child_samples": 30,
-             "scale_pos_weight": n0 / max(n1, 1), "verbose": -1, "seed": 42},
+             "scale_pos_weight": n0 / max(n1, 1), "verbose": -1, "seed": 42,
+             "device_type": os.environ.get("LGB_DEVICE", "cpu")},
             lgb.Dataset(Xtr, label=ytr), num_boost_round=200)
         proba = model.predict(Xte)
         auc = roc_auc_score(yte, proba)
@@ -193,6 +209,7 @@ def main():
 
     resumen = {
         "fecha": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
+        "horizonte_unico": HORIZONTE_UNICO,
         "convencion": "MAKER: pnl por fill = -(P&L del agresor del tape); "
                       "el filtro retiene p<thr (flujo benigno para el LP). "
                       "Veredicto arbitraje 19-oct.",
