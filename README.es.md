@@ -17,7 +17,7 @@ partes que no funcionaron**.
    últimos 7 días).
 2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (folds 0.689-0.786, sin fugas); PR-AUC 0.506 vs prevalencia 0.304** — una capa de scoring/filtro, **no** un decisor.
 3. **Veredicto walk-forward (horizonte único h=300s): delta positivo, nulo de filtro
-   aleatorio rechazado al 5% (IC bootstrap por bloques amplio, incluye 0 — se reporta ambos) — el delta de P&L del filtro sobre sin-filtro es
+   aleatorio rechazado al 5% (IC bootstrap por bloques **[−$20,45, +$121,74]** — amplio, incluye 0; se reporta ambos) — el delta de P&L del filtro sobre sin-filtro es
    **+$99.24** en el refresh del 22-10 de horizonte único (129,175 filas, 1
    fill = 1 muestra a h=300s), mientras el nivel sin filtro es **−$106.75** y
    el nivel filtrado @0.7 es **−$7.51** (80,379 ops) — el nivel @0.7 sigue

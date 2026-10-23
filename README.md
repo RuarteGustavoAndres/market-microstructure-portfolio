@@ -16,7 +16,7 @@ number here is real, out-of-sample — **including the parts that did not work**
    last 7 days).
 2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (folds 0.689-0.786, leak-free); PR-AUC 0.506 vs 0.304 prevalence** — a scoring/filter layer, **not** a decision-maker.
 3. **Walk-forward verdict (single horizon h=300s): delta positive, random-filter
-   null rejected at 5% (block-bootstrap CI wide, includes 0 — both reported) — the filter's P&L delta over unfiltered is **+$99.24**
+   null rejected at 5% (block-bootstrap CI **[−$20.45, +$121.74]** — wide, includes 0; both reported) — the filter's P&L delta over unfiltered is **+$99.24**
    on the 2026-10-22 single-horizon refresh (129,175 rows, one fill = one
    sample at h=300s), while the unfiltered level is **−$106.75** and the
    filtered level @0.7 is **−$7.51** (80,379 ops) — the level @0.7 is still
