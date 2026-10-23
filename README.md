@@ -28,7 +28,11 @@ number here is real, out-of-sample — **including the parts that did not work**
    scheme counts one fill once. Queue simulation
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) is still pending to close the gate;
    a first queue-aware run (T2/T3) was **inconclusive** (AUC ~0.50-0.56 on
-   approximated features, out-of-distribution). Walk-forward efficiency is
+   approximated features, out-of-distribution); the corrected re-run
+   (assumption 3 fixed: persistent quotes, no optimistic auto-cancel) gives a
+   **positive delta** (+$9.26 GROSS, both folds) with AUC still near chance
+   (~0.556) on a tiny sample (1,580 fills) — direction consistent with the
+   real data, magnitude uninformative (details below). Walk-forward efficiency is
    **−0.8% per op** (OOS vs in-sample P&L per op at the fixed threshold —
    below the 30% overfitting-warning line), and per-fold optimal thresholds
    are **not stable** (0.6/0.5/0.7/0.6/0.55), so we run the fixed 0.7 filter.
@@ -99,6 +103,8 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets 
 | `microstructure/model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features |
 | `microstructure/model/backtest_walkforward.py` | Walk-forward backtest of the toxicity filter: temporal splits, 300s embargo, exact fill P&L — published verbatim from the private bot |
 | `microstructure/model/backtest_desglose.py` | OOS P&L breakdown of the walk-forward verdict: by horizon, side, fill aggressiveness, spread + maker-realistic adjustment |
+| `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Queue-fill simulation over the REAL capture with three comparable requote modes (**persist** = honest, no auto-cancel / **cancel** = status quo / **contra** = conservative) + its dataset builder — published verbatim from the private bot |
+| `microstructure/model/backtest_walkforward_persist.py` | The same walk-forward (documented adaptations only) run on the persist-mode simulated fills — `results/maker_fills_sim_persist.csv` (1.1 MB, included) → `results/walkforward_toxicidad_h300_persist.json`, fully reproducible |
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill price).
@@ -126,7 +132,17 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7384 pooled OOS, unseen markets 
   first queue-aware simulation (T2/T3, 2026-10-18) was **inconclusive**: the
   model's AUC on simulated fills is ~0.50-0.56 (approximated features,
   out-of-distribution), so the tape-based numbers assume ideal fills
-  ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). The previous +$489 @0.7 level came
+  ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). **Queue sim re-run with assumption 3
+  corrected** (persistent quotes — the old optimistic auto-cancel removed
+  exactly the adverse fills a real maker eats; sim engine published verbatim
+  in `microstructure/sim/`): the filter's delta over unfiltered is **+$9.26**
+  GROSS (unfiltered −$15.57 → filtered @0.7 −$6.31; 2 of 3 temporal folds,
+  1,580 fills, one fill = one sample, h=300s), **positive in both folds** —
+  the old T2/T3 negative delta (−$682) was an artifact of that auto-cancel
+  assumption. AUC on the sim stays near chance (pooled 0.556, folds
+  0.533–0.599; features approximated by design) and the sample is ~80×
+  smaller than the real dataset, so this reads as DIRECTION, not magnitude —
+  the gate stays closed. The previous +$489 @0.7 level came
   from the 382,582-row scheme that summed all four horizons of every fill
   (fill×horizon pairs) — a previous 4×-counted estimate; the current scheme
   counts one fill once. The gate stays closed.

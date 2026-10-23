@@ -29,7 +29,12 @@ partes que no funcionaron**.
    ~4×; el esquema actual cuenta cada fill una sola vez. La simulación de cola
    ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) sigue pendiente para cerrar el
    gate; una primera corrida con cola (T2/T3) fue **inconclusa** (AUC
-   ~0.50-0.56 sobre features aproximadas, fuera de distribución). La
+   ~0.50-0.56 sobre features aproximadas, fuera de distribución); la
+   re-corrida corregida (suposición 3 arreglada: quotes persistentes, sin
+   auto-cancel optimista) da un **delta positivo** (+$9.26 BRUTO, en ambos
+   folds) con AUC aún cercano al azar (~0.556) sobre una muestra chica
+   (1,580 fills) — dirección consistente con los datos reales, magnitud no
+   informativa (detalles abajo). La
    eficiencia walk-forward es **−0.8% por operación** (P&L OOS vs in-muestra
    por op al umbral fijo — por debajo de la línea de aviso de sobreajuste del
    30%) y los umbrales óptimos por fold son **inestables** (0.6/0.5/0.7/0.6/
@@ -101,14 +106,18 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
 | `microstructure/data/tsdb.py` | Conexión TimescaleDB + helpers de flush micro-batch |
 | `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-precio, momentum multi-horizonte, etiquetas de markout |
 | `microstructure/model/entrenar_toxicidad.py` | Entrenamiento: GroupKFold por mercado, z-score por mercado, features sin fuga |
+| `microstructure/model/backtest_walkforward.py` | Backtest walk-forward del filtro de toxicidad: splits temporales, embargo 300s, P&L exacto de fill — publicado verbatim desde el bot privado |
+| `microstructure/model/backtest_desglose.py` | Desglose OOS del veredicto walk-forward: por horizonte, lado, agresividad del fill, spread + ajuste maker-realista |
+| `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Simulación de fills con cola sobre la captura REAL con tres modos de re-quote comparables (**persist** = honesto, sin auto-cancel / **cancel** = status quo / **contra** = conservador) + su constructor de dataset — publicado verbatim desde el bot privado |
+| `microstructure/model/backtest_walkforward_persist.py` | El mismo walk-forward (solo adaptaciones documentadas) sobre los fills simulados en modo persist — `results/maker_fills_sim_persist.csv` (1.1 MB, incluido) → `results/walkforward_toxicidad_h300_persist.json`, totalmente reproducible |
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio
   de fill). Markout < 0 = selección adversa.
 - **Etiquetado multi-horizonte:** cada fill etiquetado a 1s/10s/60s/300s. El
-  set de entrenamiento es **107,362 fills distintos × 4 horizontes = 429,448
-  filas** (cada fill aporta una fila por horizonte — son pares
-  fill×horizonte, no fills distintos).
+  dataset walk-forward con tope de frescura es **382,582 filas fill×horizonte**
+  (268,446 fuera de muestra; cada fill aporta una fila por horizonte — son
+  pares fill×horizonte, *no* fills distintos).
 - **Validación:** GroupKFold por mercado (generalización a mercados no vistos)
   + normalización z-score por mercado.
 - **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por
@@ -128,7 +137,18 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vis
   fold son inestables, y una primera simulación con cola (T2/T3, 18-10) fue
   **inconclusa**: el AUC del modelo sobre fills simulados es ~0.50-0.56
   (features aproximadas, fuera de distribución), así que los números de cinta
-  asumen fills ideales ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). El nivel
+  asumen fills ideales ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). **Re-corrida de
+  la sim con la suposición 3 corregida** (quotes persistentes — el viejo
+  auto-cancel optimista eliminaba justo los fills adversos que un maker real
+  sufre; motor de sim publicado verbatim en `microstructure/sim/`): el delta
+  del filtro sobre sin-filtro es **+$9.26** BRUTO (sin filtro −$15.57 →
+  filtrado @0.7 −$6.31; 2 de 3 folds temporales, 1,580 fills, 1 fill = 1
+  muestra, h=300s), **positivo en ambos folds** — el delta negativo viejo de
+  T2/T3 (−$682) era un artefacto de esa suposición de auto-cancel. El AUC
+  sobre la sim sigue cercano al azar (pooled 0.556, folds 0.533–0.599;
+  features aproximadas por diseño) y la muestra es ~80× más chica que el
+  dataset real, así que esto se lee como DIRECCIÓN, no magnitud — el gate
+  sigue cerrado. El nivel
   anterior +$489 @0.7 venía del esquema de 382,582 filas que sumaba los cuatro
   horizontes de cada fill (pares fill×horizonte) — una estimación anterior
   contada 4×; el esquema actual cuenta cada fill una sola vez. El gate sigue
