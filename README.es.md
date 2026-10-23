@@ -2,6 +2,8 @@
 
 > [EN](README.md) | **ES**
 
+[![CI](https://github.com/RuarteGustavoAndres/market-microstructure-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/RuarteGustavoAndres/market-microstructure-portfolio/actions/workflows/ci.yml)
+
 Pipeline de microestructura de mercado 24/7 (CLOB de Polymarket + perpetuos
 USDT-M de Binance): captura multi-venue del libro por WebSocket a TimescaleDB,
 más un modelo de ML sin fugas que predice la **toxicidad de fills (selección
