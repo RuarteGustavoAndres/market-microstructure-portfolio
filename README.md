@@ -2,45 +2,44 @@
 
 > **EN** | [ES](README.es.md)
 
-An end-to-end market microstructure pipeline for prediction-market CLOBs
-(Polymarket-style binary order books) and crypto perpetuals: a 24/7 multi-venue
-WebSocket order-book capture into TimescaleDB, plus a machine-learning model
-that predicts **fill toxicity (adverse selection)** from order-book features —
-and a runnable demo of the backtest audit that keeps the numbers honest. Every
-number here is real, out-of-sample — **including the parts that did not work**.
+A 24/7 market-microstructure pipeline (Polymarket CLOB + Binance USDT-M
+perpetuals): multi-venue WebSocket order-book capture into TimescaleDB, plus a
+leak-free machine-learning model that predicts **fill toxicity (adverse
+selection)** from order-book features. Every number here is real,
+out-of-sample — **including the parts that did not work**.
 
-**Headline results**
+**Three results, with their caveats**
 
 1. **119M+ order-book events and 645k+ real fills** captured 24/7 into
-   TimescaleDB hypertables (12,900+ markets tracked, 9,900+ active in the
-   last 7 days).
-2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (folds 0.689-0.786, leak-free); PR-AUC 0.506 vs 0.304 prevalence** — a scoring/filter layer, **not** a decision-maker.
-3. **Walk-forward verdict (single horizon h=300s): delta positive, random-filter
-   null rejected at 5% (block-bootstrap CI **[−$20.45, +$121.74]** — wide, includes 0; both reported) — the filter's P&L delta over unfiltered is **+$99.24**
-   on the 2026-10-22 single-horizon refresh (129,175 rows, one fill = one
-   sample at h=300s), while the unfiltered level is **−$106.75** and the
-   filtered level @0.7 is **−$7.51** (80,379 ops) — the level @0.7 is still
-   negative in single horizon (all figures GROSS under tape-fill assumptions:
-   every tape fill counted, no queue position, no fees, no costs). The previous **+$489 @0.7**
-   level came from the 382,582-row scheme that summed all four horizons of
-   every fill (fill×horizon pairs), inflating the level ~4×; the current
-   scheme counts one fill once. Queue simulation
-   ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) is still pending to close the gate;
-   a first queue-aware run (T2/T3) was **inconclusive** (AUC ~0.50-0.56 on
-   approximated features, out-of-distribution); the corrected re-run
-   (assumption 3 fixed: persistent quotes, no optimistic auto-cancel) gives a
-   **positive delta** (+$9.26 GROSS, both folds) with AUC still near chance
-   (~0.556) on a tiny sample (1,580 fills) — direction consistent with the
-   real data, magnitude uninformative (details below). Walk-forward efficiency is
-   **−0.8% per op** (OOS vs in-sample P&L per op at the fixed threshold —
-   below the 30% overfitting-warning line), and per-fold optimal thresholds
-   are **not stable** (0.6/0.5/0.7/0.6/0.55), so we run the fixed 0.7 filter.
-   The gate stays closed.
+   TimescaleDB (12,900+ markets tracked, 9,900+ active in the last 7 days).
+   Live status, machine-generated daily:
+   [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
+2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (leak-free);
+   PR-AUC 0.506 vs 0.304 prevalence.** Caveat: it *ranks* toxicity — it is a
+   scoring/filter layer, **not** a decision-maker.
+3. **Walk-forward verdict (h=300s): the filter's P&L delta over unfiltered is
+   +$99.24 GROSS** (random-filter null rejected at 5%). Caveat: the
+   block-bootstrap CI **[−$20.45, +$121.74] includes 0**, the absolute level
+   @0.7 is still negative (−$7.51), and queue simulation + costs are pending —
+   **the gate stays closed.** Full detail below (tables + JSONs).
 
-Live capture status (machine-generated daily from the production database):
-[`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
+## Service: backtest audit
 
-Contact: open a GitHub issue or email gustavoaruarte@gmail.com.
+We audit quantitative trading backtests for the failure modes that survive
+casual review: look-ahead bias, free fills, in-sample tuning, survivorship,
+scale-dependence. **What you get:** a written verdict per finding with the
+exact mechanism, a machine-readable JSON per check, and a reproducible
+stdlib-only harness you can run yourself. The audit method audits itself
+(see *The auditor audited* below: 200 edge-free null strategies, planted
+look-ahead traps, known detector limitations documented with a dedicated
+study). Scope and turnaround: agreed per job. Contact: open a GitHub issue or
+email gustavoaruarte@gmail.com.
+
+## Run the demo (stdlib only, dependency-free)
+
+```bash
+python3 demo/audit_demo.py
+```
 
 ## Highlights
 - **119M+ order-book events** (libro_eventos) + **645k+ fills** (trades_full)

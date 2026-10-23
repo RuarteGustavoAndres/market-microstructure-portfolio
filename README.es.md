@@ -2,57 +2,55 @@
 
 > [EN](README.md) | **ES**
 
-Pipeline de microestructura de mercado end-to-end para CLOBs de mercados de
-predicción (libros binarios tipo Polymarket) y perpetuos de cripto: captura
-24/7 multi-venue del libro por WebSocket a TimescaleDB, más un modelo de ML que
-predice la **toxicidad de fills (selección adversa)** desde features del libro
-— y una demo ejecutable de la auditoría de backtests que mantiene los números
-honestos. Todos los números son reales y out-of-sample — **incluidas las
-partes que no funcionaron**.
+Pipeline de microestructura de mercado 24/7 (CLOB de Polymarket + perpetuos
+USDT-M de Binance): captura multi-venue del libro por WebSocket a TimescaleDB,
+más un modelo de ML sin fugas que predice la **toxicidad de fills (selección
+adversa)** desde features del libro. Todos los números son reales y
+out-of-sample — **incluidas las partes que no funcionaron**.
 
-**Resultados titular**
+**Tres resultados, con su salvedad**
 
-1. **119M+ eventos de libro y 645k+ fills reales** capturados 24/7 a hypertables
-   de TimescaleDB (12,900+ mercados trackeados, 9,900+ activos en los
-   últimos 7 días).
-2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (folds 0.689-0.786, sin fugas); PR-AUC 0.506 vs prevalencia 0.304** — una capa de scoring/filtro, **no** un decisor.
-3. **Veredicto walk-forward (horizonte único h=300s): delta positivo, nulo de filtro
-   aleatorio rechazado al 5% (IC bootstrap por bloques **[−$20,45, +$121,74]** — amplio, incluye 0; se reporta ambos) — el delta de P&L del filtro sobre sin-filtro es
-   **+$99.24** en el refresh del 22-10 de horizonte único (129,175 filas, 1
-   fill = 1 muestra a h=300s), mientras el nivel sin filtro es **−$106.75** y
-   el nivel filtrado @0.7 es **−$7.51** (80,379 ops) — el nivel @0.7 sigue
-   siendo negativo en horizonte único (todas las cifras son BRUTAS bajo
-   supuestos de cinta: se cuenta cada fill del tape, sin posición en cola, sin
-   fees, sin costos). El nivel
-   anterior **+$489 @0.7** venía del esquema de 382,582 filas que sumaba los
-   cuatro horizontes de cada fill (pares fill×horizonte), inflando el nivel
-   ~4×; el esquema actual cuenta cada fill una sola vez. La simulación de cola
-   ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)) sigue pendiente para cerrar el
-   gate; una primera corrida con cola (T2/T3) fue **inconclusa** (AUC
-   ~0.50-0.56 sobre features aproximadas, fuera de distribución); la
-   re-corrida corregida (suposición 3 arreglada: quotes persistentes, sin
-   auto-cancel optimista) da un **delta positivo** (+$9.26 BRUTO, en ambos
-   folds) con AUC aún cercano al azar (~0.556) sobre una muestra chica
-   (1,580 fills) — dirección consistente con los datos reales, magnitud no
-   informativa (detalles abajo). La
-   eficiencia walk-forward es **−0.8% por operación** (P&L OOS vs in-muestra
-   por op al umbral fijo — por debajo de la línea de aviso de sobreajuste del
-   30%) y los umbrales óptimos por fold son **inestables** (0.6/0.5/0.7/0.6/
-   0.55), por eso corre el filtro fijo 0.7. El gate sigue cerrado.
+1. **119M+ eventos de libro y 645k+ fills reales** capturados 24/7 a
+   TimescaleDB (12,900+ mercados trackeados, 9,900+ activos en los últimos
+   7 días). Estado en vivo, generado a diario:
+   [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
+2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (sin
+   fugas); PR-AUC 0.506 vs prevalencia 0.304.** Salvedad: *rankea* toxicidad —
+   es una capa de scoring/filtro, **no** un decisor.
+3. **Veredicto walk-forward (h=300s): el delta de P&L del filtro sobre
+   sin-filtro es +$99.24 BRUTO** (nulo de filtro aleatorio rechazado al 5%).
+   Salvedad: el IC bootstrap por bloques **[−$20,45, +$121,74] incluye 0**, el
+   nivel absoluto @0.7 sigue negativo (−$7,51) y la simulación de cola + costos
+   están pendientes — **el gate sigue cerrado.** Detalle completo abajo
+   (tablas + JSONs).
 
-Estado de captura en vivo (generado a diario desde la base de producción):
-[`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
+## Servicio: auditoría de backtests
 
-Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
+Auditamos backtests de trading cuantitativo buscando los modos de falla que
+sobreviven a la revisión casual: look-ahead, fills gratis, tuning in-sample,
+supervivencia, dependencia de escala. **Qué recibís:** veredicto escrito por
+hallazgo con el mecanismo exacto, un JSON machine-readable por check, y un
+harness reproducible solo-stdlib que podés correr vos mismo. El método de
+auditoría se audita a sí mismo (ver *El auditor auditado* abajo: 200
+estrategias nulas sin edge, trampas de look-ahead plantadas, limitaciones de
+detectores documentadas con un estudio dedicado). Alcance y plazo: se acuerdan
+por trabajo. Contacto: abrir un issue en GitHub o escribir a
+gustavoaruarte@gmail.com.
+
+## Correr la demo (solo stdlib, sin dependencias)
+
+```bash
+python3 demo/audit_demo.py
+```
 
 ## Lo más relevante
-- **85M+ eventos de libro** (libro_eventos) + **382k+ fills** (trades_full)
-  capturados 24/7 a hypertables de TimescaleDB — **9,900+ mercados trackeados,
-  362 tokens activos en los últimos 7 días** (verificado 2026-10-18).
+- **119M+ eventos de libro** (libro_eventos) + **645k+ fills** (trades_full)
+  capturados 24/7 a hypertables de TimescaleDB — **12,900+ mercados trackeados,
+  9,900+ activos en los últimos 7 días** (verificado 2026-10-22).
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una
   hypertable de TimescaleDB (compresión + retención).
-- **Clasificador de toxicidad: LightGBM AUC 0.736 OOS pooled en mercados no
-  vistos (sin fugas)**, rango por fold **0.67-0.79** — las filas son pares
+- **Clasificador de toxicidad: LightGBM AUC 0.7384 OOS pooled en mercados no
+  vistos (sin fugas)**, rango por fold **0.689-0.786** — las filas son pares
   fill×horizonte (cada fill aparece una vez por horizonte), así que las tablas
   de P&L suman cada fill 4×. La brecha pooled/por-mercado es diferencia de
   tasas base, y se declara.
@@ -72,7 +70,7 @@ Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
   markout/selección adversa en
   [`analytics/adverse_selection.py`](analytics/adverse_selection.py).
 
-### Estado de datos (declarado, al 2026-10-18)
+### Estado de datos (declarado, al 2026-10-22)
 - Captura continua **2026-10-14 → presente** (stream de trades: sin huecos).
 - **Corte conocido:** stream de libro caído **2026-10-15 ~17:00–20:00 UTC**
   (~3h; los servicios systemd no estaban `enabled` y murieron con una sesión
@@ -96,7 +94,7 @@ Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta
                           + tablas binance_* del venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Clasificador de toxicidad (LightGBM)  →  AUC 0.736 OOS pooled, mercados no vistos (sin fugas)
+Clasificador de toxicidad (LightGBM)  →  AUC 0.7384 OOS pooled, mercados no vistos (sin fugas)
 ```
 
 ## Módulos
