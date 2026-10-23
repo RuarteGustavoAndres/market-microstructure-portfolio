@@ -113,6 +113,9 @@ RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # Statistics — stdlib only, deterministic (seeded permutations)
 # ──────────────────────────────────────────────────────────────────────
 def _mean(xs):
+    # Degenerate case: a strategy can take zero trades -> guard the mean.
+    if not xs:
+        return 0.0
     return sum(xs) / len(xs)
 
 

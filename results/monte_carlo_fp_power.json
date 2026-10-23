@@ -1,0 +1,377 @@
+{
+  "params": {
+    "alpha": 0.01,
+    "n_perm": 999,
+    "n_days": 90,
+    "bars": 129600,
+    "hold": 30,
+    "half_spread": 0.004,
+    "sigma": 0.002,
+    "null_types": [
+      "ruido_puro",
+      "momento_causal",
+      "ruido_micro_drift",
+      "ruido_ar1"
+    ],
+    "intensities": [
+      "lookahead_completo",
+      "lookahead_1bar",
+      "lookahead_50pct",
+      "edge_realo_pequeno"
+    ],
+    "n_null_per_type": 50,
+    "n_trap_per_intensity": 100,
+    "flag_definition": "verdict FAIL o WARN",
+    "null_client": "tuning walk-forward, entry_lag=1, spread pagado, reporta segunda mitad completa (control honesto)",
+    "trap_client": "tuning in-sample, entry_lag=0, fills a mid, drop_worst_decile (mirror de la trampa del demo)",
+    "edge_realo_pequeno": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; NO es trampa",
+    "elapsed_s": 2104.7,
+    "cpu": "solo CPU, stdlib"
+  },
+  "seeds": {
+    "null_market": {
+      "start": 2000000,
+      "count": 200,
+      "note": "seed i-ésima = start + i, por tipo"
+    },
+    "trap_market": {
+      "start": 3000000,
+      "blocks": {
+        "lookahead_completo": {
+          "start": 3000000,
+          "count": 100
+        },
+        "lookahead_1bar": {
+          "start": 3001000,
+          "count": 100
+        },
+        "lookahead_50pct": {
+          "start": 3002000,
+          "count": 100
+        },
+        "edge_realo_pequeno": {
+          "start": 3003000,
+          "count": 100
+        }
+      },
+      "note": "cada intensidad tiene un bloque de 1000"
+    },
+    "audit_rng": 10000000,
+    "signal_rng": "market_seed + 500000"
+  },
+  "fp_rate_por_detector": {
+    "capturabilidad": {
+      "n": 200,
+      "marcadas": 0,
+      "rate": 0.0
+    },
+    "fills_al_book": {
+      "n": 200,
+      "marcadas": 0,
+      "rate": 0.0
+    },
+    "tuning_in_sample": {
+      "n": 200,
+      "marcadas": 0,
+      "rate": 0.0
+    },
+    "kfold_cv": {
+      "n": 200,
+      "marcadas": 3,
+      "rate": 0.015
+    },
+    "supervivencia": {
+      "n": 200,
+      "marcadas": 10,
+      "rate": 0.05
+    }
+  },
+  "fp_rate_por_tipo": {
+    "ruido_puro": {
+      "capturabilidad": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "tuning_in_sample": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "kfold_cv": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "supervivencia": {
+        "n": 50,
+        "marcadas": 1,
+        "rate": 0.02
+      },
+      "union": {
+        "n": 50,
+        "marcadas": 1,
+        "rate": 0.02
+      }
+    },
+    "momento_causal": {
+      "capturabilidad": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "tuning_in_sample": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "kfold_cv": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "supervivencia": {
+        "n": 50,
+        "marcadas": 3,
+        "rate": 0.06
+      },
+      "union": {
+        "n": 50,
+        "marcadas": 3,
+        "rate": 0.06
+      }
+    },
+    "ruido_micro_drift": {
+      "capturabilidad": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "tuning_in_sample": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "kfold_cv": {
+        "n": 50,
+        "marcadas": 1,
+        "rate": 0.02
+      },
+      "supervivencia": {
+        "n": 50,
+        "marcadas": 3,
+        "rate": 0.06
+      },
+      "union": {
+        "n": 50,
+        "marcadas": 4,
+        "rate": 0.08
+      }
+    },
+    "ruido_ar1": {
+      "capturabilidad": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "tuning_in_sample": {
+        "n": 50,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "kfold_cv": {
+        "n": 50,
+        "marcadas": 2,
+        "rate": 0.04
+      },
+      "supervivencia": {
+        "n": 50,
+        "marcadas": 3,
+        "rate": 0.06
+      },
+      "union": {
+        "n": 50,
+        "marcadas": 4,
+        "rate": 0.08
+      }
+    }
+  },
+  "fp_union": {
+    "n": 200,
+    "marcadas": 12,
+    "rate": 0.06
+  },
+  "fp_verdicts_distribution": {
+    "PPPPP": 188,
+    "PPPPF": 9,
+    "PPPFP": 2,
+    "PPPFF": 1
+  },
+  "potencia_por_intensidad": {
+    "lookahead_completo": {
+      "capturabilidad": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 100,
+        "marcadas": 12,
+        "rate": 0.12
+      },
+      "tuning_in_sample": {
+        "n": 100,
+        "marcadas": 93,
+        "rate": 0.93
+      },
+      "kfold_cv": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "supervivencia": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "union": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "verdicts_distribution": {
+        "PPFFF": 81,
+        "PFFFF": 12,
+        "PPPFF": 7
+      }
+    },
+    "lookahead_1bar": {
+      "capturabilidad": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "fills_al_book": {
+        "n": 100,
+        "marcadas": 95,
+        "rate": 0.95
+      },
+      "tuning_in_sample": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "kfold_cv": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "supervivencia": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "union": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "verdicts_distribution": {
+        "WFFFF": 95,
+        "WPFFF": 5
+      }
+    },
+    "lookahead_50pct": {
+      "capturabilidad": {
+        "n": 100,
+        "marcadas": 86,
+        "rate": 0.86
+      },
+      "fills_al_book": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "tuning_in_sample": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "kfold_cv": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "supervivencia": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "union": {
+        "n": 100,
+        "marcadas": 100,
+        "rate": 1.0
+      },
+      "verdicts_distribution": {
+        "WFFFF": 86,
+        "PFFFF": 14
+      }
+    },
+    "edge_realo_pequeno": {
+      "capturabilidad": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "fills_al_book": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "tuning_in_sample": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "kfold_cv": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "supervivencia": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "union": {
+        "n": 100,
+        "marcadas": 0,
+        "rate": 0.0
+      },
+      "verdicts_distribution": {
+        "PPPPP": 100
+      }
+    }
+  },
+  "veredicto": "AUDIT OK: FP <= 10% por detector (max 5.0%) y potencia >= 80% en trampas evidentes (min 100%); union FP 6.0%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
+}
