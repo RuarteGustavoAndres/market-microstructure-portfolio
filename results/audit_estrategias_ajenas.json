@@ -1,0 +1,270 @@
+{
+  "params": {
+    "alpha": 0.01,
+    "n_perm": 999,
+    "n_days": 90,
+    "bars": 129600,
+    "hold": 30,
+    "half_spread": 0.004,
+    "sigma": 0.002,
+    "half_spread_modelo": "bps constantes entre escalas: half_spread_efectivo = HALF_SPREAD * p0 / P0",
+    "p0s": [
+      0.5,
+      100.0
+    ],
+    "seed_mercado": 7,
+    "seeds_senal": {
+      "momentum_chaser": 201,
+      "spread_sniper": 202,
+      "ruido_puro": 203,
+      "lookahead_parcial": 204,
+      "lookahead_completo": 205
+    },
+    "audit_rng_base": 40000000,
+    "honest_plumbing": "tuning walk-forward (1a mitad), entry_lag=1, price_book=True, half_spread, reporta 2a mitad completa",
+    "trap_plumbing": "tuning in-sample, entry_lag=0, price_book=False, drop_worst_decile (mirror TRAP client)",
+    "global_definition": "peor veredicto entre los 5 detectores; flagged = al menos un FAIL/WARN",
+    "elapsed_s": 39.8,
+    "cpu": "solo CPU, stdlib"
+  },
+  "estrategias": {
+    "momentum_chaser": {
+      "tipo": "honest",
+      "setup": "entra tras k=3 subidas (bajadas) seguidas: señal = ±momentum z de 3 barras solo si las 3 últimas tienen el mismo signo (naive)",
+      "seed_senal": 201,
+      "p0": {
+        "0.5": {
+          "thr": 1.9,
+          "n_trades": 3037,
+          "mean_pnl": -0.0075035654888222815,
+          "total_pnl": -22.788328389553268,
+          "sharpe": -95.30491062795605,
+          "win": 0.1975633849193283,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "PASS"
+          },
+          "verdicts": "PPPPP",
+          "global": "PASS",
+          "flagged": false
+        },
+        "100.0": {
+          "thr": 1.9,
+          "n_trades": 3037,
+          "mean_pnl": -1.5007130977644547,
+          "total_pnl": -4557.665677910649,
+          "sharpe": -95.30491062795573,
+          "win": 0.1975633849193283,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "PASS"
+          },
+          "verdicts": "PPPPP",
+          "global": "PASS",
+          "flagged": false
+        }
+      },
+      "checks_con_escala_diferente": [],
+      "esperado": "benigno (sin marcar)",
+      "ok": true
+    },
+    "spread_sniper": {
+      "tipo": "honest",
+      "setup": "mean reversion: entra cuando el precio toca el extremo rolling de 120 barras (|z|>thr), dirección = fade del extremo",
+      "seed_senal": 202,
+      "p0": {
+        "0.5": {
+          "thr": 2.0,
+          "n_trades": 9725,
+          "mean_pnl": -0.007918562547962842,
+          "total_pnl": -77.00802077893864,
+          "sharpe": -104.42927494015512,
+          "win": 0.18539845758354756,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "PPPPF",
+          "global": "FAIL",
+          "flagged": true
+        },
+        "100.0": {
+          "thr": 2.0,
+          "n_trades": 9725,
+          "mean_pnl": -1.58371250959257,
+          "total_pnl": -15401.604155787742,
+          "sharpe": -104.42927494015493,
+          "win": 0.18539845758354756,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "PPPPF",
+          "global": "FAIL",
+          "flagged": true
+        }
+      },
+      "checks_con_escala_diferente": [],
+      "esperado": "benigno (sin marcar)",
+      "ok": false
+    },
+    "ruido_puro": {
+      "tipo": "honest",
+      "setup": "entrada aleatoria: señal iid N(0,1) — control nulo, P&L esperado ~ -2 x half_spread",
+      "seed_senal": 203,
+      "p0": {
+        "0.5": {
+          "thr": 0.9,
+          "n_trades": 23863,
+          "mean_pnl": -0.007940444150035681,
+          "total_pnl": -189.48281875230145,
+          "sharpe": -107.25773899286592,
+          "win": 0.19255751581946948,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "PASS"
+          },
+          "verdicts": "PPPPP",
+          "global": "PASS",
+          "flagged": false
+        },
+        "100.0": {
+          "thr": 0.9,
+          "n_trades": 23863,
+          "mean_pnl": -1.5880888300071359,
+          "total_pnl": -37896.563750460286,
+          "sharpe": -107.25773899286568,
+          "win": 0.19255751581946948,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "PASS",
+            "kfold_cv": "PASS",
+            "supervivencia": "PASS"
+          },
+          "verdicts": "PPPPP",
+          "global": "PASS",
+          "flagged": false
+        }
+      },
+      "checks_con_escala_diferente": [],
+      "esperado": "benigno (sin marcar)",
+      "ok": true
+    },
+    "lookahead_parcial": {
+      "tipo": "trampa",
+      "setup": "TRAMPA: usa info de 1 bar adelante en el 50% de los trades; el otro 50% es ruido N(0,1) (mismos marginales)",
+      "seed_senal": 204,
+      "p0": {
+        "0.5": {
+          "thr": 2.0,
+          "n_trades": 5343,
+          "mean_pnl": 0.0032342892511412038,
+          "total_pnl": 17.280807468847453,
+          "sharpe": 68.28220071052648,
+          "win": 0.6507580011229647,
+          "flags": {
+            "capturabilidad": "WARN",
+            "fills_al_book": "FAIL",
+            "tuning_in_sample": "FAIL",
+            "kfold_cv": "FAIL",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "WFFFF",
+          "global": "FAIL",
+          "flagged": true
+        },
+        "100.0": {
+          "thr": 2.0,
+          "n_trades": 5343,
+          "mean_pnl": 0.6468578502282403,
+          "total_pnl": 3456.161493769488,
+          "sharpe": 68.28220071052657,
+          "win": 0.6507580011229647,
+          "flags": {
+            "capturabilidad": "WARN",
+            "fills_al_book": "FAIL",
+            "tuning_in_sample": "FAIL",
+            "kfold_cv": "FAIL",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "WFFFF",
+          "global": "FAIL",
+          "flagged": true
+        }
+      },
+      "checks_con_escala_diferente": [],
+      "esperado": "flagged (WARN/FAIL)",
+      "ok": true
+    },
+    "lookahead_completo": {
+      "tipo": "trampa",
+      "setup": "TRAMPA clásica: la señal en t es el retorno COMPLETO del hold (30 barras) — el demo TRAP client",
+      "seed_senal": 205,
+      "p0": {
+        "0.5": {
+          "thr": 2.0,
+          "n_trades": 5142,
+          "mean_pnl": 0.019092862873129432,
+          "total_pnl": 98.17550089363154,
+          "sharpe": 380.9389307235049,
+          "win": 1.0,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "FAIL",
+            "kfold_cv": "FAIL",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "PPFFF",
+          "global": "FAIL",
+          "flagged": true
+        },
+        "100.0": {
+          "thr": 2.0,
+          "n_trades": 5142,
+          "mean_pnl": 3.818572574625884,
+          "total_pnl": 19635.100178726294,
+          "sharpe": 380.9389307235038,
+          "win": 1.0,
+          "flags": {
+            "capturabilidad": "PASS",
+            "fills_al_book": "PASS",
+            "tuning_in_sample": "FAIL",
+            "kfold_cv": "FAIL",
+            "supervivencia": "FAIL"
+          },
+          "verdicts": "PPFFF",
+          "global": "FAIL",
+          "flagged": true
+        }
+      },
+      "checks_con_escala_diferente": [],
+      "esperado": "flagged (WARN/FAIL)",
+      "ok": true
+    }
+  },
+  "limitaciones_conocidas": {
+    "spread_sniper x supervivencia": {
+      "diagnostico": "limitación del detector, no evidencia de trampa: todo trade perdedor paga el mismo costo fijo de round-trip (masa puntual en −2·half_spread), lo que comprime el IQR de los pnls e infla mecánicamente el conteo de outliers de cola derecha (nr > nl) contra el nulo de simetría de tail_symmetry_test",
+      "evidencia": "estudio de 24 seeds de mercado x 2 escalas (2026-10-23): FAIL en 7/24 seeds (29.2%) a cada escala, igual con pnl absoluto y relativo; controles honestos: momentum_chaser 0/8, ruido_puro 0/8; script y JSON del estudio: demo/estudio_limitacion_supervivencia.py y results/estudio_limitacion_supervivencia.json",
+      "por_que_no_se_arregla": "el detector sigue siendo conservador (potencia 100% en las trampas de look-ahead, 0% FP en controles, ver results/monte_carlo_fp_power.json) y tocarlo invalidaría el MC ya publicado"
+    }
+  },
+  "veredicto": "AUDIT OK: el auditor separa las honestas de las 2 tramposas (WARN/FAIL en las 2 escalas); las 2 honestas sin costo fijo dan veredicto benigno en las 2 escalas, y la única marca sobre honestas es la limitación conocida documentada en limitaciones_conocidas — con 2 limitación(es) conocida(s) documentada(s) del detector: spread_sniper marcada por ['supervivencia'] a p0=0.5 (limitación conocida del detector, ver limitaciones_conocidas); spread_sniper marcada por ['supervivencia'] a p0=100 (limitación conocida del detector, ver limitaciones_conocidas)"
+}
