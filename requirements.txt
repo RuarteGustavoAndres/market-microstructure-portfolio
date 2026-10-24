@@ -1,5 +1,6 @@
 # Capture pipeline only (microstructure/capture, microstructure/data).
 # The ML stack lives in requirements-ml.txt; demo/audit_demo.py is stdlib-only.
-psycopg2-binary
-orjson
-requests
+# Pinned 2026-10-24 to the versions running on the live capture host.
+psycopg2-binary==2.9.13
+orjson==3.13.0
+requests==2.34.2

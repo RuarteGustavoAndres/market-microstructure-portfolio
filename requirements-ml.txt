@@ -1,6 +1,8 @@
 # Only microstructure/model/ (features + toxicity training) needs these.
 # demo/audit_demo.py is stdlib-only — do not install this for the demo.
-numpy
-lightgbm
-scikit-learn
-torch
+# Pinned 2026-10-24 to the venv-ml versions that produced the published
+# walk-forward JSONs (folds reproduced byte-identical, CPU, seed 42).
+numpy==2.5.4
+lightgbm==4.7.0
+scikit-learn==1.9.1
+torch==2.6.0

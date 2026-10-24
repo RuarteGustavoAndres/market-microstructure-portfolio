@@ -49,8 +49,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install ML deps + pytest
-        run: pip install numpy lightgbm scikit-learn pytest
+      - name: Install ML deps + pytest (pinned to requirements-ml.txt, torch excluded)
+        run: pip install numpy==2.5.4 lightgbm==4.7.0 scikit-learn==1.9.1 pytest
       - name: Run tests
         run: pytest tests/ -q
 
