@@ -51,8 +51,9 @@ El gate de trading está CERRADO y así se declara.
 |---|---|---|
 | 119M+ eventos de libro / 645k+ fills / 12,900+ mercados (L15, L47) | `results/CAPTURE_STATUS.md` (hoy 159M / 958k / 15.161 — cotas inferiores vigentes) | OK |
 | 237 tokens activos últimos 7 días (L16) | `results/CAPTURE_STATUS.md` "Active tokens last 7 days (exact, indexed)" | OK (corregido 24-oct: antes decía "9,900+ active" — error de transcripción del commit `c11e975`) |
-| AUC pooled OOS **0.7384** (L19, L52, L94, L122, L154, L205) | **⚠ SIN JSON** — no está en ningún JSON del repo (búsqueda numérica completa). Rango por fold sí existe: `walkforward_toxicidad.json` folds 0.6894–0.7858 | **GAP — ver abajo** |
-| PR-AUC **0.506** / prevalencia **0.304** (L20, L155) | **⚠ SIN JSON** — lo más cercano es el esquema por-mercado: `folds_mercado_toxicidad.json` 0.5135 / 0.3144 (GroupKFold K=5, run 19-oct) | **GAP — ver abajo** |
+| AUC pooled OOS **0.7276** (temporal fill×horizonte; L19, L52, L94, L154, L159) | `walkforward_toxicidad.json` → `auc_pooled_oos` (agregado 24-oct; la regeneración reprodujo los folds exacto) | OK — resuelto 24-oct: el valor anterior 0.7384 no tenía artefacto y fue corregido |
+| PR-AUC **0.4963** / prevalencia **0.304** (L20, L155) | `walkforward_toxicidad.json` → `pr_auc_oos` / `prevalencia_oos` | OK (idem) |
+| AUC pooled por-mercado **0.7356** (L122, L205; re-corrída sin fugas 19-oct) | `folds_mercado_toxicidad.json` → `auc_pooled_honesto` (GroupKFold K=5, 285,764 filas, 215 mercados) | OK |
 | Delta +$99.24 GROSS h=300s (L23, L129, L211) | `walkforward_toxicidad_h300.json`: `oos_sin_filtro_usd` −106.75 → `oos_fijo_0.7_usd` −7.51 (delta derivado, aritmética verificada); respaldo directo en `nulo_delta_h300.json` (`reproducibilidad`: ref CPU +99.24; run GPU observado 98.23, diferencia ~1% declarada) | OK |
 | IC block-bootstrap [−20.45, +121.74] incluye 0 (L24, L798205c) | `nulo_delta_h300.json` → `nulo_b.pooled.ic_low_2_5_usd` / `ic_high_97_5_usd` | OK |
 | Nulo rechazado al 5% (L23) | `nulo_delta_h300.json` → `nulo_a.p95_usd` 45.27 vs delta observado 98.23 (GPU); delta > 0 en 4/5 folds; regla de decisión fijada a priori en el campo `decision_rule` | OK |
@@ -65,24 +66,19 @@ El gate de trading está CERRADO y así se declara.
 | Markout bps multi-símbolo (Venue 2, L179) | `markout_report.json` (`resumen_por_simbolo`, frescura del mid declarada) | OK |
 | Números prohibidos 0.688 / $361 | `results/RESULTS.md` L56/L78 SOLO dentro de la sección History etiquetada ("kept on record", "That was an artifact") — patrón permitido por el checklist | OK (gate: 0 hits como cifra actual) |
 
-## GAP declarado (lo que el auditor va a preguntar)
+## GAP resuelto (24-oct, para el registro)
 
-**AUC 0.7384 pooled y PR-AUC 0.506/0.304 no tienen JSON de respaldo en el repo.**
-Son del esquema fill×horizonte (382.582 filas, refresh 22-oct), calculados en el
-host de captura y volcados a mano en el README — exactamente el patrón
-"número sin provenance" que la checklist de publicación (y el antecedente
-0.688-vs-0.765) prohíbe. Opciones pendientes de decisión de Gustavo:
-
-- **A. Regenerar**: correr la copia pública de `backtest_walkforward.py` sobre
-  la DB real (docker `predikt_timescale`, localhost:5434) extendiendo el script
-  para que el JSON incluya `auc_pooled_oos` / `pr_auc_oos` / prevalencia /
-  fills distintos. El README queda como está (esas cifras obtienen provenance).
-- **B. Reescribir el titular** con cifras ya respaldadas: pooled por-mercado
-  0.7356 (GroupKFold, `folds_mercado_toxicidad.json`) + rangos por fold del
-  esquema temporal + PR-AUC 0.5135/0.3144. Cero corridas nuevas.
-
-Mientras tanto el auditor debe saber que estas dos cifras del titular no tienen
-artefacto de respaldo en `results/` (el resto de la tabla sí, verificado).
+El titular citaba **AUC 0.7384 / PR-AUC 0.506 sin artefacto de respaldo** (no
+estaban en ningún JSON del repo — búsqueda numérica completa; el patrón
+"número sin provenance" que la checklist prohíbe). Resolución (opción A
+aprobada por Gustavo): se extendió `backtest_walkforward.py` para emitir las
+métricas pooled y se re-corrió sobre el dataset congelado del refresh 22-oct
+(sha256 `fb6e978f…bbaf`, 382,582 filas) — **reprodujo los folds exacto**
+(CPU, seed 42). Valores reales pooled OOS: **AUC 0.7276 / PR-AUC 0.4963 /
+prevalencia 0.3044**, 268,446 filas OOS en 224 fills distintos. El README usa
+ahora esos valores. El 0.7384 no era reconstructible por ninguna vía (ni
+pooled temporal 0.7276, ni media de folds ~0.7357, ni por-mercado 0.7356):
+cifra huérfana, corregida a la baja — más honesto.
 
 ## Otras notas para el auditor
 

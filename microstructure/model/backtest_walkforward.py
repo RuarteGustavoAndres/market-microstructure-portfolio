@@ -39,7 +39,7 @@ from collections import defaultdict
 
 import numpy as np
 import lightgbm as lgb
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, average_precision_score
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "dataset", "ml_features.csv")
@@ -132,6 +132,7 @@ def main():
             f"{time.strftime('%m-%d %H:%M', time.gmtime(bordes[k+1]))} UTC)")
 
     resultados, umbral_optimo_por_fold = [], []
+    oos_y, oos_p, oos_tokens = [], [], []  # pooled OOS (provenance 24-oct)
     for k in range(1, K_BLOQUES):  # fold k: test = bloque k+1
         test = bloques[k]
         test_start = test[0]["ts"]
@@ -156,6 +157,9 @@ def main():
             lgb.Dataset(Xtr, label=ytr), num_boost_round=200)
         proba = model.predict(Xte)
         auc = roc_auc_score(yte, proba)
+        oos_y.extend(int(v) for v in yte)
+        oos_p.extend(float(v) for v in proba)
+        oos_tokens.extend(r["token"] for r in test)
 
         sin_filtro = pnl_stats(test)
         grid = {t: pnl_stats(test, thr=t, proba=proba) for t in GRILLA}
@@ -226,6 +230,14 @@ def main():
         "in_sample_fijo_usd": is_fijo_total,
         "in_sample_fijo_n": is_n_total,
         "oos_fijo_n": oos_n,
+        # métricas pooled de clasificación sobre TODO el OOS (cada fila una vez
+        # dentro de su fold; en el esquema fill×horizonte cada fill aparece una
+        # vez por horizonte). Agregado 24-oct para provenance del titular README.
+        "n_oos": len(oos_y),
+        "auc_pooled_oos": round(float(roc_auc_score(oos_y, oos_p)), 4) if oos_y else None,
+        "pr_auc_oos": round(float(average_precision_score(oos_y, oos_p)), 4) if oos_y else None,
+        "prevalencia_oos": round(sum(oos_y) / len(oos_y), 4) if oos_y else None,
+        "fills_distintos_oos": len(set(oos_tokens)),
         "wfe_maker_per_op_pct": wfe,
         "wfe_totals_pct": wfe_totals,
         "nota_wfe": "WFE POR OPERACIÓN (OOS pnl/op vs IS pnl/op a umbral fijo); "

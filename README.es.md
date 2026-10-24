@@ -16,9 +16,9 @@ out-of-sample — **incluidas las partes que no funcionaron**.
    TimescaleDB (12,900+ mercados trackeados, 237 tokens activos en los últimos
    7 días). Estado en vivo, generado a diario:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
-2. **Clasificador de toxicidad: AUC 0.7384 OOS en mercados no vistos (sin
-   fugas); PR-AUC 0.506 vs prevalencia 0.304.** Salvedad: *rankea* toxicidad —
-   es una capa de scoring/filtro, **no** un decisor.
+2. **Clasificador de toxicidad: AUC 0.7276 OOS pooled, walk-forward temporal
+   (sin fugas); PR-AUC 0.4963 vs prevalencia 0.304.** Salvedad: *rankea*
+   toxicidad — es una capa de scoring/filtro, **no** un decisor.
 3. **Veredicto walk-forward (h=300s): el delta de P&L del filtro sobre
    sin-filtro es +$99.24 BRUTO** (nulo de filtro aleatorio rechazado al 5%).
    Salvedad: el IC bootstrap por bloques **[−$20,45, +$121,74] incluye 0**, el
@@ -52,8 +52,8 @@ python3 demo/audit_demo.py
   2026-10-24).
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una
   hypertable de TimescaleDB (compresión + retención).
-- **Clasificador de toxicidad: LightGBM AUC 0.7384 OOS pooled en mercados no
-  vistos (sin fugas)**, rango por fold **0.689-0.786** — las filas son pares
+- **Clasificador de toxicidad: LightGBM AUC 0.7276 OOS pooled (temporal, sin
+  fugas)**, rango por fold **0.689-0.786** — las filas son pares
   fill×horizonte (cada fill aparece una vez por horizonte), así que las tablas
   de P&L suman cada fill 4×. La brecha pooled/por-mercado es diferencia de
   tasas base, y se declara.
@@ -97,7 +97,7 @@ Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta
                           + tablas binance_* del venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Clasificador de toxicidad (LightGBM)  →  AUC 0.7384 OOS pooled, mercados no vistos (sin fugas)
+Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin fugas)
 ```
 
 ## Módulos
@@ -118,16 +118,16 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7384 OOS pooled, mercados no vi
   de fill). Markout < 0 = selección adversa.
 - **Etiquetado multi-horizonte:** cada fill etiquetado a 1s/10s/60s/300s. El
   dataset walk-forward con tope de frescura es **382,582 filas fill×horizonte**
-  (268,446 fuera de muestra; cada fill aporta una fila por horizonte — son
-  pares fill×horizonte, *no* fills distintos).
+  (268,446 fuera de muestra, en **224 fills distintos**; cada fill aporta una
+  fila por horizonte — son pares fill×horizonte).
 - **Validación:** GroupKFold por mercado (generalización a mercados no vistos)
   + normalización z-score por mercado.
 - **Fuga eliminada:** `pos_en_spread` y `fill_price` reconstruyen el target por
   construcción — se quitaron al detectarla, el AUC bajó de 0.702 a 0.6425
   (baseline MLP).
-- **Upgrade a LightGBM:** AUC pooled **0.7384** OOS en mercados no vistos
-  (re-corrída sin fugas: snapshots con tope de frescura, estandarización
-  causal, folds por mercado).
+- **Upgrade a LightGBM:** AUC pooled **0.7356** OOS en mercados no vistos
+  (re-corrída sin fugas, GroupKFold por mercado: snapshots con tope de
+  frescura, estandarización causal) — `results/folds_mercado_toxicidad.json`.
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
   decisor autónomo. Con markout exacto + walk-forward de horizonte único
@@ -160,12 +160,12 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7384 OOS pooled, mercados no vi
 
 | Métrica | Valor |
 |---|---|
-| AUC-ROC pooled OOS (LightGBM, leak-free, mercados no vistos) | **0.7384** |
-| PR-AUC OOS / prevalencia | **0.5057 / 0.304** |
+| AUC-ROC pooled OOS (LightGBM, sin fugas, temporal) | **0.7276** |
+| PR-AUC OOS / prevalencia | **0.4963 / 0.304** |
 | AUC por fold temporal (rango, 5 folds, h=300s) | **0.653 / 0.787** |
 | Filas walk-forward (horizonte único h=300s, refresh 22-10-2026) | 129,175 totales; 80,379 ops OOS al umbral fijo 0.7 |
 | **P&L maker walk-forward OOS (horizonte único h=300s, refresh 22-10-2026, 129,175 filas — BRUTO, supuestos de cinta; cola+costos pendientes)** | **DELTA-POSITIVO, NIVEL-NEGATIVO, AÚN FRÁGIL** — markout exacto, splits temporales, embargo 300s, 1 fill = 1 muestra: sin filtro **−106.75 USD** · filtro @0.7 **−7.51** (80,379 ops) · **delta sobre sin-filtro +99.24** · umbrales óptimos por fold 0.6/0.5/0.7/0.6/0.55 (**no estables**) → filtro fijo 0.7. WFE **−0.8% por operación** (P&L OOS vs in-muestra por op; por debajo de la línea de aviso de sobreajuste del 30%). Estimación anterior contada 4× (esquema de 382,582 filas, los cuatro horizontes por fill): +488.98 @0.7. Gate cerrado hasta simular cola + costos; números reportados igual. |
-| **Walk-forward por horizonte (1 fill = 1 muestra por horizonte, fijo 0.7, BRUTO supuestos de cinta, re-corridas 23-10-2026)** | el delta es **positivo en los cuatro** horizontes y crece con el horizonte — h=1s: **+18.49** (AUC folds 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). El NIVEL sin filtro cambia de signo con el horizonte (+77.84 / +101.32 / +40.62 / −106.75) — la selección adversa crece con el horizonte; el delta es la cantidad estable. El **AUC 0.7384** pooled de arriba viene del esquema fill×horizonte (382,582 filas); los AUC por horizonte son los rangos de esta fila (deltas con test nulo — filas abajo). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
+| **Walk-forward por horizonte (1 fill = 1 muestra por horizonte, fijo 0.7, BRUTO supuestos de cinta, re-corridas 23-10-2026)** | el delta es **positivo en los cuatro** horizontes y crece con el horizonte — h=1s: **+18.49** (AUC folds 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). El NIVEL sin filtro cambia de signo con el horizonte (+77.84 / +101.32 / +40.62 / −106.75) — la selección adversa crece con el horizonte; el delta es la cantidad estable. El **AUC 0.7276** pooled de arriba viene del esquema fill×horizonte (382,582 filas); los AUC por horizonte son los rangos de esta fila (deltas con test nulo — filas abajo). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
 | **Test nulo del delta (regla de decisión fijada a priori el 23-10-2026, antes de correr: horizonte único h=300s, umbral 0.7, estadístico = delta; rechazo al 5% si delta pooled ≥ p95 de un nulo de filtro aleatorio Y delta > 0 en ≥4/5 folds)** | **RECHAZADO al 5%.** Delta pooled observado **+98.23** (re-corrida GPU; referencia CPU +99.24) vs nulo de filtro aleatorio (misma retención por fold, 1.000 draws seed fija) p95 **+45.27** — el observado queda sobre el percentil 100 del nulo (p99 +52.01, max +61.02), y es > 0 en **4/5 folds**. Control: 50 reentrenos con labels permutadas dentro de cada mercado → delta **−1.10 ± 10.21** (min −22.23, max +19.09): el pipeline no fabrica señal. Secundario (umbral re-elegido por draw): el delta observado queda en p98.9 de ese nulo. **Caveat honesto:** el IC bootstrap por bloques de mercado del delta, **[−20.45, +121.74], incluye 0** (volatilidad de muestreo alta; 2 de 5 folds casi nulos) — se reporta ambos resultados. El gate sigue cerrado (nivel negativo, WFE negativa, cola+costos pendientes). Código y JSON: `microstructure/model/backtest_nulo_delta.py`, `results/nulo_delta_h300.json`. |
 | **El auditor auditado: Monte Carlo de los 5 detectores de fugas (23-10-2026, alpha=0.01, 999 permutaciones/test)** | Sobre 200 estrategias nulas sin edge (4 tipos × 50 seeds, mercados de 90 días, spread 2×40 bps): **tasa de falsos positivos por detector — capturabilidad 0%, fills al book 0%, tuning in-sample 0%, kfold-cv 1.5%, supervivencia 5.0%; unión 6.0%**. **Potencia: 100% (unión) en las tres trampas de look-ahead** (completo: atrapado por tuning/kfold/supervivencia; de 1 barra: por los cinco; 50% parcial: capturabilidad 86%). Un edge real pero chico se acusa **0%** de las veces — los detectores cazan plumbing, no la existencia de edge. Limitación conocida: capturabilidad no ve un look-ahead de hold completo (1 barra de retraso quita solo 1/30 del peek); los otros cuatro detectores lo cubren. JSON: `results/monte_carlo_fp_power.json`. |
 | **El auditor se audita a sí mismo: cinco controles sintéticos × dos escalas de precio (23-10-2026, 3 honestas + 2 trampas de look-ahead, p0=0.5 vs p0=100; las cinco son sintéticas — escritas por nosotros para esta auditoría, sin código de terceros)** | **Invariancia de escala restaurada y verificada**: el harness ahora escala el costo de round-trip con la escala del mercado (bps constantes en 80: `half_spread = HALF_SPREAD * p0 / P0`), y el rng de auditoría se siembra idéntico por estrategia entre escalas — 5/5 estrategias devuelven **veredictos idénticos en ambas escalas**, ratio de pnl exactamente 200.0×. Veredictos: las 2 trampas de look-ahead FALLAN/WARNEAN en ambas escalas (tuning in-sample, kfold, fills al book disparan); las 3 honestas PASAN salvo `spread_sniper`, marcada por supervivencia en ambas escalas — **limitación conocida del detector, documentada en el JSON** (`limitaciones_conocidas`): todo trade perdedor paga el mismo costo fijo de round-trip (masa puntual en −2·half_spread), lo que comprime el IQR e infla mecánicamente el conteo de outliers de cola derecha (`nr > nl` en los 7 marcados de 24 seeds de mercado; tasa de marca en honestas del 29.2% vs alpha=0.01; controles honestos momentum/ruido: 0/16 (bajo poder); misma tasa con pnl relativo — no es artefacto de unidades). Y no es un falso positivo aleatorio: contra el FP base de 5.0% del MC 4g, P(X>=7 | Bin(24,0.05)) = 1.3e-04 — `tail_symmetry_test` detecta CUALQUIER asimetría de pnl, incluida la estructural de estrategias honestas selectivas de nivel (su familia de nulos no las cubre), así que una marca sobre esta clase no implica trampa). Script y JSON del estudio: `demo/estudio_limitacion_supervivencia.py`, `results/estudio_limitacion_supervivencia.json`. El edge falso que antes reportaba `momentum_chaser` a p0=100 (media +0.086/trade) venía de un spread aditivo sobre precios lognormales — el fix de escalar el costo lo elimina. |
@@ -214,7 +214,7 @@ en vivo; último reporte machine-readable en
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Próximos pasos (acotados)
-- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7384 pooled OOS).
+- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 OOS, mercados no vistos).
 - ~~Backtestear el filtro contra P&L bajo supuestos de cinta~~ **hecho sobre features sin fugas
   (snapshots con tope de frescura, estandarización causal, folds temporales) —
   en walk-forward temporal estricto de horizonte único (h=300s, 1 fill = 1

@@ -22,6 +22,16 @@ in the repo (private capture host). Provenance: `sha256 = 7e94c09061836d1607a4c3
 `results/dataset_sample.csv` so the schema is inspectable, and the JSONs are
 regenerated weekly by cron with their own timestamps.
 
+The 2026-10-22 refresh regenerated the dataset from the production DB
+(freshness cap re-applied): `sha256 = fb6e978f5be05bab2ebd626f6bff1a3e84f5e63dfcf3992d342d344ad612bbaf`
+(382,582 fill×horizon rows). On 2026-10-24 the published
+`backtest_walkforward.py` re-ran on that dataset and reproduced the published
+folds exactly (CPU, seed 42); the run additionally emitted the pooled
+classification metrics the README headline now cites: `auc_pooled_oos` **0.7276**,
+`pr_auc_oos` **0.4963**, `prevalencia_oos` 0.3044 — 268,446 OOS rows across 224
+distinct fills (`results/walkforward_toxicidad.json`). The previous headline
+value 0.7384 / PR-AUC 0.506 had no reproducible artifact and was corrected.
+
 | Scheme | Unfiltered | Filtered | Notes |
 |---|---|---|---|
 | Temporal walk-forward (6 blocks, 300s embargo) | **−$208.84** | @0.7: **+$112.05** | WFE **9.5% per row** (2.1% per total) — in-sample decays ~90% per row; per-fold thresholds [0.6, 0.75, 0.6, 0.5, 0.5] not stable |
