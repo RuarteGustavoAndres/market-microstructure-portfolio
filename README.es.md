@@ -35,9 +35,10 @@ hallazgo con el mecanismo exacto, un JSON machine-readable por check, y un
 harness reproducible solo-stdlib que podés correr vos mismo. El método de
 auditoría se audita a sí mismo (ver *El auditor auditado* abajo: 200
 estrategias nulas sin edge, trampas de look-ahead plantadas, limitaciones de
-detectores documentadas con un estudio dedicado). Alcance y plazo: se acuerdan
-por trabajo. Contacto: abrir un issue en GitHub o escribir a
-gustavoaruarte@gmail.com.
+detectores documentadas con un estudio dedicado). Alcance y plazo: precio fijo
+$250–500 por backtest, entrega en 5 días hábiles — ejemplo de una página del
+método aplicado a este mismo pipeline: [CASE_STUDY.md](CASE_STUDY.md).
+Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
 
 ## Correr la demo (solo stdlib, sin dependencias)
 

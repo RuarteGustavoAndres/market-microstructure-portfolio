@@ -34,7 +34,9 @@ exact mechanism, a machine-readable JSON per check, and a reproducible
 stdlib-only harness you can run yourself. The audit method audits itself
 (see *The auditor audited* below: 200 edge-free null strategies, planted
 look-ahead traps, known detector limitations documented with a dedicated
-study). Scope and turnaround: agreed per job. Contact: open a GitHub issue or
+study). Scope and turnaround: fixed price $250–500 per backtest, delivered in 5
+business days — one-page example of the method applied to this very pipeline:
+[CASE_STUDY.md](CASE_STUDY.md). Contact: open a GitHub issue or
 email gustavoaruarte@gmail.com.
 
 ## Run the demo (stdlib only, dependency-free)
