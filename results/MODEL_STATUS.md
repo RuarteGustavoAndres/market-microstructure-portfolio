@@ -4,6 +4,12 @@
 > weekly result; the reviewed number only moves into the README after human
 > verification (gate discipline: a number without provenance is marketing).
 
+> **Note (2026-10-24):** the current README headline is the 2026-10-22/23 refresh —
+> single-horizon h=300s walk-forward + null test of the delta. Sources:
+> `results/walkforward_toxicidad_h300.json`, `results/walkforward_toxicidad_h{1,10,60}.json`,
+> `results/nulo_delta_h300.json`. The table below is the 2026-10-19 review, kept
+> on record with its provenance.
+
 | Metric | Leak-free re-run (2026-10-19) | Last reviewed (2026-10-16)* |
 |---|---|---|
 | LightGBM AUC OOS (pooled) | 0.739 | 0.765 (inflated by horizon + leaks) |

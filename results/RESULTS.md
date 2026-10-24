@@ -2,6 +2,12 @@
 
 ## CURRENT: leak-free re-run (2026-10-19)
 
+> **SUPERSEDED 2026-10-24** by the single-horizon h=300s re-run (2026-10-22) and
+> its null test (2026-10-23) — the current headline numbers live in the README
+> (sources: `results/walkforward_toxicidad_h300.json`, `results/nulo_delta_h300.json`,
+> `results/walkforward_toxicidad.json` for the fill×horizon scheme). The section
+> below is the 2026-10-19 fill×horizon scheme, kept on record.
+
 All numbers out-of-sample, **maker perspective** (P&L per row = −(aggressor
 markout); rows are fill×horizon pairs, each fill appears once per horizon so
 P&L tables sum every fill 4×), on the leak-free dataset: **285,764 labeled rows across 215

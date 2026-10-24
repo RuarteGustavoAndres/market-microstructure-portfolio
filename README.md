@@ -13,7 +13,7 @@ out-of-sample — **including the parts that did not work**.
 **Three results, with their caveats**
 
 1. **119M+ order-book events and 645k+ real fills** captured 24/7 into
-   TimescaleDB (12,900+ markets tracked, 9,900+ active in the last 7 days).
+   TimescaleDB (12,900+ markets tracked, 237 active tokens in the last 7 days).
    Live status, machine-generated daily:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Toxicity classifier: AUC 0.7384 pooled OOS on unseen markets (leak-free);
