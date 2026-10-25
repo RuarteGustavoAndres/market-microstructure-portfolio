@@ -137,6 +137,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin 
 | `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Simulación de fills con cola sobre la captura REAL con tres modos de re-quote comparables (**persist** = honesto, sin auto-cancel / **cancel** = status quo / **contra** = conservador) + su constructor de dataset — publicado verbatim desde el bot privado | captura privada (CSV de fills incluido) |
 | `microstructure/model/backtest_walkforward_persist.py` | El mismo walk-forward (solo adaptaciones documentadas) sobre los fills simulados en modo persist — `results/maker_fills_sim_persist.csv` (1.1 MB, incluido) → `results/walkforward_toxicidad_h300_persist.json`, totalmente reproducible | **standalone** — viene con el repo (copiar el CSV incluido a `microstructure/model/dataset/`) |
 | `microstructure/model/backtest_nulo_delta.py` | Test nulo del delta del filtro: nulo de filtro aleatorio (misma retención por fold) + bootstrap por bloques de mercado + control con labels permutadas — publicado verbatim desde el bot privado | dataset privado (gitignored) |
+| [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md) | Ventana de validación reservada pre-registrada: congelamiento 2026-10-25, evaluación única 2026-11-08, regla de decisión fijada de antemano (misma regla que el nulo del 23-10) | **standalone** — documentación, sin datos |
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio
@@ -257,6 +258,12 @@ en vivo; último reporte machine-readable en
   convertirlo a P&L maker rentable (cola, rewards, fees) sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,
   simulación con posición en cola, calibración del modelo de costos.
+- **Ventana de validación reservada (pre-registrada el 2026-10-25):**
+  evaluación única sobre datos frescos el **2026-11-08**, con la regla de
+  decisión exacta pre-registrada el 23-10 (h=300s, umbral fijo 0.7, delta
+  pooled vs p95 del nulo de filtro aleatorio, delta > 0 en ≥4/5 folds); el
+  resultado se publica incondicionalmente — ver
+  [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md).
 
 ## Licencia
 MIT — ver [LICENSE](LICENSE). Uso libre, atribución apreciada.

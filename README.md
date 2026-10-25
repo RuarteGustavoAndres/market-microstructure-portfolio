@@ -133,6 +133,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
 | `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Queue-fill simulation over the REAL capture with three comparable requote modes (**persist** = honest, no auto-cancel / **cancel** = status quo / **contra** = conservative) + its dataset builder — published verbatim from the private bot | private capture DB (fills CSV shipped) |
 | `microstructure/model/backtest_walkforward_persist.py` | The same walk-forward (documented adaptations only) run on the persist-mode simulated fills — `results/maker_fills_sim_persist.csv` (1.1 MB, included) → `results/walkforward_toxicidad_h300_persist.json`, fully reproducible | **standalone** — ships with the repo (copy the shipped CSV into `microstructure/model/dataset/`) |
 | `microstructure/model/backtest_nulo_delta.py` | Null test of the filter's delta: random-filter null (same per-fold retention) + market-block bootstrap + permuted-label control — published verbatim from the private bot | private dataset (gitignored) |
+| [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md) | Pre-registered reserved validation window: freeze 2026-10-25, single evaluation 2026-11-08, decision rule fixed in advance (same rule as the 2026-10-23 null test) | **standalone** — documentation, no data needed |
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill price).
@@ -247,6 +248,11 @@ DB; latest machine-readable report in
   profitable maker P&L (queue position, rewards, fees) remains open work.
 - Investigate why ranking skill does not translate fully: per-horizon/per-regime
   P&L, queue-position-aware simulation, cost model calibration.
+- **Reserved validation window (pre-registered 2026-10-25):** single evaluation
+  on fresh data on **2026-11-08**, under the exact decision rule pre-registered
+  on 2026-10-23 (h=300s, fixed threshold 0.7, pooled delta vs random-filter
+  null p95, delta > 0 in ≥4/5 folds); the result is published unconditionally —
+  see [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md).
 
 ## License
 MIT — see [LICENSE](LICENSE). Use freely, attribution appreciated.
