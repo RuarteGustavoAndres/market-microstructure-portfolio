@@ -13,7 +13,7 @@
 | Metric | Leak-free re-run (2026-10-19) | Last reviewed (2026-10-16)* |
 |---|---|---|
 | LightGBM AUC OOS (pooled) | 0.7356 | 0.765 (inflated by horizon + leaks) |
-| AUC per temporal fold (range) | 0.675 - 0.796 | - |
+| AUC per temporal fold (range) | 0.696 - 0.785 | - |
 | PR-AUC OOS / prevalence | 0.514 / 0.314 | - |
 | Labeled rows / markets | 285,764 / 215 | 224,520 / 119 |
 | Walk-forward OOS maker P&L, unfiltered | -208.84 USD | -225 (aggressor perspective) |
