@@ -1,0 +1,60 @@
+{
+ "auc_oof": 0.7007,
+ "pr_auc_oof": 0.4701,
+ "auc_folds": [
+  0.7045,
+  0.6962,
+  0.7459,
+  0.6768,
+  0.6713
+ ],
+ "pr_auc_folds": [
+  0.4149,
+  0.4842,
+  0.4749,
+  0.5191,
+  0.4491
+ ],
+ "normalizacion": "PASO 2: z-score por mercado fit SOLO con train; mercados no vistos con stats globales del train",
+ "acc": 0.6476,
+ "baseline_acc": 0.6856,
+ "n": 285764,
+ "mercados": 215,
+ "features": [
+  "spread_rel",
+  "imbalance",
+  "depth_total",
+  "n_total",
+  "momentum_60s",
+  "momentum_300s",
+  "fill_size",
+  "size_rel_depth",
+  "ofi",
+  "microprice_bias",
+  "side_buy",
+  "horizonte_s"
+ ],
+ "auc_por_mercado_media": 0.6253,
+ "auc_por_horizonte": {
+  "h1s": {
+   "n": 35287,
+   "auc": 0.7045,
+   "pr_auc": 0.3451
+  },
+  "h10s": {
+   "n": 69706,
+   "auc": 0.7015,
+   "pr_auc": 0.4454
+  },
+  "h60s": {
+   "n": 87234,
+   "auc": 0.6892,
+   "pr_auc": 0.482
+  },
+  "h300s": {
+   "n": 93537,
+   "auc": 0.6748,
+   "pr_auc": 0.4903
+  }
+ }
+}
