@@ -47,7 +47,7 @@
     "n_days": 90,
     "sigma": 0.002,
     "hold": 30,
-    "elapsed_s": 32.5
+    "elapsed_s": 32.2
   },
   "sniper": [
     {
@@ -62,6 +62,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 122
       },
+      "abs_noov": {
+        "n_rep": 9725,
+        "n_noov": 892,
+        "nl": 23,
+        "nr": 32,
+        "p": 0.1403048588491771,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
+      },
       "rel": {
         "n": 9725,
         "nl": 221,
@@ -69,6 +78,15 @@
         "p": 0.0025496611894986754,
         "verdict": "FAIL",
         "nr_minus_nl": 64
+      },
+      "rel_noov": {
+        "n_rep": 9725,
+        "n_noov": 892,
+        "nl": 20,
+        "nr": 23,
+        "p": 0.38039582128067195,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
       }
     },
     {
@@ -83,6 +101,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 122
       },
+      "abs_noov": {
+        "n_rep": 9725,
+        "n_noov": 892,
+        "nl": 23,
+        "nr": 32,
+        "p": 0.1403048588491771,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
+      },
       "rel": {
         "n": 9725,
         "nl": 221,
@@ -90,6 +117,15 @@
         "p": 0.0025496611894986754,
         "verdict": "FAIL",
         "nr_minus_nl": 64
+      },
+      "rel_noov": {
+        "n_rep": 9725,
+        "n_noov": 892,
+        "nl": 20,
+        "nr": 23,
+        "p": 0.38039582128067195,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
       }
     },
     {
@@ -104,6 +140,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -49
       },
+      "abs_noov": {
+        "n_rep": 9432,
+        "n_noov": 904,
+        "nl": 30,
+        "nr": 25,
+        "p": 0.7906229058654922,
+        "verdict": "PASS",
+        "nr_minus_nl": -5
+      },
       "rel": {
         "n": 9432,
         "nl": 265,
@@ -111,6 +156,15 @@
         "p": 0.9984900304686891,
         "verdict": "PASS",
         "nr_minus_nl": -63
+      },
+      "rel_noov": {
+        "n_rep": 9432,
+        "n_noov": 904,
+        "nl": 27,
+        "nr": 18,
+        "p": 0.9324217745771648,
+        "verdict": "PASS",
+        "nr_minus_nl": -9
       }
     },
     {
@@ -125,6 +179,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -92
       },
+      "abs_noov": {
+        "n_rep": 22079,
+        "n_noov": 1411,
+        "nl": 35,
+        "nr": 35,
+        "p": 0.5475127367702688,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      },
       "rel": {
         "n": 22079,
         "nl": 511,
@@ -132,6 +195,15 @@
         "p": 0.9999965086597737,
         "verdict": "PASS",
         "nr_minus_nl": -133
+      },
+      "rel_noov": {
+        "n_rep": 22079,
+        "n_noov": 1411,
+        "nl": 36,
+        "nr": 29,
+        "p": 0.8394579321575022,
+        "verdict": "PASS",
+        "nr_minus_nl": -7
       }
     },
     {
@@ -146,6 +218,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -16
       },
+      "abs_noov": {
+        "n_rep": 9598,
+        "n_noov": 871,
+        "nl": 20,
+        "nr": 22,
+        "p": 0.43880716437615774,
+        "verdict": "PASS",
+        "nr_minus_nl": 2
+      },
       "rel": {
         "n": 9598,
         "nl": 253,
@@ -153,6 +234,15 @@
         "p": 0.8911162626128426,
         "verdict": "PASS",
         "nr_minus_nl": -26
+      },
+      "rel_noov": {
+        "n_rep": 9598,
+        "n_noov": 871,
+        "nl": 23,
+        "nr": 20,
+        "p": 0.728807994071758,
+        "verdict": "PASS",
+        "nr_minus_nl": -3
       }
     },
     {
@@ -167,6 +257,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -16
       },
+      "abs_noov": {
+        "n_rep": 9598,
+        "n_noov": 871,
+        "nl": 20,
+        "nr": 22,
+        "p": 0.43880716437615774,
+        "verdict": "PASS",
+        "nr_minus_nl": 2
+      },
       "rel": {
         "n": 9598,
         "nl": 253,
@@ -174,6 +273,15 @@
         "p": 0.8911162626128426,
         "verdict": "PASS",
         "nr_minus_nl": -26
+      },
+      "rel_noov": {
+        "n_rep": 9598,
+        "n_noov": 871,
+        "nl": 23,
+        "nr": 20,
+        "p": 0.728807994071758,
+        "verdict": "PASS",
+        "nr_minus_nl": -3
       }
     },
     {
@@ -188,6 +296,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 289
       },
+      "abs_noov": {
+        "n_rep": 54095,
+        "n_noov": 2113,
+        "nl": 50,
+        "nr": 70,
+        "p": 0.04120373966376328,
+        "verdict": "PASS",
+        "nr_minus_nl": 20
+      },
       "rel": {
         "n": 54095,
         "nl": 1022,
@@ -195,6 +312,15 @@
         "p": 1.4051017571681257e-08,
         "verdict": "FAIL",
         "nr_minus_nl": 268
+      },
+      "rel_noov": {
+        "n_rep": 54095,
+        "n_noov": 2113,
+        "nl": 41,
+        "nr": 54,
+        "p": 0.10902684093524992,
+        "verdict": "PASS",
+        "nr_minus_nl": 13
       }
     },
     {
@@ -209,6 +335,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 95
       },
+      "abs_noov": {
+        "n_rep": 9482,
+        "n_noov": 918,
+        "nl": 18,
+        "nr": 25,
+        "p": 0.1801888264678837,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      },
       "rel": {
         "n": 9482,
         "nl": 169,
@@ -216,6 +351,15 @@
         "p": 0.00015593648029118008,
         "verdict": "FAIL",
         "nr_minus_nl": 74
+      },
+      "rel_noov": {
+        "n_rep": 9482,
+        "n_noov": 918,
+        "nl": 20,
+        "nr": 27,
+        "p": 0.19084669883160643,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
       }
     },
     {
@@ -230,6 +374,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 178
       },
+      "abs_noov": {
+        "n_rep": 49239,
+        "n_noov": 2065,
+        "nl": 83,
+        "nr": 84,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
+      },
       "rel": {
         "n": 49239,
         "nl": 1094,
@@ -237,6 +390,15 @@
         "p": 0.02969763729954722,
         "verdict": "PASS",
         "nr_minus_nl": 91
+      },
+      "rel_noov": {
+        "n_rep": 49239,
+        "n_noov": 2065,
+        "nl": 49,
+        "nr": 48,
+        "p": 0.5803931690779583,
+        "verdict": "PASS",
+        "nr_minus_nl": -1
       }
     },
     {
@@ -251,6 +413,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 178
       },
+      "abs_noov": {
+        "n_rep": 49239,
+        "n_noov": 2065,
+        "nl": 83,
+        "nr": 84,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
+      },
       "rel": {
         "n": 49239,
         "nl": 1094,
@@ -258,6 +429,15 @@
         "p": 0.02969763729954722,
         "verdict": "PASS",
         "nr_minus_nl": 91
+      },
+      "rel_noov": {
+        "n_rep": 49239,
+        "n_noov": 2065,
+        "nl": 49,
+        "nr": 48,
+        "p": 0.5803931690779583,
+        "verdict": "PASS",
+        "nr_minus_nl": -1
       }
     },
     {
@@ -272,6 +452,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 35
       },
+      "abs_noov": {
+        "n_rep": 36445,
+        "n_noov": 1815,
+        "nl": 48,
+        "nr": 40,
+        "p": 0.8313004815734404,
+        "verdict": "PASS",
+        "nr_minus_nl": -8
+      },
       "rel": {
         "n": 36445,
         "nl": 872,
@@ -279,6 +468,15 @@
         "p": 0.8677872539780453,
         "verdict": "PASS",
         "nr_minus_nl": -45
+      },
+      "rel_noov": {
+        "n_rep": 36445,
+        "n_noov": 1815,
+        "nl": 47,
+        "nr": 32,
+        "p": 0.9644182956523544,
+        "verdict": "PASS",
+        "nr_minus_nl": -15
       }
     },
     {
@@ -293,6 +491,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -21
       },
+      "abs_noov": {
+        "n_rep": 16073,
+        "n_noov": 1207,
+        "nl": 34,
+        "nr": 37,
+        "p": 0.4062943247030809,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
+      },
       "rel": {
         "n": 16073,
         "nl": 439,
@@ -300,6 +507,15 @@
         "p": 0.9976740291918916,
         "verdict": "PASS",
         "nr_minus_nl": -79
+      },
+      "rel_noov": {
+        "n_rep": 16073,
+        "n_noov": 1207,
+        "nl": 28,
+        "nr": 26,
+        "p": 0.6582553858823312,
+        "verdict": "PASS",
+        "nr_minus_nl": -2
       }
     },
     {
@@ -314,6 +530,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 4
       },
+      "abs_noov": {
+        "n_rep": 9674,
+        "n_noov": 916,
+        "nl": 22,
+        "nr": 16,
+        "p": 0.8720624602283351,
+        "verdict": "PASS",
+        "nr_minus_nl": -6
+      },
       "rel": {
         "n": 9674,
         "nl": 249,
@@ -321,6 +546,15 @@
         "p": 0.9975718916577002,
         "verdict": "PASS",
         "nr_minus_nl": -58
+      },
+      "rel_noov": {
+        "n_rep": 9674,
+        "n_noov": 916,
+        "nl": 27,
+        "nr": 17,
+        "p": 0.9519291227896929,
+        "verdict": "PASS",
+        "nr_minus_nl": -10
       }
     },
     {
@@ -335,6 +569,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 4
       },
+      "abs_noov": {
+        "n_rep": 9674,
+        "n_noov": 916,
+        "nl": 22,
+        "nr": 16,
+        "p": 0.8720624602283351,
+        "verdict": "PASS",
+        "nr_minus_nl": -6
+      },
       "rel": {
         "n": 9674,
         "nl": 249,
@@ -342,6 +585,15 @@
         "p": 0.9975718916577002,
         "verdict": "PASS",
         "nr_minus_nl": -58
+      },
+      "rel_noov": {
+        "n_rep": 9674,
+        "n_noov": 916,
+        "nl": 27,
+        "nr": 17,
+        "p": 0.9519291227896929,
+        "verdict": "PASS",
+        "nr_minus_nl": -10
       }
     },
     {
@@ -356,6 +608,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -60
       },
+      "abs_noov": {
+        "n_rep": 9341,
+        "n_noov": 881,
+        "nl": 23,
+        "nr": 19,
+        "p": 0.7796004663287022,
+        "verdict": "PASS",
+        "nr_minus_nl": -4
+      },
       "rel": {
         "n": 9341,
         "nl": 230,
@@ -363,6 +624,15 @@
         "p": 0.9999191659381726,
         "verdict": "PASS",
         "nr_minus_nl": -73
+      },
+      "rel_noov": {
+        "n_rep": 9341,
+        "n_noov": 881,
+        "nl": 19,
+        "nr": 17,
+        "p": 0.691140341485152,
+        "verdict": "PASS",
+        "nr_minus_nl": -2
       }
     },
     {
@@ -377,6 +647,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -78
       },
+      "abs_noov": {
+        "n_rep": 53892,
+        "n_noov": 2111,
+        "nl": 57,
+        "nr": 50,
+        "p": 0.7802799491104586,
+        "verdict": "PASS",
+        "nr_minus_nl": -7
+      },
       "rel": {
         "n": 53892,
         "nl": 1181,
@@ -384,6 +663,15 @@
         "p": 0.3869975639951375,
         "verdict": "PASS",
         "nr_minus_nl": 15
+      },
+      "rel_noov": {
+        "n_rep": 53892,
+        "n_noov": 2111,
+        "nl": 30,
+        "nr": 37,
+        "p": 0.2319088089484348,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
       }
     },
     {
@@ -398,6 +686,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -84
       },
+      "abs_noov": {
+        "n_rep": 9409,
+        "n_noov": 880,
+        "nl": 25,
+        "nr": 12,
+        "p": 0.9899630740401335,
+        "verdict": "PASS",
+        "nr_minus_nl": -13
+      },
       "rel": {
         "n": 9409,
         "nl": 226,
@@ -405,6 +702,15 @@
         "p": 0.9406232288962583,
         "verdict": "PASS",
         "nr_minus_nl": -31
+      },
+      "rel_noov": {
+        "n_rep": 9409,
+        "n_noov": 880,
+        "nl": 18,
+        "nr": 12,
+        "p": 0.8997557889670134,
+        "verdict": "PASS",
+        "nr_minus_nl": -6
       }
     },
     {
@@ -419,6 +725,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -84
       },
+      "abs_noov": {
+        "n_rep": 9409,
+        "n_noov": 880,
+        "nl": 25,
+        "nr": 12,
+        "p": 0.9899630740401335,
+        "verdict": "PASS",
+        "nr_minus_nl": -13
+      },
       "rel": {
         "n": 9409,
         "nl": 226,
@@ -426,6 +741,15 @@
         "p": 0.9406232288962583,
         "verdict": "PASS",
         "nr_minus_nl": -31
+      },
+      "rel_noov": {
+        "n_rep": 9409,
+        "n_noov": 880,
+        "nl": 18,
+        "nr": 12,
+        "p": 0.8997557889670134,
+        "verdict": "PASS",
+        "nr_minus_nl": -6
       }
     },
     {
@@ -440,6 +764,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -42
       },
+      "abs_noov": {
+        "n_rep": 45426,
+        "n_noov": 2015,
+        "nl": 52,
+        "nr": 39,
+        "p": 0.9291033127276264,
+        "verdict": "PASS",
+        "nr_minus_nl": -13
+      },
       "rel": {
         "n": 45426,
         "nl": 958,
@@ -447,6 +780,15 @@
         "p": 0.27014568730370997,
         "verdict": "PASS",
         "nr_minus_nl": 28
+      },
+      "rel_noov": {
+        "n_rep": 45426,
+        "n_noov": 2015,
+        "nl": 44,
+        "nr": 37,
+        "p": 0.812912791197646,
+        "verdict": "PASS",
+        "nr_minus_nl": -7
       }
     },
     {
@@ -461,6 +803,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -9
       },
+      "abs_noov": {
+        "n_rep": 56760,
+        "n_noov": 2136,
+        "nl": 43,
+        "nr": 58,
+        "p": 0.08163963092571394,
+        "verdict": "PASS",
+        "nr_minus_nl": 15
+      },
       "rel": {
         "n": 56760,
         "nl": 1161,
@@ -468,6 +819,15 @@
         "p": 0.10577244132354785,
         "verdict": "PASS",
         "nr_minus_nl": 62
+      },
+      "rel_noov": {
+        "n_rep": 56760,
+        "n_noov": 2136,
+        "nl": 36,
+        "nr": 50,
+        "p": 0.0802892095669899,
+        "verdict": "PASS",
+        "nr_minus_nl": 14
       }
     },
     {
@@ -482,6 +842,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 68
       },
+      "abs_noov": {
+        "n_rep": 38876,
+        "n_noov": 1886,
+        "nl": 60,
+        "nr": 63,
+        "p": 0.42849216412485014,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
+      },
       "rel": {
         "n": 38876,
         "nl": 862,
@@ -489,6 +858,15 @@
         "p": 0.9067506958237909,
         "verdict": "PASS",
         "nr_minus_nl": -53
+      },
+      "rel_noov": {
+        "n_rep": 38876,
+        "n_noov": 1886,
+        "nl": 46,
+        "nr": 36,
+        "p": 0.8878777358469591,
+        "verdict": "PASS",
+        "nr_minus_nl": -10
       }
     },
     {
@@ -503,6 +881,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 99
       },
+      "abs_noov": {
+        "n_rep": 41905,
+        "n_noov": 1946,
+        "nl": 49,
+        "nr": 56,
+        "p": 0.2791971455827954,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      },
       "rel": {
         "n": 41905,
         "nl": 932,
@@ -510,6 +897,15 @@
         "p": 0.825448135041605,
         "verdict": "PASS",
         "nr_minus_nl": -39
+      },
+      "rel_noov": {
+        "n_rep": 41905,
+        "n_noov": 1946,
+        "nl": 39,
+        "nr": 38,
+        "p": 0.5900535481254757,
+        "verdict": "PASS",
+        "nr_minus_nl": -1
       }
     },
     {
@@ -524,6 +920,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 81
       },
+      "abs_noov": {
+        "n_rep": 9365,
+        "n_noov": 860,
+        "nl": 21,
+        "nr": 35,
+        "p": 0.040713407304753105,
+        "verdict": "PASS",
+        "nr_minus_nl": 14
+      },
       "rel": {
         "n": 9365,
         "nl": 168,
@@ -531,6 +936,15 @@
         "p": 0.0036011889128716086,
         "verdict": "FAIL",
         "nr_minus_nl": 54
+      },
+      "rel_noov": {
+        "n_rep": 9365,
+        "n_noov": 860,
+        "nl": 18,
+        "nr": 23,
+        "p": 0.26635462761805684,
+        "verdict": "PASS",
+        "nr_minus_nl": 5
       }
     },
     {
@@ -545,6 +959,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 111
       },
+      "abs_noov": {
+        "n_rep": 11173,
+        "n_noov": 952,
+        "nl": 21,
+        "nr": 28,
+        "p": 0.19580145527374526,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      },
       "rel": {
         "n": 11173,
         "nl": 184,
@@ -552,6 +975,15 @@
         "p": 0.0002511133960361024,
         "verdict": "FAIL",
         "nr_minus_nl": 74
+      },
+      "rel_noov": {
+        "n_rep": 11173,
+        "n_noov": 952,
+        "nl": 20,
+        "nr": 21,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
       }
     },
     {
@@ -566,6 +998,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 44
       },
+      "abs_noov": {
+        "n_rep": 50792,
+        "n_noov": 2082,
+        "nl": 40,
+        "nr": 57,
+        "p": 0.05188469143635893,
+        "verdict": "PASS",
+        "nr_minus_nl": 17
+      },
       "rel": {
         "n": 50792,
         "nl": 1027,
@@ -573,6 +1014,15 @@
         "p": 0.5527254262726476,
         "verdict": "PASS",
         "nr_minus_nl": -5
+      },
+      "rel_noov": {
+        "n_rep": 50792,
+        "n_noov": 2082,
+        "nl": 33,
+        "nr": 38,
+        "p": 0.3176538210438331,
+        "verdict": "PASS",
+        "nr_minus_nl": 5
       }
     },
     {
@@ -587,6 +1037,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 44
       },
+      "abs_noov": {
+        "n_rep": 50792,
+        "n_noov": 2082,
+        "nl": 40,
+        "nr": 57,
+        "p": 0.05188469143635893,
+        "verdict": "PASS",
+        "nr_minus_nl": 17
+      },
       "rel": {
         "n": 50792,
         "nl": 1027,
@@ -594,6 +1053,15 @@
         "p": 0.5527254262726476,
         "verdict": "PASS",
         "nr_minus_nl": -5
+      },
+      "rel_noov": {
+        "n_rep": 50792,
+        "n_noov": 2082,
+        "nl": 33,
+        "nr": 38,
+        "p": 0.3176538210438331,
+        "verdict": "PASS",
+        "nr_minus_nl": 5
       }
     },
     {
@@ -608,6 +1076,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 53
       },
+      "abs_noov": {
+        "n_rep": 9713,
+        "n_noov": 872,
+        "nl": 9,
+        "nr": 13,
+        "p": 0.2617335319519043,
+        "verdict": "PASS",
+        "nr_minus_nl": 4
+      },
       "rel": {
         "n": 9713,
         "nl": 101,
@@ -615,6 +1092,15 @@
         "p": 0.00036254686206355676,
         "verdict": "FAIL",
         "nr_minus_nl": 55
+      },
+      "rel_noov": {
+        "n_rep": 9713,
+        "n_noov": 872,
+        "nl": 8,
+        "nr": 17,
+        "p": 0.05387607216835022,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
       }
     },
     {
@@ -629,6 +1115,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 56
       },
+      "abs_noov": {
+        "n_rep": 11639,
+        "n_noov": 983,
+        "nl": 11,
+        "nr": 19,
+        "p": 0.10024421103298664,
+        "verdict": "PASS",
+        "nr_minus_nl": 8
+      },
       "rel": {
         "n": 11639,
         "nl": 141,
@@ -636,6 +1131,15 @@
         "p": 0.0005826249641423965,
         "verdict": "FAIL",
         "nr_minus_nl": 61
+      },
+      "rel_noov": {
+        "n_rep": 11639,
+        "n_noov": 983,
+        "nl": 12,
+        "nr": 24,
+        "p": 0.03262266761157662,
+        "verdict": "PASS",
+        "nr_minus_nl": 12
       }
     },
     {
@@ -650,6 +1154,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 308
       },
+      "abs_noov": {
+        "n_rep": 40424,
+        "n_noov": 1901,
+        "nl": 59,
+        "nr": 78,
+        "p": 0.06188741253873828,
+        "verdict": "PASS",
+        "nr_minus_nl": 19
+      },
       "rel": {
         "n": 40424,
         "nl": 615,
@@ -657,6 +1170,15 @@
         "p": 0.0,
         "verdict": "FAIL",
         "nr_minus_nl": 393
+      },
+      "rel_noov": {
+        "n_rep": 40424,
+        "n_noov": 1901,
+        "nl": 26,
+        "nr": 46,
+        "p": 0.012230453664162188,
+        "verdict": "PASS",
+        "nr_minus_nl": 20
       }
     },
     {
@@ -671,6 +1193,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 308
       },
+      "abs_noov": {
+        "n_rep": 40424,
+        "n_noov": 1901,
+        "nl": 59,
+        "nr": 78,
+        "p": 0.06188741253873828,
+        "verdict": "PASS",
+        "nr_minus_nl": 19
+      },
       "rel": {
         "n": 40424,
         "nl": 615,
@@ -678,6 +1209,15 @@
         "p": 0.0,
         "verdict": "FAIL",
         "nr_minus_nl": 393
+      },
+      "rel_noov": {
+        "n_rep": 40424,
+        "n_noov": 1901,
+        "nl": 26,
+        "nr": 46,
+        "p": 0.012230453664162188,
+        "verdict": "PASS",
+        "nr_minus_nl": 20
       }
     },
     {
@@ -692,6 +1232,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 19
       },
+      "abs_noov": {
+        "n_rep": 13830,
+        "n_noov": 1096,
+        "nl": 33,
+        "nr": 33,
+        "p": 0.5489207499516504,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      },
       "rel": {
         "n": 13830,
         "nl": 280,
@@ -699,6 +1248,15 @@
         "p": 0.215075858610202,
         "verdict": "PASS",
         "nr_minus_nl": 20
+      },
+      "rel_noov": {
+        "n_rep": 13830,
+        "n_noov": 1096,
+        "nl": 22,
+        "nr": 29,
+        "p": 0.2005309955139687,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
       }
     },
     {
@@ -713,6 +1271,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 34
       },
+      "abs_noov": {
+        "n_rep": 56950,
+        "n_noov": 2136,
+        "nl": 65,
+        "nr": 58,
+        "p": 0.7645746271803088,
+        "verdict": "PASS",
+        "nr_minus_nl": -7
+      },
       "rel": {
         "n": 56950,
         "nl": 1099,
@@ -720,6 +1287,15 @@
         "p": 0.009384431482469369,
         "verdict": "FAIL",
         "nr_minus_nl": 114
+      },
+      "rel_noov": {
+        "n_rep": 56950,
+        "n_noov": 2136,
+        "nl": 43,
+        "nr": 47,
+        "p": 0.37601660079929733,
+        "verdict": "PASS",
+        "nr_minus_nl": 4
       }
     },
     {
@@ -734,6 +1310,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 115
       },
+      "abs_noov": {
+        "n_rep": 47926,
+        "n_noov": 2055,
+        "nl": 48,
+        "nr": 54,
+        "p": 0.3103838343985578,
+        "verdict": "PASS",
+        "nr_minus_nl": 6
+      },
       "rel": {
         "n": 47926,
         "nl": 1052,
@@ -741,6 +1326,15 @@
         "p": 0.05410142332678841,
         "verdict": "PASS",
         "nr_minus_nl": 76
+      },
+      "rel_noov": {
+        "n_rep": 47926,
+        "n_noov": 2055,
+        "nl": 42,
+        "nr": 49,
+        "p": 0.2648010477381226,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
       }
     },
     {
@@ -755,6 +1349,15 @@
         "verdict": "FAIL",
         "nr_minus_nl": 115
       },
+      "abs_noov": {
+        "n_rep": 47926,
+        "n_noov": 2055,
+        "nl": 48,
+        "nr": 54,
+        "p": 0.3103838343985578,
+        "verdict": "PASS",
+        "nr_minus_nl": 6
+      },
       "rel": {
         "n": 47926,
         "nl": 1052,
@@ -762,6 +1365,15 @@
         "p": 0.05410142332678841,
         "verdict": "PASS",
         "nr_minus_nl": 76
+      },
+      "rel_noov": {
+        "n_rep": 47926,
+        "n_noov": 2055,
+        "nl": 42,
+        "nr": 49,
+        "p": 0.2648010477381226,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
       }
     },
     {
@@ -776,6 +1388,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 46
       },
+      "abs_noov": {
+        "n_rep": 27491,
+        "n_noov": 1601,
+        "nl": 50,
+        "nr": 50,
+        "p": 0.5397946186935894,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      },
       "rel": {
         "n": 27491,
         "nl": 599,
@@ -783,6 +1404,15 @@
         "p": 0.4201267240779053,
         "verdict": "PASS",
         "nr_minus_nl": 8
+      },
+      "rel_noov": {
+        "n_rep": 27491,
+        "n_noov": 1601,
+        "nl": 39,
+        "nr": 36,
+        "p": 0.6777680430528871,
+        "verdict": "PASS",
+        "nr_minus_nl": -3
       }
     },
     {
@@ -797,6 +1427,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 57
       },
+      "abs_noov": {
+        "n_rep": 21797,
+        "n_noov": 1389,
+        "nl": 41,
+        "nr": 38,
+        "p": 0.6735178122417702,
+        "verdict": "PASS",
+        "nr_minus_nl": -3
+      },
       "rel": {
         "n": 21797,
         "nl": 451,
@@ -804,6 +1443,15 @@
         "p": 0.2657454765090815,
         "verdict": "PASS",
         "nr_minus_nl": 20
+      },
+      "rel_noov": {
+        "n_rep": 21797,
+        "n_noov": 1389,
+        "nl": 33,
+        "nr": 26,
+        "p": 0.8512023958577857,
+        "verdict": "PASS",
+        "nr_minus_nl": -7
       }
     },
     {
@@ -818,6 +1466,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 28
       },
+      "abs_noov": {
+        "n_rep": 48891,
+        "n_noov": 2059,
+        "nl": 94,
+        "nr": 101,
+        "p": 0.33377320867121174,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      },
       "rel": {
         "n": 48891,
         "nl": 1260,
@@ -825,6 +1482,15 @@
         "p": 0.9997332683240618,
         "verdict": "PASS",
         "nr_minus_nl": -167
+      },
+      "rel_noov": {
+        "n_rep": 48891,
+        "n_noov": 2059,
+        "nl": 50,
+        "nr": 40,
+        "p": 0.876946775141861,
+        "verdict": "PASS",
+        "nr_minus_nl": -10
       }
     },
     {
@@ -839,6 +1505,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 28
       },
+      "abs_noov": {
+        "n_rep": 48891,
+        "n_noov": 2059,
+        "nl": 94,
+        "nr": 101,
+        "p": 0.33377320867121174,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      },
       "rel": {
         "n": 48891,
         "nl": 1260,
@@ -846,6 +1521,15 @@
         "p": 0.9997332683240618,
         "verdict": "PASS",
         "nr_minus_nl": -167
+      },
+      "rel_noov": {
+        "n_rep": 48891,
+        "n_noov": 2059,
+        "nl": 50,
+        "nr": 40,
+        "p": 0.876946775141861,
+        "verdict": "PASS",
+        "nr_minus_nl": -10
       }
     },
     {
@@ -860,6 +1544,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -55
       },
+      "abs_noov": {
+        "n_rep": 50658,
+        "n_noov": 2091,
+        "nl": 72,
+        "nr": 63,
+        "p": 0.8052486855119297,
+        "verdict": "PASS",
+        "nr_minus_nl": -9
+      },
       "rel": {
         "n": 50658,
         "nl": 1284,
@@ -867,6 +1560,15 @@
         "p": 0.9999906849080162,
         "verdict": "PASS",
         "nr_minus_nl": -207
+      },
+      "rel_noov": {
+        "n_rep": 50658,
+        "n_noov": 2091,
+        "nl": 55,
+        "nr": 52,
+        "p": 0.6504125079960632,
+        "verdict": "PASS",
+        "nr_minus_nl": -3
       }
     },
     {
@@ -881,6 +1583,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -34
       },
+      "abs_noov": {
+        "n_rep": 9494,
+        "n_noov": 863,
+        "nl": 25,
+        "nr": 25,
+        "p": 0.5561375863296085,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      },
       "rel": {
         "n": 9494,
         "nl": 250,
@@ -888,6 +1599,15 @@
         "p": 0.7936014944582326,
         "verdict": "PASS",
         "nr_minus_nl": -17
+      },
+      "rel_noov": {
+        "n_rep": 9494,
+        "n_noov": 863,
+        "nl": 19,
+        "nr": 24,
+        "p": 0.271192005928242,
+        "verdict": "PASS",
+        "nr_minus_nl": 5
       }
     },
     {
@@ -902,6 +1622,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 12
       },
+      "abs_noov": {
+        "n_rep": 24382,
+        "n_noov": 1495,
+        "nl": 63,
+        "nr": 64,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
+      },
       "rel": {
         "n": 24382,
         "nl": 510,
@@ -909,6 +1638,15 @@
         "p": 0.0052959011174750215,
         "verdict": "FAIL",
         "nr_minus_nl": 86
+      },
+      "rel_noov": {
+        "n_rep": 24382,
+        "n_noov": 1495,
+        "nl": 28,
+        "nr": 31,
+        "p": 0.39742182699143047,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
       }
     },
     {
@@ -923,6 +1661,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 12
       },
+      "abs_noov": {
+        "n_rep": 24382,
+        "n_noov": 1495,
+        "nl": 63,
+        "nr": 64,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
+      },
       "rel": {
         "n": 24382,
         "nl": 510,
@@ -930,6 +1677,15 @@
         "p": 0.0052959011174750215,
         "verdict": "FAIL",
         "nr_minus_nl": 86
+      },
+      "rel_noov": {
+        "n_rep": 24382,
+        "n_noov": 1495,
+        "nl": 28,
+        "nr": 31,
+        "p": 0.39742182699143047,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
       }
     },
     {
@@ -944,6 +1700,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -8
       },
+      "abs_noov": {
+        "n_rep": 54090,
+        "n_noov": 2111,
+        "nl": 69,
+        "nr": 67,
+        "p": 0.6014488325655496,
+        "verdict": "PASS",
+        "nr_minus_nl": -2
+      },
       "rel": {
         "n": 54090,
         "nl": 992,
@@ -951,6 +1716,15 @@
         "p": 0.07870026964098759,
         "verdict": "PASS",
         "nr_minus_nl": 65
+      },
+      "rel_noov": {
+        "n_rep": 54090,
+        "n_noov": 2111,
+        "nl": 59,
+        "nr": 59,
+        "p": 0.5366478885261092,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
       }
     },
     {
@@ -965,6 +1739,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -10
       },
+      "abs_noov": {
+        "n_rep": 51262,
+        "n_noov": 2084,
+        "nl": 51,
+        "nr": 60,
+        "p": 0.22390306607187402,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
+      },
       "rel": {
         "n": 51262,
         "nl": 935,
@@ -972,6 +1755,15 @@
         "p": 0.08963731644853562,
         "verdict": "PASS",
         "nr_minus_nl": 60
+      },
+      "rel_noov": {
+        "n_rep": 51262,
+        "n_noov": 2084,
+        "nl": 35,
+        "nr": 45,
+        "p": 0.15715328993196853,
+        "verdict": "PASS",
+        "nr_minus_nl": 10
       }
     },
     {
@@ -986,6 +1778,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -203
       },
+      "abs_noov": {
+        "n_rep": 11779,
+        "n_noov": 1008,
+        "nl": 55,
+        "nr": 43,
+        "p": 0.9055766400955487,
+        "verdict": "PASS",
+        "nr_minus_nl": -12
+      },
       "rel": {
         "n": 11779,
         "nl": 443,
@@ -993,6 +1794,15 @@
         "p": 0.9999999999999555,
         "verdict": "PASS",
         "nr_minus_nl": -195
+      },
+      "rel_noov": {
+        "n_rep": 11779,
+        "n_noov": 1008,
+        "nl": 34,
+        "nr": 19,
+        "p": 0.9864958411731388,
+        "verdict": "PASS",
+        "nr_minus_nl": -15
       }
     },
     {
@@ -1007,6 +1817,15 @@
         "verdict": "PASS",
         "nr_minus_nl": -203
       },
+      "abs_noov": {
+        "n_rep": 11779,
+        "n_noov": 1008,
+        "nl": 55,
+        "nr": 43,
+        "p": 0.9055766400955487,
+        "verdict": "PASS",
+        "nr_minus_nl": -12
+      },
       "rel": {
         "n": 11779,
         "nl": 443,
@@ -1014,6 +1833,15 @@
         "p": 0.9999999999999555,
         "verdict": "PASS",
         "nr_minus_nl": -195
+      },
+      "rel_noov": {
+        "n_rep": 11779,
+        "n_noov": 1008,
+        "nl": 34,
+        "nr": 19,
+        "p": 0.9864958411731388,
+        "verdict": "PASS",
+        "nr_minus_nl": -15
       }
     },
     {
@@ -1028,6 +1856,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 113
       },
+      "abs_noov": {
+        "n_rep": 54199,
+        "n_noov": 2118,
+        "nl": 39,
+        "nr": 52,
+        "p": 0.10408721119058793,
+        "verdict": "PASS",
+        "nr_minus_nl": 13
+      },
       "rel": {
         "n": 54199,
         "nl": 1136,
@@ -1035,6 +1872,15 @@
         "p": 0.002795098454298539,
         "verdict": "FAIL",
         "nr_minus_nl": 137
+      },
+      "rel_noov": {
+        "n_rep": 54199,
+        "n_noov": 2118,
+        "nl": 33,
+        "nr": 42,
+        "p": 0.17784961954074374,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
       }
     },
     {
@@ -1049,6 +1895,15 @@
         "verdict": "PASS",
         "nr_minus_nl": 113
       },
+      "abs_noov": {
+        "n_rep": 54199,
+        "n_noov": 2118,
+        "nl": 39,
+        "nr": 52,
+        "p": 0.10408721119058793,
+        "verdict": "PASS",
+        "nr_minus_nl": 13
+      },
       "rel": {
         "n": 54199,
         "nl": 1136,
@@ -1056,6 +1911,15 @@
         "p": 0.002795098454298539,
         "verdict": "FAIL",
         "nr_minus_nl": 137
+      },
+      "rel_noov": {
+        "n_rep": 54199,
+        "n_noov": 2118,
+        "nl": 33,
+        "nr": 42,
+        "p": 0.17784961954074374,
+        "verdict": "PASS",
+        "nr_minus_nl": 9
       }
     }
   ],
@@ -1070,7 +1934,16 @@
       "nr": 109,
       "p": 0.4457736301231236,
       "verdict": "PASS",
-      "nr_minus_nl": 3
+      "nr_minus_nl": 3,
+      "noov": {
+        "n_rep": 3037,
+        "n_noov": 1157,
+        "nl": 42,
+        "nr": 41,
+        "p": 0.5867976377754034,
+        "verdict": "PASS",
+        "nr_minus_nl": -1
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1082,7 +1955,16 @@
       "nr": 120,
       "p": 0.3719263944643277,
       "verdict": "PASS",
-      "nr_minus_nl": 6
+      "nr_minus_nl": 6,
+      "noov": {
+        "n_rep": 4541,
+        "n_noov": 1371,
+        "nl": 36,
+        "nr": 36,
+        "p": 0.5468528376484595,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1094,7 +1976,16 @@
       "nr": 106,
       "p": 0.12591119793687455,
       "verdict": "PASS",
-      "nr_minus_nl": 17
+      "nr_minus_nl": 17,
+      "noov": {
+        "n_rep": 3083,
+        "n_noov": 1151,
+        "nl": 28,
+        "nr": 36,
+        "p": 0.19086639739666883,
+        "verdict": "PASS",
+        "nr_minus_nl": 8
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1106,7 +1997,16 @@
       "nr": 237,
       "p": 0.08433193996503995,
       "verdict": "PASS",
-      "nr_minus_nl": 30
+      "nr_minus_nl": 30,
+      "noov": {
+        "n_rep": 9428,
+        "n_noov": 1720,
+        "nl": 35,
+        "nr": 37,
+        "p": 0.45314716235154046,
+        "verdict": "PASS",
+        "nr_minus_nl": 2
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1118,7 +2018,16 @@
       "nr": 211,
       "p": 0.6503181513826745,
       "verdict": "PASS",
-      "nr_minus_nl": -7
+      "nr_minus_nl": -7,
+      "noov": {
+        "n_rep": 6259,
+        "n_noov": 1528,
+        "nl": 53,
+        "nr": 39,
+        "p": 0.9413149205843279,
+        "verdict": "PASS",
+        "nr_minus_nl": -14
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1130,7 +2039,16 @@
       "nr": 260,
       "p": 0.8484805808745024,
       "verdict": "PASS",
-      "nr_minus_nl": -23
+      "nr_minus_nl": -23,
+      "noov": {
+        "n_rep": 10466,
+        "n_noov": 1764,
+        "nl": 43,
+        "nr": 32,
+        "p": 0.9172860291378716,
+        "verdict": "PASS",
+        "nr_minus_nl": -11
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1142,7 +2060,16 @@
       "nr": 292,
       "p": 0.5329509114095015,
       "verdict": "PASS",
-      "nr_minus_nl": -1
+      "nr_minus_nl": -1,
+      "noov": {
+        "n_rep": 11465,
+        "n_noov": 1783,
+        "nl": 47,
+        "nr": 48,
+        "p": 0.5,
+        "verdict": "PASS",
+        "nr_minus_nl": 1
+      }
     },
     {
       "name": "momentum_chaser",
@@ -1154,7 +2081,16 @@
       "nr": 98,
       "p": 0.2793261658708825,
       "verdict": "PASS",
-      "nr_minus_nl": 9
+      "nr_minus_nl": 9,
+      "noov": {
+        "n_rep": 3022,
+        "n_noov": 1151,
+        "nl": 34,
+        "nr": 37,
+        "p": 0.4062943247030809,
+        "verdict": "PASS",
+        "nr_minus_nl": 3
+      }
     },
     {
       "name": "ruido_puro",
@@ -1166,7 +2102,16 @@
       "nr": 894,
       "p": 0.2599215608576535,
       "verdict": "PASS",
-      "nr_minus_nl": 28
+      "nr_minus_nl": 28,
+      "noov": {
+        "n_rep": 23863,
+        "n_noov": 2042,
+        "nl": 84,
+        "nr": 70,
+        "p": 0.8866746689960436,
+        "verdict": "PASS",
+        "nr_minus_nl": -14
+      }
     },
     {
       "name": "ruido_puro",
@@ -1178,7 +2123,16 @@
       "nr": 763,
       "p": 0.5709689780293464,
       "verdict": "PASS",
-      "nr_minus_nl": -6
+      "nr_minus_nl": -6,
+      "noov": {
+        "n_rep": 35560,
+        "n_noov": 2102,
+        "nl": 44,
+        "nr": 51,
+        "p": 0.26919701314608413,
+        "verdict": "PASS",
+        "nr_minus_nl": 7
+      }
     },
     {
       "name": "ruido_puro",
@@ -1190,7 +2144,16 @@
       "nr": 228,
       "p": 0.7106295909059903,
       "verdict": "PASS",
-      "nr_minus_nl": -11
+      "nr_minus_nl": -11,
+      "noov": {
+        "n_rep": 8639,
+        "n_noov": 1781,
+        "nl": 48,
+        "nr": 43,
+        "p": 0.7351989522618775,
+        "verdict": "PASS",
+        "nr_minus_nl": -5
+      }
     },
     {
       "name": "ruido_puro",
@@ -1202,7 +2165,16 @@
       "nr": 881,
       "p": 0.6737684993981605,
       "verdict": "PASS",
-      "nr_minus_nl": -18
+      "nr_minus_nl": -18,
+      "noov": {
+        "n_rep": 35560,
+        "n_noov": 2102,
+        "nl": 54,
+        "nr": 58,
+        "p": 0.38848237568483623,
+        "verdict": "PASS",
+        "nr_minus_nl": 4
+      }
     },
     {
       "name": "ruido_puro",
@@ -1214,7 +2186,16 @@
       "nr": 145,
       "p": 0.9630379968715195,
       "verdict": "PASS",
-      "nr_minus_nl": -31
+      "nr_minus_nl": -31,
+      "noov": {
+        "n_rep": 4682,
+        "n_noov": 1522,
+        "nl": 59,
+        "nr": 51,
+        "p": 0.8045362716502475,
+        "verdict": "PASS",
+        "nr_minus_nl": -8
+      }
     },
     {
       "name": "ruido_puro",
@@ -1226,7 +2207,16 @@
       "nr": 791,
       "p": 0.9706898427725578,
       "verdict": "PASS",
-      "nr_minus_nl": -76
+      "nr_minus_nl": -76,
+      "noov": {
+        "n_rep": 31414,
+        "n_noov": 2086,
+        "nl": 51,
+        "nr": 65,
+        "p": 0.1136374731658043,
+        "verdict": "PASS",
+        "nr_minus_nl": 14
+      }
     },
     {
       "name": "ruido_puro",
@@ -1238,7 +2228,16 @@
       "nr": 828,
       "p": 0.9540444755023201,
       "verdict": "PASS",
-      "nr_minus_nl": -69
+      "nr_minus_nl": -69,
+      "noov": {
+        "n_rep": 31414,
+        "n_noov": 2086,
+        "nl": 53,
+        "nr": 53,
+        "p": 0.538657420279362,
+        "verdict": "PASS",
+        "nr_minus_nl": 0
+      }
     },
     {
       "name": "ruido_puro",
@@ -1250,7 +2249,16 @@
       "nr": 131,
       "p": 0.5970214835005034,
       "verdict": "PASS",
-      "nr_minus_nl": -3
+      "nr_minus_nl": -3,
+      "noov": {
+        "n_rep": 4682,
+        "n_noov": 1522,
+        "nl": 41,
+        "nr": 40,
+        "p": 0.5878433924473961,
+        "verdict": "PASS",
+        "nr_minus_nl": -1
+      }
     }
   ],
   "resumen": {
@@ -1274,6 +2282,26 @@
         "mean_nr": 908.875
       }
     },
+    "sniper_noov_por_escala": {
+      "0.5": {
+        "n_rows": 24,
+        "n_tested": 24,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": 1.0,
+        "mean_nl": 45.333333333333336,
+        "mean_nr": 47.166666666666664
+      },
+      "100.0": {
+        "n_rows": 24,
+        "n_tested": 24,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": 4.5,
+        "mean_nl": 42.541666666666664,
+        "mean_nr": 46.0
+      }
+    },
     "sniper_rel_por_escala": {
       "0.5": {
         "n_rows": 24,
@@ -1292,6 +2320,26 @@
         "median_nr_minus_nl": 40.0,
         "mean_nl": 647.4583333333334,
         "mean_nr": 671.5
+      }
+    },
+    "sniper_rel_noov_por_escala": {
+      "0.5": {
+        "n_rows": 24,
+        "n_tested": 24,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": -1.5,
+        "mean_nl": 33.666666666666664,
+        "mean_nr": 33.125
+      },
+      "100.0": {
+        "n_rows": 24,
+        "n_tested": 24,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": 3.0,
+        "mean_nl": 30.583333333333332,
+        "mean_nr": 32.458333333333336
       }
     },
     "consistencia_escalas": {
@@ -1317,6 +2365,26 @@
         "median_nr_minus_nl": -14.5,
         "mean_nl": 605.875,
         "mean_nr": 582.625
+      }
+    },
+    "controles_p0_05_noov": {
+      "momentum_chaser": {
+        "n_rows": 8,
+        "n_tested": 8,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": 0.5,
+        "mean_nl": 39.75,
+        "mean_nr": 38.25
+      },
+      "ruido_puro": {
+        "n_rows": 8,
+        "n_tested": 8,
+        "n_fail": 0,
+        "fail_rate": 0.0,
+        "median_nr_minus_nl": -0.5,
+        "mean_nl": 54.25,
+        "mean_nr": 53.875
       }
     }
   }
