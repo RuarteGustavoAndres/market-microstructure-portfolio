@@ -300,21 +300,16 @@ def build_veredicto(lote):
     cada trampa sale marcada en las 2 escalas. Las desviaciones se
     reportan tal cual."""
 
-    # Limitaciones conocidas del auditor, medidas empíricamente y
-    # documentadas en el README (no son evidencia de trampa; se reportan
-    # tal cual en el veredicto y en el JSON):
-    #
-    # spread_sniper x supervivencia: tail_symmetry_test asume pnl
-    # aproximadamente simétrico; el sniper (fade de extremos con costo
-    # fijo por trade) produce una mezcla long/short con colas
-    # asimétricas INTRÍNSECAS, así que el test dispara ~30% de las
-    # corridas honestas (7/24 seeds de mercado, 29.2% a cada escala,
-    # igual con pnl absoluto y relativo) mientras los controles honestos
-    # no disparan nunca (momentum_chaser 0/8, ruido_puro 0/8). El
-    # detector sigue siendo conservador: potencia 100% en las trampas de
-    # look-ahead (results/monte_carlo_fp_power.json) y 0% de FP en los
-    # controles. Medición: estudio de 24 seeds x 2 escalas, 2026-10-23.
-    LIMITACIONES_CONOCIDAS = {"spread_sniper": {"supervivencia"}}
+    # Limitaciones conocidas del auditor: la única histórica
+    # (spread_sniper x supervivencia) quedó RESUELTA con el audit forense
+    # de 2026-10-24 — la causa raíz era el tamaño muestral (el sniper
+    # selectivo de nivel entra en ráfaga: entradas solapadas tratadas
+    # como dibujos independientes), no el costo fijo (el test es
+    # rank-based, invariante por traslación: net vs gross da (nl, nr, p)
+    # idénticos 48/48). El check 5 ahora corre sobre los trades NO
+    # solapados. El sniper debe salir benigno; si volviera a disparar
+    # es una falsa alarma real, sin whitelist que la justifique:
+    LIMITACIONES_CONOCIDAS = {}
 
     problemas = []
     documentadas = []
@@ -352,10 +347,11 @@ def build_veredicto(lote):
 
     if not problemas:
         v = ("AUDIT OK: el auditor separa las honestas de las %d "
-             "tramposas (WARN/FAIL en las 2 escalas); las 2 honestas sin "
-             "costo fijo dan veredicto benigno en las 2 escalas, y la "
-             "única marca sobre honestas es la limitación conocida "
-             "documentada en limitaciones_conocidas"
+             "tramposas (WARN/FAIL en las 2 escalas); las 3 honestas "
+             "dan veredicto benigno en las 2 escalas, sin falsas "
+             "alarmas — incluido el spread_sniper desde el fix del "
+             "check 5 (test de colas sobre trades NO solapados; audit "
+             "forense 2026-10-24)"
              % (len(STRATEGIES) - len(HONEST)))
         if documentadas:
             v += (" — con %d limitación(es) conocida(s) documentada(s) del "
@@ -464,47 +460,52 @@ def main(argv=None):
         },
         "limitaciones_conocidas": {
             "spread_sniper x supervivencia": {
-                "diagnostico": "limitación del detector, no evidencia de "
-                               "trampa: todo trade perdedor paga el mismo "
-                               "costo fijo de round-trip (masa puntual en "
+                "estado": "RESUELTA (audit forense 2026-10-24)",
+                "diagnostico_anterior_y_erroneo": "limitación del detector: "
+                               "todo trade perdedor paga el mismo costo fijo "
+                               "de round-trip (masa puntual en "
                                "−2·half_spread), lo que comprime el IQR de "
                                "los pnls e infla mecánicamente el conteo "
-                               "de outliers de cola derecha (nr > nl) "
-                               "contra el nulo de simetría de "
-                               "tail_symmetry_test",
-                "evidencia": "estudio de 24 seeds de mercado x 2 escalas "
-                             "(2026-10-23): FAIL en 7/24 seeds (29.2%) a "
-                             "cada escala, mismo set de seeds y mismo "
-                             "signo (nr > nl), igual con pnl absoluto y "
-                             "relativo; controles honestos: momentum_"
-                             "chaser 0/8, ruido_puro 0/8 (bajo poder: 0/8 "
-                             "es compatible con tasas hasta ~29%). La tasa "
-                             "29.2% NO es un falso positivo aleatorio: vs "
-                             "el FP base de supervivencia medido en el MC "
-                             "(5.0%, results/monte_carlo_fp_power.json), "
-                             "P(X>=7 | Bin(24, 0.05)) = 1.3e-04 — es una "
-                             "asimetria ESTRUCTURAL real de la clase "
-                             "mean-reversion selectiva de nivel, que la "
-                             "familia de nulos del MC no cubre; script y "
-                             "JSON del estudio: demo/estudio_limitacion_"
-                             "supervivencia.py y results/"
-                             "estudio_limitacion_supervivencia.json",
-                "lectura_correcta": "tail_symmetry_test detecta CUALQUIER "
-                                    "asimetria de pnl (incluida la "
-                                    "estructural de estrategias honestas "
-                                    "selectivas de nivel), no solo "
-                                    "trampas: un FAIL en el sniper no "
-                                    "implica trampa. Un nulo que preserve "
-                                    "la estructura de nivel (permutacion "
-                                    "de posiciones) distinguiria asimetria "
-                                    "estructural de asimetria inducida por "
-                                    "trampa (mejora opcional, pendiente).",
-                "por_que_no_se_arregla": "el detector sigue siendo "
-                                         "conservador (potencia 100% en "
-                                         "las trampas de look-ahead, 0% FP "
-                                         "en controles, ver results/monte_"
-                                         "carlo_fp_power.json) y tocarlo "
-                                         "invalidaría el MC ya publicado",
+                               "de outliers de cola derecha (nr > nl)",
+                "por_que_era_erroneo": "pnl_net = pnl_gross − 2·half_spread "
+                               "es una traslación PURA y tail_symmetry_test "
+                               "es rank-based: invariante por traslación. "
+                               "Verificado: (nl, nr, p) idénticos net vs "
+                               "gross en 48/48 corridas (24 seeds × 2 "
+                               "escalas), y el FP del sniper es idéntico "
+                               "7/24 con costo relativo 200× distinto "
+                               "(p0=0.5 vs p0=100) — el costo no puede ser "
+                               "la causa",
+                "causa_raiz": "violación de independencia muestral: un "
+                               "sniper selectivo de nivel entra en RÁFAGA "
+                               "(una excursión de precio genera una corrida "
+                               "de entradas cuyas ventanas de hold "
+                               "comparten el mismo camino realizado); el "
+                               "test binomial trataba las 9.7k–54k filas "
+                               "reportadas como dibujos independientes "
+                               "(peor seed: un solo clúster concentra el "
+                               "61% de los trades) — FP 29.2% (7/24) en "
+                               "clientes honestos vs 1% nominal",
+                "solucion": "el check 5 corre tail_symmetry_test sobre los "
+                               "trades NO solapados (ad.nonoverlapping_"
+                               "pnls, mismas unidades de muestreo que el "
+                               "Sharpe honesto); con <200 unidades "
+                               "independientes reporta SKIP, nunca un "
+                               "veredicto sobre muestra inflada",
+                "potencia_preservada": "re-ejecución del MC con el "
+                               "detector corregido: potencia intacta en "
+                               "las trampas de look-ahead (results/"
+                               "monte_carlo_fp_power.json) y trampa del "
+                               "demo sigue FAIL (self_check OK); el "
+                               "estudio de 24 seeds × 2 escalas muestra "
+                               "abs vs abs_noov por seed (results/"
+                               "estudio_limitacion_supervivencia.json)",
+                "lectura_correcta": "sin cambio: un FAIL en check 5 sigue "
+                               "detectando asimetría de colas — ahora "
+                               "sobre unidades independientes; el "
+                               "PERMUTACION-DE-POSICIONES (nulo con "
+                               "estructura de nivel) sigue propuesto como "
+                               "mejora opcional",
             },
         },
         "veredicto": veredicto,

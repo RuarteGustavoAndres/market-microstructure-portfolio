@@ -17,7 +17,9 @@ N_PERM = 99  # small for test speed; effects here are enormous
 @pytest.fixture(scope="module")
 def cases():
     rng = random.Random(ad.SEED)
-    return ad.build_cases(rng, n_days=10)
+    # n_days=20: the CLEAN control needs >=200 non-overlapping (independent)
+    # units for check 5 to test it (10 days gives only 115 -> SKIP).
+    return ad.build_cases(rng, n_days=20)
 
 
 @pytest.fixture(scope="module")
@@ -224,3 +226,42 @@ def test_report_contains_both_cases(cases, audited):
     assert rep.count("— **FAIL**") == 4
     assert rep.count("— **WARN**") == 1
     assert rep.count("— **PASS**") == 5
+
+
+# ── check 5 must test INDEPENDENT units (forensic audit 24-oct-2026) ──
+def test_check5_tests_nonoverlapping_units():
+    """The survivorship test must not treat overlapping rows as independent
+    draws: a level-selective client enters in bursts (one excursion spawns a
+    run of entries sharing the same realized path), and the raw-list test
+    false-positives on it (measured: 29.2% vs 1% nominal). Build a list
+    whose RAW tail test FAILs (left tail missing among overlapping rows)
+    while the non-overlapping subset is symmetric — the audit must PASS it."""
+    rng = random.Random(11)
+    n = 12000
+    booked = []
+    for t in range(n):
+        if t % 30 == 0:                      # the rows the audit tests
+            pnl = rng.gauss(0.0, 1.0)        # symmetric P&L
+        else:                                # overlapping rows: trimmed left
+            pnl = abs(rng.gauss(0.0, 1.0)) + 0.5
+        booked.append((t, 1, pnl))
+    noov = ad.nonoverlapping_pnls(booked, 30)
+    assert len(noov) >= 200
+    nl, nr, p = ad.tail_symmetry_test([q for q in noov if q != 0])
+    assert not (p <= ad.ALPHA and nl < nr)          # subset passes
+    nl_f, nr_f, p_f = ad.tail_symmetry_test([q for _t, _pos, q in booked])
+    assert p_f <= ad.ALPHA and nl_f < nr_f          # raw list would FAIL
+    f, _ = ad.run_audit(booked, hold=30)
+    v = {x["check"]: x["verdict"] for x in f}
+    assert v["Survivorship (universe filtered by outcome)"] == "PASS"
+
+
+def test_check5_skips_when_overlap_leaves_too_few_units():
+    """A dense but short list collapses to <200 independent units: the
+    binomial cannot be calibrated on it — SKIP, never FAIL."""
+    rng = random.Random(12)
+    booked = [(t, 1, rng.gauss(0.0, 1.0)) for t in range(300)]  # every bar
+    assert len(ad.nonoverlapping_pnls(booked, 30)) < 200
+    f, _ = ad.run_audit(booked, hold=30)
+    v = {x["check"]: x["verdict"] for x in f}
+    assert v["Survivorship (universe filtered by outcome)"] == "SKIP"

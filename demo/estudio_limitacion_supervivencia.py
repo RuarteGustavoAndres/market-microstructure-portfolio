@@ -1,15 +1,29 @@
 #!/usr/bin/env python3
 """Tareas 2-4: colas del sniper honesto a 2 escalas + controles + pnl relativo.
 
-Evidencia de la limitación conocida del detector "supervivencia"
+Evidencia del FALSO POSITIVO del detector "supervivencia"
 (tail_symmetry_test) sobre spread_sniper, documentada en
-results/audit_controles_sinteticos.json (clave limitaciones_conocidas)
-y en el README. Correr desde demo/ o cualquier cwd: importa los
+results/audit_controles_sinteticos.json (limitaciones_conocidas)
+y en el README: 29.2% = 7/24 FAIL sobre clientes HONESTOS. Y
+validación del detector CORREGIDO (audit forense 2026-10-24):
+  - Causa raíz real: tamaño muestral. El sniper selectivo de nivel
+    entra en ráfaga (entradas solapadas que comparten el mismo
+    camino realizado); el test binomial trataba la LISTA REPORTADA
+    como dibujos independientes.
+  - El costo fijo NO es la causa: pnl_net = pnl_gross - costo es
+    una traslación pura y el test es rank-based (invariante por
+    traslación) — (nl, nr, p) idénticos net vs gross 48/48; FP
+    idéntico 7/24 con costo relativo 200x distinto.
+  - Fix: el check 5 ahora corre sobre los trades NO solapados
+    (ad.nonoverlapping_pnls, mismas unidades que el Sharpe honesto).
+Correr desde demo/ o cualquier cwd: importa los
 módulos del propio directorio. Stdlib only, solo CPU.
 Salida: resumen impreso + JSON en results/estudio_limitacion_supervivencia.json.
 
   Tarea 2: 24 seeds de mercado x p0=0.5/100, pipeline honesto exacto de
-           aea.build_honest_client, tail_symmetry_test(pnls) absolutos.
+           aea.build_honest_client, tail_symmetry_test(pnls) absolutos
+           (detector ANTIGUO, registro "abs") y sobre trades no
+           solapados (detector CORREGIDO, registro "abs_noov").
   Tarea 3: controles momentum_chaser y ruido_puro (señal 203 del 4h) en
            8 seeds a p0=0.5, mismo test.
   Tarea 4: variante relative-pnl del sniper:
@@ -52,6 +66,25 @@ def tail_record(pnls):
             "nr_minus_nl": nr - nl}
 
 
+def noov_record(booked):
+    """Registro del check 5 CORREGIDO: el test corre sobre los trades NO
+    solapados (unidades independientes; mismas de las que sale el Sharpe
+    honesto), no sobre la lista reportada."""
+    n_rep = len(booked)
+    noov = [p for p in ad.nonoverlapping_pnls(booked, ad.HOLD) if p != 0]
+    n_noov = len(noov)
+    ts = ad.tail_symmetry_test(noov)
+    if ts is None:
+        return {"n_rep": n_rep, "n_noov": n_noov, "nl": None, "nr": None,
+                "p": None,
+                "verdict": "PASS" if n_rep < 200 else "SKIP",
+                "nr_minus_nl": None}
+    nl, nr, p = ts
+    verdict = "FAIL" if (p <= ALPHA and nl < nr) else "PASS"
+    return {"n_rep": n_rep, "n_noov": n_noov, "nl": nl, "nr": nr, "p": p,
+            "verdict": verdict, "nr_minus_nl": nr - nl}
+
+
 def run_sniper(seed, p0):
     px = ad.build_market(seed=seed, p0=p0)
     sig = aea.sig_spread_sniper(px)
@@ -61,13 +94,16 @@ def run_sniper(seed, p0):
     pnls = [p for _t, _pos, p in booked]
     rec = {"seed": seed, "p0": p0, "thr": round(thr, 4)}
     rec["abs"] = tail_record(pnls)
+    rec["abs_noov"] = noov_record(booked)
     # Variante relative-pnl (tarea 4): entry_lag=1, hold=HOLD.
-    rel = []
+    rel_booked = []
     for t, pos, _p in booked:
         e_t = t + 1
         x_t = e_t + ad.HOLD
-        rel.append(pos * (px[x_t] / px[e_t] - 1.0) - 2.0 * HALF_SPREAD_REL)
-    rec["rel"] = tail_record(rel)
+        rel_booked.append((t, pos,
+                           pos * (px[x_t] / px[e_t] - 1.0) - 2.0 * HALF_SPREAD_REL))
+    rec["rel"] = tail_record([b[2] for b in rel_booked])
+    rec["rel_noov"] = noov_record(rel_booked)
     return rec
 
 
@@ -81,6 +117,7 @@ def run_control(name, seed_mkt, p0):
     pnls = [p for _t, _pos, p in booked]
     rec = {"name": name, "seed": seed_mkt, "p0": p0, "thr": round(thr, 4)}
     rec.update(tail_record(pnls))
+    rec["noov"] = noov_record(booked)
     return rec
 
 
@@ -135,8 +172,14 @@ def main():
     # ── resúmenes ────────────────────────────────────────────────────
     per_scale = {p0: summarize([r for r in sniper if r["p0"] == p0], "abs")
                  for p0 in P0S}
+    per_scale_noov = {p0: summarize([r for r in sniper if r["p0"] == p0],
+                                    "abs_noov")
+                      for p0 in P0S}
     per_scale_rel = {p0: summarize([r for r in sniper if r["p0"] == p0], "rel")
                      for p0 in P0S}
+    per_scale_rel_noov = {p0: summarize([r for r in sniper if r["p0"] == p0],
+                                        "rel_noov")
+                          for p0 in P0S}
 
     # Consistencia del signo de (nr-nl) entre escalas (debe ser idéntica:
     # el test es rank-based e invariante de escala).
@@ -157,19 +200,32 @@ def main():
 
     ctrl_sum = {name: summarize([c for c in ctrl if c["name"] == name], None)
                 for name in ("momentum_chaser", "ruido_puro")}
+    ctrl_noov_sum = {name: summarize([c["noov"] for c in ctrl
+                                      if c["name"] == name], None)
+                     for name in ("momentum_chaser", "ruido_puro")}
 
     print("\n=== RESUMEN ===", flush=True)
     for p0 in P0S:
         s = per_scale[p0]
         sr = per_scale_rel[p0]
+        sn = per_scale_noov[p0]
+        srn = per_scale_rel_noov[p0]
         print("sniper ABS p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
               "media nl=%.1f nr=%.1f"
               % (p0, s["n_tested"], s["n_fail"], 100 * s["fail_rate"],
                  s["median_nr_minus_nl"], s["mean_nl"], s["mean_nr"]))
-        print("sniper REL p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+        print("sniper NOOV p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "media nl=%.1f nr=%.1f   <- detector CORREGIDO"
+              % (p0, sn["n_tested"], sn["n_fail"], 100 * sn["fail_rate"],
+                 sn["median_nr_minus_nl"], sn["mean_nl"], sn["mean_nr"]))
+        print("sniper REL  p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
               "media nl=%.1f nr=%.1f"
               % (p0, sr["n_tested"], sr["n_fail"], 100 * sr["fail_rate"],
                  sr["median_nr_minus_nl"], sr["mean_nl"], sr["mean_nr"]))
+        print("sniper RNVL p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "media nl=%.1f nr=%.1f   <- rel con detector CORREGIDO"
+              % (p0, srn["n_tested"], srn["n_fail"], 100 * srn["fail_rate"],
+                 srn["median_nr_minus_nl"], srn["mean_nl"], srn["mean_nr"]))
     print("consistencia entre escalas: seeds con (nr-nl) distinto = %d/%d; "
           "tríos (nl,nr,p) distintos = %d/%d"
           % (mism, len(SEEDS), triples_diff, len(SEEDS)))
@@ -196,13 +252,16 @@ def main():
         "controles": ctrl,
         "resumen": {
             "sniper_abs_por_escala": per_scale,
+            "sniper_noov_por_escala": per_scale_noov,
             "sniper_rel_por_escala": per_scale_rel,
+            "sniper_rel_noov_por_escala": per_scale_rel_noov,
             "consistencia_escalas": {
                 "seeds_nr_minus_nl_diferente": mism,
                 "triples_nl_nr_p_diferentes": triples_diff,
                 "n_seeds": len(SEEDS),
             },
             "controles_p0_05": ctrl_sum,
+            "controles_p0_05_noov": ctrl_noov_sum,
         },
     }
     with open(os.path.join(RESULTS, "estudio_limitacion_supervivencia.json"), "w") as fh:

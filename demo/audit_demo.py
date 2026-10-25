@@ -41,11 +41,22 @@ Each check is a detector with a formal test (PASO 4a-4b of the audit):
                             averaging fold Sharpes is commutative — it
                             returns the full-sample number and validates
                             nothing.
-  5. Survivorship         — tail-symmetry test on the reported trade list
-                            (exact binomial): under a roughly symmetric P&L
-                            null the deep tails beyond median +/- 1.5*IQR hold
-                            the same number of trades. A missing LEFT tail
-                            means the universe was filtered by outcome.
+  5. Survivorship         — tail-symmetry test on the NON-OVERLAPPING
+                            trades of the reported list (exact binomial):
+                            under a roughly symmetric P&L null the deep
+                            tails beyond median +/- 1.5*IQR hold the same
+                            number of trades. A missing LEFT tail means the
+                            universe was filtered by outcome. The reported
+                            rows of a threshold strategy enter in bursts —
+                            one price excursion spawns a run of entries
+                            whose hold windows share the same realized
+                            path — so the binomial sample is the count of
+                            INDEPENDENT units, not the raw row count
+                            (tested on the raw list, an honest client that
+                            enters on extremes false-positives: the fixed
+                            cost creates a point mass that is invisible to
+                            this rank-based test — it is shift-invariant —
+                            the real defect was the sample size).
                             Trimming the worst decile of any sample always
                             raises its mean — the trim itself proves nothing;
                             the missing tail is the evidence.
@@ -522,36 +533,55 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         })
 
     # CHECK 5 — survivorship: is the reported universe missing its left tail?
+    # The test runs on the NON-OVERLAPPING trades (same sampling units as
+    # the honest Sharpe). Forensic audit 24-oct-2026: on a level-selective
+    # honest client (spread sniper), entries burst — one excursion spawns a
+    # run of rows whose hold windows share the same realized path — so the
+    # reported row count is NOT the binomial sample size: the raw-list test
+    # fired on 29.2% (7/24 seeds) of honest clients vs 1% nominal. The
+    # fixed cost is innocent: pnl_net = pnl_gross - 2*half_spread is a pure
+    # translation, and the rank-based tail test is shift-invariant (the
+    # gross-vs-net reformulation is a mathematical no-op).
     if stop_loss:
         f.append({"check": "Survivorship (universe filtered by outcome)",
                   "verdict": "SKIP",
                   "detail": "Strategy uses stops (--stop-loss): the left "
                             "tail is truncated BY DESIGN — tail asymmetry "
                             "here is expected, not survivorship evidence."})
-        ts = None
     else:
-        ts = tail_symmetry_test(pnls)
-    if ts is None and not stop_loss:
-        f.append({"check": "Survivorship (universe filtered by outcome)",
-                  "verdict": "PASS" if len(pnls) < 200 else "SKIP",
-                  "detail": "Too few trades (%d) to test tail symmetry."
-                            % len(pnls)})
-    elif ts is not None:
-        nl, nr, p = ts
-        fail = p <= ALPHA and nl < nr
-        f.append({
-            "check": "Survivorship (universe filtered by outcome)",
-            "verdict": "FAIL" if fail else "PASS",
-            "detail": ("Reported trade list (n=%d). Deep tails beyond "
-                       "median +/- 1.5*IQR: left %d vs right %d trades "
-                       "(exact binomial, %s).%s"
-                       % (len(pnls), nl, nr, _fmt_p(p, n_perm),
-                          "" if not fail else
-                          " The left tail is missing: a universe filtered by "
-                          "outcome. Trimming the worst decile of any sample "
-                          "always raises its mean — the trim itself is "
-                          "arithmetic; the missing tail is the evidence.")),
-        })
+        noov = [p for p in nonoverlapping_pnls(booked, hold) if p != 0]
+        ts = tail_symmetry_test(noov)
+        if ts is None:
+            # Few (or degenerate) independent units: a short list has
+            # nothing to hide (PASS); a long list whose entries barely
+            # overlap collapses to too few units to calibrate the binomial
+            # on — report SKIP, not a verdict on an inflated sample.
+            f.append({"check": "Survivorship (universe filtered by outcome)",
+                      "verdict": "PASS" if len(pnls) < 200 else "SKIP",
+                      "detail": ("Reported %d trades, but only %d "
+                                 "non-overlapping (independent) units — "
+                                 "overlapping rows share the same realized "
+                                 "future path and cannot be fed to the "
+                                 "binomial as independent draws."
+                                 % (len(pnls), len(noov)))})
+        else:
+            nl, nr, p = ts
+            fail = p <= ALPHA and nl < nr
+            f.append({
+                "check": "Survivorship (universe filtered by outcome)",
+                "verdict": "FAIL" if fail else "PASS",
+                "detail": ("Reported list n=%d; tested on the %d "
+                           "non-overlapping (independent) units: deep tails "
+                           "beyond median +/- 1.5*IQR hold left %d vs right "
+                           "%d trades (exact binomial, %s).%s"
+                           % (len(pnls), len(noov), nl, nr, _fmt_p(p, n_perm),
+                              "" if not fail else
+                              " The left tail is missing: a universe filtered "
+                              "by outcome. Trimming the worst decile of any "
+                              "sample always raises its mean — the trim "
+                              "itself is arithmetic; the missing tail is the "
+                              "evidence.")),
+            })
     return f, m_booked
 
 
