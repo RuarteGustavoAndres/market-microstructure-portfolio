@@ -25,7 +25,7 @@
     "null_client": "tuning walk-forward, entry_lag=1, spread pagado, reporta segunda mitad completa (control honesto)",
     "trap_client": "tuning in-sample, entry_lag=0, fills a mid, drop_worst_decile (mirror de la trampa del demo)",
     "edge_realo_pequeno": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; NO es trampa",
-    "elapsed_s": 2104.7,
+    "elapsed_s": 2079.4,
     "cpu": "solo CPU, stdlib"
   },
   "seeds": {
@@ -82,8 +82,8 @@
     },
     "supervivencia": {
       "n": 200,
-      "marcadas": 10,
-      "rate": 0.05
+      "marcadas": 2,
+      "rate": 0.01
     }
   },
   "fp_rate_por_tipo": {
@@ -110,13 +110,13 @@
       },
       "supervivencia": {
         "n": 50,
-        "marcadas": 1,
-        "rate": 0.02
+        "marcadas": 0,
+        "rate": 0.0
       },
       "union": {
         "n": 50,
-        "marcadas": 1,
-        "rate": 0.02
+        "marcadas": 0,
+        "rate": 0.0
       }
     },
     "momento_causal": {
@@ -142,13 +142,13 @@
       },
       "supervivencia": {
         "n": 50,
-        "marcadas": 3,
-        "rate": 0.06
+        "marcadas": 2,
+        "rate": 0.04
       },
       "union": {
         "n": 50,
-        "marcadas": 3,
-        "rate": 0.06
+        "marcadas": 2,
+        "rate": 0.04
       }
     },
     "ruido_micro_drift": {
@@ -174,13 +174,13 @@
       },
       "supervivencia": {
         "n": 50,
-        "marcadas": 3,
-        "rate": 0.06
+        "marcadas": 0,
+        "rate": 0.0
       },
       "union": {
         "n": 50,
-        "marcadas": 4,
-        "rate": 0.08
+        "marcadas": 1,
+        "rate": 0.02
       }
     },
     "ruido_ar1": {
@@ -206,26 +206,25 @@
       },
       "supervivencia": {
         "n": 50,
-        "marcadas": 3,
-        "rate": 0.06
+        "marcadas": 0,
+        "rate": 0.0
       },
       "union": {
         "n": 50,
-        "marcadas": 4,
-        "rate": 0.08
+        "marcadas": 2,
+        "rate": 0.04
       }
     }
   },
   "fp_union": {
     "n": 200,
-    "marcadas": 12,
-    "rate": 0.06
+    "marcadas": 5,
+    "rate": 0.025
   },
   "fp_verdicts_distribution": {
-    "PPPPP": 188,
-    "PPPPF": 9,
-    "PPPFP": 2,
-    "PPPFF": 1
+    "PPPPP": 195,
+    "PPPPF": 2,
+    "PPPFP": 3
   },
   "potencia_por_intensidad": {
     "lookahead_completo": {
@@ -251,8 +250,8 @@
       },
       "supervivencia": {
         "n": 100,
-        "marcadas": 100,
-        "rate": 1.0
+        "marcadas": 83,
+        "rate": 0.83
       },
       "union": {
         "n": 100,
@@ -260,9 +259,11 @@
         "rate": 1.0
       },
       "verdicts_distribution": {
-        "PPFFF": 81,
-        "PFFFF": 12,
-        "PPPFF": 7
+        "PPFFF": 66,
+        "PPFFP": 15,
+        "PFFFF": 10,
+        "PPPFF": 7,
+        "PFFFP": 2
       }
     },
     "lookahead_1bar": {
@@ -373,5 +374,5 @@
       }
     }
   },
-  "veredicto": "AUDIT OK: FP <= 10% por detector (max 5.0%) y potencia >= 80% en trampas evidentes (min 100%); union FP 6.0%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
+  "veredicto": "AUDIT OK: FP <= 10% por detector (max 1.5%) y potencia >= 80% en trampas evidentes (min 100%); union FP 2.5%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
 }
