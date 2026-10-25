@@ -133,6 +133,45 @@ def test_persist_row_numbers():
             assert _present(text, value, nd), f"{label} ({value}) missing from README"
 
 
+# ------------------------------------------------------- monte carlo row
+def _pct(v: float) -> float:
+    """JSON stores rates as fractions; the README row shows percentages."""
+    return round(v * 100, 2)
+
+
+def test_monte_carlo_row_matches_json():
+    """P2d: the MC row's FP rates, Wilson CIs and new-null FPs must come
+    straight from results/monte_carlo_fp_power.json (rates shown as %)."""
+    mc = _load("monte_carlo_fp_power.json")
+    pd = mc["fp_rate_por_detector"]
+    fu = mc["fp_union"]
+    checks = [(_pct(pd[k]["rate"]), 2, f"{k} FP") for k in pd]
+    checks += [(_pct(pd[k]["ci95"][0]), 2, f"{k} ci low") for k in ("kfold_cv", "supervivencia")]
+    checks += [(_pct(pd[k]["ci95"][1]), 2, f"{k} ci high") for k in ("kfold_cv", "supervivencia")]
+    checks += [(_pct(fu["rate"]), 2, "union FP"),
+               (_pct(fu["ci95"][0]), 2, "union ci low"),
+               (_pct(fu["ci95"][1]), 2, "union ci high")]
+    for text in READMES.values():
+        assert "7,000" in text or "7.000" in text, "total nulls missing from README"
+        for value, nd, label in checks:
+            assert _present(text, value, nd), f"MC {label} ({value}) missing from README"
+
+
+def test_monte_carlo_new_nulls_match_json():
+    """P2c: the 3 added nulls (stop-loss declared, asymmetric payoffs NOT
+    declared, small real fast alpha) must show the JSON's union FP + CI."""
+    mc = _load("monte_carlo_fp_power.json")
+    pt = mc["fp_rate_por_tipo"]
+    for text in READMES.values():
+        for tipo in ("stop_loss", "pagos_asimetricos", "alpha_rapido_real"):
+            u = pt[tipo]["union"]
+            assert _present(text, _pct(u["rate"]), 2), f"{tipo} union FP missing"
+            assert _present(text, _pct(u["ci95"][0]), 2), f"{tipo} CI low missing"
+            assert _present(text, _pct(u["ci95"][1]), 2), f"{tipo} CI high missing"
+        sv = pt["pagos_asimetricos"]["supervivencia"]
+        assert _present(text, _pct(sv["rate"]), 2), "asymmetric-payoff survivorship FP missing"
+
+
 # ---------------------------------------------------------------- absent
 def test_retired_numbers_stay_retired():
     for text in READMES.values():

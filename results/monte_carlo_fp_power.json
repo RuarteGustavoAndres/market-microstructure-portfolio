@@ -11,7 +11,10 @@
       "ruido_puro",
       "momento_causal",
       "ruido_micro_drift",
-      "ruido_ar1"
+      "ruido_ar1",
+      "stop_loss",
+      "pagos_asimetricos",
+      "alpha_rapido_real"
     ],
     "intensities": [
       "lookahead_completo",
@@ -19,20 +22,25 @@
       "lookahead_50pct",
       "edge_realo_pequeno"
     ],
-    "n_null_per_type": 50,
+    "n_null_per_type": 1000,
     "n_trap_per_intensity": 100,
     "flag_definition": "verdict FAIL o WARN",
     "null_client": "tuning walk-forward, entry_lag=1, spread pagado, reporta segunda mitad completa (control honesto)",
     "trap_client": "tuning in-sample, entry_lag=0, fills a mid, drop_worst_decile (mirror de la trampa del demo)",
+    "stop_loss_null": "exits mecánicos: stop a 2.0 x sigma_path (sigma*sqrt(hold) = 0.02191 bruto); DECLARADO (stop_loss=True → check 5 SKIP por diseño)",
+    "pagos_asimetricos_null": "take-profit mecánico a +3.0 x half_spread bruto (+0.0120), pérdidas corren hasta el hold; NO declarado (cola truncada = DERECHA, nada filtrado: prueba si check 5 confunde payoff mecánico con survivorship)",
+    "alpha_rapido_real_null": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; mismo motor que la intensidad edge_realo_pequeno, contado en el lado FP",
     "edge_realo_pequeno": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; NO es trampa",
-    "elapsed_s": 2079.4,
+    "wilson_ci": "centro = (p + z^2/(2n)) / (1 + z^2/n); half = z*sqrt(p(1-p)/n + z^2/(4n^2)) / (1 + z^2/n); z = 1.959963984540054 (95% dos colas)",
+    "elapsed_s": 5252.8,
+    "jobs": 12,
     "cpu": "solo CPU, stdlib"
   },
   "seeds": {
     "null_market": {
       "start": 2000000,
-      "count": 200,
-      "note": "seed i-ésima = start + i, por tipo"
+      "count": 7000,
+      "note": "seed i-ésima = start + i, por tipo (bloques de n_null_per_type)"
     },
     "trap_market": {
       "start": 3000000,
@@ -61,202 +69,520 @@
   },
   "fp_rate_por_detector": {
     "capturabilidad": {
-      "n": 200,
+      "n": 7000,
       "marcadas": 0,
-      "rate": 0.0
+      "rate": 0.0,
+      "ci95": [
+        0.0,
+        0.0005
+      ]
     },
     "fills_al_book": {
-      "n": 200,
+      "n": 7000,
       "marcadas": 0,
-      "rate": 0.0
+      "rate": 0.0,
+      "ci95": [
+        0.0,
+        0.0005
+      ]
     },
     "tuning_in_sample": {
-      "n": 200,
-      "marcadas": 0,
-      "rate": 0.0
+      "n": 7000,
+      "marcadas": 5,
+      "rate": 0.0007142857142857143,
+      "ci95": [
+        0.0003,
+        0.0017
+      ]
     },
     "kfold_cv": {
-      "n": 200,
-      "marcadas": 3,
-      "rate": 0.015
+      "n": 7000,
+      "marcadas": 45,
+      "rate": 0.0064285714285714285,
+      "ci95": [
+        0.0048,
+        0.0086
+      ]
     },
     "supervivencia": {
-      "n": 200,
-      "marcadas": 2,
-      "rate": 0.01
+      "n": 7000,
+      "marcadas": 83,
+      "rate": 0.011857142857142858,
+      "ci95": [
+        0.0096,
+        0.0147
+      ]
     }
   },
   "fp_rate_por_tipo": {
     "ruido_puro": {
       "capturabilidad": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "fills_al_book": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "tuning_in_sample": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "kfold_cv": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 6,
+        "rate": 0.006,
+        "ci95": [
+          0.0028,
+          0.013
+        ]
       },
       "supervivencia": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 9,
+        "rate": 0.009,
+        "ci95": [
+          0.0047,
+          0.017
+        ]
       },
       "union": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 15,
+        "rate": 0.015,
+        "ci95": [
+          0.0091,
+          0.0246
+        ]
       }
     },
     "momento_causal": {
       "capturabilidad": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "fills_al_book": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "tuning_in_sample": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "kfold_cv": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 12,
+        "rate": 0.012,
+        "ci95": [
+          0.0069,
+          0.0209
+        ]
       },
       "supervivencia": {
-        "n": 50,
-        "marcadas": 2,
-        "rate": 0.04
+        "n": 1000,
+        "marcadas": 9,
+        "rate": 0.009,
+        "ci95": [
+          0.0047,
+          0.017
+        ]
       },
       "union": {
-        "n": 50,
-        "marcadas": 2,
-        "rate": 0.04
+        "n": 1000,
+        "marcadas": 21,
+        "rate": 0.021,
+        "ci95": [
+          0.0138,
+          0.0319
+        ]
       }
     },
     "ruido_micro_drift": {
       "capturabilidad": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "fills_al_book": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "tuning_in_sample": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "kfold_cv": {
-        "n": 50,
-        "marcadas": 1,
-        "rate": 0.02
+        "n": 1000,
+        "marcadas": 5,
+        "rate": 0.005,
+        "ci95": [
+          0.0021,
+          0.0117
+        ]
       },
       "supervivencia": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 6,
+        "rate": 0.006,
+        "ci95": [
+          0.0028,
+          0.013
+        ]
       },
       "union": {
-        "n": 50,
-        "marcadas": 1,
-        "rate": 0.02
+        "n": 1000,
+        "marcadas": 10,
+        "rate": 0.01,
+        "ci95": [
+          0.0054,
+          0.0183
+        ]
       }
     },
     "ruido_ar1": {
       "capturabilidad": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "fills_al_book": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "tuning_in_sample": {
-        "n": 50,
+        "n": 1000,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       },
       "kfold_cv": {
-        "n": 50,
-        "marcadas": 2,
-        "rate": 0.04
+        "n": 1000,
+        "marcadas": 7,
+        "rate": 0.007,
+        "ci95": [
+          0.0034,
+          0.0144
+        ]
       },
       "supervivencia": {
-        "n": 50,
-        "marcadas": 0,
-        "rate": 0.0
+        "n": 1000,
+        "marcadas": 10,
+        "rate": 0.01,
+        "ci95": [
+          0.0054,
+          0.0183
+        ]
       },
       "union": {
-        "n": 50,
+        "n": 1000,
+        "marcadas": 17,
+        "rate": 0.017,
+        "ci95": [
+          0.0106,
+          0.0271
+        ]
+      }
+    },
+    "stop_loss": {
+      "capturabilidad": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "fills_al_book": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "tuning_in_sample": {
+        "n": 1000,
         "marcadas": 2,
-        "rate": 0.04
+        "rate": 0.002,
+        "ci95": [
+          0.0005,
+          0.0073
+        ]
+      },
+      "kfold_cv": {
+        "n": 1000,
+        "marcadas": 5,
+        "rate": 0.005,
+        "ci95": [
+          0.0021,
+          0.0117
+        ]
+      },
+      "supervivencia": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "union": {
+        "n": 1000,
+        "marcadas": 7,
+        "rate": 0.007,
+        "ci95": [
+          0.0034,
+          0.0144
+        ]
+      }
+    },
+    "pagos_asimetricos": {
+      "capturabilidad": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "fills_al_book": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "tuning_in_sample": {
+        "n": 1000,
+        "marcadas": 3,
+        "rate": 0.003,
+        "ci95": [
+          0.001,
+          0.0088
+        ]
+      },
+      "kfold_cv": {
+        "n": 1000,
+        "marcadas": 10,
+        "rate": 0.01,
+        "ci95": [
+          0.0054,
+          0.0183
+        ]
+      },
+      "supervivencia": {
+        "n": 1000,
+        "marcadas": 49,
+        "rate": 0.049,
+        "ci95": [
+          0.0373,
+          0.0642
+        ]
+      },
+      "union": {
+        "n": 1000,
+        "marcadas": 61,
+        "rate": 0.061,
+        "ci95": [
+          0.0478,
+          0.0776
+        ]
+      }
+    },
+    "alpha_rapido_real": {
+      "capturabilidad": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "fills_al_book": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "tuning_in_sample": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "kfold_cv": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "supervivencia": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "union": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
       }
     }
   },
   "fp_union": {
-    "n": 200,
-    "marcadas": 5,
-    "rate": 0.025
+    "n": 7000,
+    "marcadas": 131,
+    "rate": 0.018714285714285715,
+    "ci95": [
+      0.0158,
+      0.0222
+    ]
   },
   "fp_verdicts_distribution": {
-    "PPPPP": 195,
-    "PPPPF": 2,
-    "PPPFP": 3
+    "PPPPP": 5876,
+    "PPPPF": 81,
+    "PPPFP": 39,
+    "PPPFF": 1,
+    "PPPPS": 993,
+    "PPPFS": 5,
+    "PPFPS": 2,
+    "PPFPP": 2,
+    "PPFPF": 1
   },
   "potencia_por_intensidad": {
     "lookahead_completo": {
       "capturabilidad": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "fills_al_book": {
         "n": 100,
         "marcadas": 12,
-        "rate": 0.12
+        "rate": 0.12,
+        "ci95": [
+          0.07,
+          0.1981
+        ]
       },
       "tuning_in_sample": {
         "n": 100,
         "marcadas": 93,
-        "rate": 0.93
+        "rate": 0.93,
+        "ci95": [
+          0.8625,
+          0.9657
+        ]
       },
       "kfold_cv": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "supervivencia": {
         "n": 100,
         "marcadas": 83,
-        "rate": 0.83
+        "rate": 0.83,
+        "ci95": [
+          0.7445,
+          0.8911
+        ]
       },
       "union": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "verdicts_distribution": {
         "PPFFF": 66,
@@ -270,32 +596,56 @@
       "capturabilidad": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "fills_al_book": {
         "n": 100,
         "marcadas": 95,
-        "rate": 0.95
+        "rate": 0.95,
+        "ci95": [
+          0.8882,
+          0.9785
+        ]
       },
       "tuning_in_sample": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "kfold_cv": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "supervivencia": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "union": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "verdicts_distribution": {
         "WFFFF": 95,
@@ -306,32 +656,56 @@
       "capturabilidad": {
         "n": 100,
         "marcadas": 86,
-        "rate": 0.86
+        "rate": 0.86,
+        "ci95": [
+          0.7786,
+          0.9147
+        ]
       },
       "fills_al_book": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "tuning_in_sample": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "kfold_cv": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "supervivencia": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "union": {
         "n": 100,
         "marcadas": 100,
-        "rate": 1.0
+        "rate": 1.0,
+        "ci95": [
+          0.963,
+          1.0
+        ]
       },
       "verdicts_distribution": {
         "WFFFF": 86,
@@ -342,37 +716,61 @@
       "capturabilidad": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "fills_al_book": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "tuning_in_sample": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "kfold_cv": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "supervivencia": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "union": {
         "n": 100,
         "marcadas": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.037
+        ]
       },
       "verdicts_distribution": {
         "PPPPP": 100
       }
     }
   },
-  "veredicto": "AUDIT OK: FP <= 10% por detector (max 1.5%) y potencia >= 80% en trampas evidentes (min 100%); union FP 2.5%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
+  "veredicto": "AUDIT OK: FP <= 10% por detector (max 1.2%) y potencia >= 80% en trampas evidentes (min 100%); union FP 1.9%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
 }
