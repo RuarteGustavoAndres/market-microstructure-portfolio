@@ -91,6 +91,48 @@ def test_walkforward_row_counts():
         assert str(n_fills) in text, "distinct fills missing"
 
 
+# ---------------------------------------------------------------- about
+def _about(text: str) -> str:
+    """The About section = everything before the first '## ' heading."""
+    return text.split("\n## ", 1)[0]
+
+
+def test_about_carries_headline_numbers():
+    """P4d: the About must show the ranking answer (AUC) AND the economic
+    answer (delta with its CI) — sourced from the same JSONs."""
+    wf = _load("walkforward_toxicidad_h300.json")
+    delta = wf["oos_fijo_0.7_usd"] - wf["oos_sin_filtro_usd"]
+    nulo = _load("nulo_delta_h300.json")
+    ic_low = nulo["nulo_b"]["pooled"]["ic_low_2_5_usd"]
+    ic_high = nulo["nulo_b"]["pooled"]["ic_high_97_5_usd"]
+    auc = _load("walkforward_toxicidad.json")["auc_pooled_oos"]
+    for text in READMES.values():
+        about = _about(text)
+        for value, nd, label in (
+            (auc, 4, "pooled AUC"),
+            (delta, 2, "walk-forward delta"),
+            (ic_low, 2, "IC low"),
+            (ic_high, 2, "IC high"),
+        ):
+            assert _present(about, value, nd), f"{label} ({value}) missing from the About"
+
+
+# ---------------------------------------------------------------- persist
+def test_persist_row_numbers():
+    """P3c: the queue-sim persist row must carry the JSON's real numbers."""
+    pf = _load("walkforward_toxicidad_h300_persist.json")
+    delta = pf["oos_fijo_0.7_usd"] - pf["oos_sin_filtro_usd"]
+    for text in READMES.values():
+        for value, nd, label in (
+            (pf["oos_sin_filtro_usd"], 2, "persist unfiltered level"),
+            (pf["oos_fijo_0.7_usd"], 2, "persist filtered level"),
+            (delta, 2, "persist delta"),
+            (pf["auc_oos_pool"], 4, "persist pooled AUC"),
+            (pf["wfe_maker_per_op_pct"], 0, "persist WFE per op"),
+        ):
+            assert _present(text, value, nd), f"{label} ({value}) missing from README"
+
+
 # ---------------------------------------------------------------- absent
 def test_retired_numbers_stay_retired():
     for text in READMES.values():

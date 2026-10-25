@@ -8,7 +8,9 @@ A 24/7 market-microstructure pipeline (Polymarket CLOB + Binance USDT-M
 perpetuals): multi-venue WebSocket order-book capture into TimescaleDB, plus a
 leak-free machine-learning model that predicts **fill toxicity (adverse
 selection)** from order-book features. Every number here is real,
-out-of-sample — **including the parts that did not work**.
+out-of-sample — **including the parts that did not work**. Dense per-row
+validation detail lives in [RESULTS.md](RESULTS.md); the READMEs are an
+index + headlines.
 
 **Three results, with their caveats**
 
@@ -18,12 +20,24 @@ out-of-sample — **including the parts that did not work**.
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Toxicity classifier: AUC 0.7276 pooled OOS, out-of-time walk-forward
    (leak-free); PR-AUC 0.4963 vs 0.304 prevalence.** Caveat: it *ranks*
-   toxicity — it is a scoring/filter layer, **not** a decision-maker.
+   toxicity — it is a scoring/filter layer, **not** a decision-maker. The
+   AUC is the ranking answer; the economic answer is item 3 — the P&L
+   delta with its market-block CI, **not** the AUC.
 3. **Walk-forward verdict (h=300s): the filter's P&L delta over unfiltered is
    +$99.24 GROSS** (random-filter null rejected at 5%). Caveat: the
    block-bootstrap CI **[−$20.45, +$121.74] includes 0**, the absolute level
    @0.7 is still negative (−$7.51), and queue simulation + costs are pending —
    **the gate stays closed.** Full detail below (tables + JSONs).
+
+## Verdict at a glance
+
+| Claim | Verdict | Evidence |
+|---|---|---|
+| The model ranks fill toxicity out-of-sample without leakage (AUC 0.7276) | ✅ **FUNCIONA** | [folds_mercado_toxicidad.json](results/folds_mercado_toxicidad.json) · row *The model* |
+| The filter's P&L delta over unfiltered is positive and rejects the random-filter null at 5% (+$99.24 GROSS) | ✅ **FUNCIONA** — caveat: CI [−$20.45, +$121.74] includes 0 | [nulo_delta_h300.json](results/nulo_delta_h300.json) · row *Null test of the delta* |
+| The filter makes money in absolute terms / is trade-ready | ❌ **NO FUNCIONA** — level @0.7 negative (−$7.51), WFE −0.8%, thresholds unstable | [walkforward_toxicidad_h300.json](results/walkforward_toxicidad_h300.json) · row *P&L maker walk-forward* |
+| A maker-realistic queue sim (persistent quotes) confirms the delta persists | ⚠️ **FUNCIONA (direction only)** — delta +$9.26, both folds; AUC ≈ 0.56 | [walkforward_toxicidad_h300_persist.json](results/walkforward_toxicidad_h300_persist.json) · row *Queue sim, persist mode* |
+| Live trading gate (queue + costs + size) | ⏳ **PENDIENTE** — gate stays closed | [PLAN_SIM_COLA.md](PLAN_SIM_COLA.md) · rows *The model* / *Next steps* |
 
 ## Service: backtest audit
 
@@ -38,6 +52,8 @@ study). Scope and turnaround: fixed price $250–500 per backtest, delivered in 
 business days — one-page example of the method applied to this very pipeline:
 [CASE_STUDY.md](CASE_STUDY.md). Contact: open a GitHub issue or
 email gustavoaruarte@gmail.com.
+
+`demo/audit_demo.py` and `tests/` run **standalone** (stdlib only): they need nothing beyond this repo.
 
 ## Run the demo (stdlib only, dependency-free)
 
@@ -97,17 +113,17 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
 ```
 
 ## Pipeline modules
-| Module | Purpose |
-|---|---|
-| `microstructure/capture/http.py` | ISP-fault-tolerant HTTP + pinned-IP DNS fallback (selective NXDOMAIN resilience) |
-| `microstructure/data/tsdb.py` | TimescaleDB connection + micro-batch flush helpers |
-| `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-price, multi-horizon momentum, markout labels |
-| `microstructure/model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features |
-| `microstructure/model/backtest_walkforward.py` | Walk-forward backtest of the toxicity filter: temporal splits, 300s embargo, exact fill P&L — published verbatim from the private bot |
-| `microstructure/model/backtest_desglose.py` | OOS P&L breakdown of the walk-forward verdict: by horizon, side, fill aggressiveness, spread + maker-realistic adjustment |
-| `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Queue-fill simulation over the REAL capture with three comparable requote modes (**persist** = honest, no auto-cancel / **cancel** = status quo / **contra** = conservative) + its dataset builder — published verbatim from the private bot |
-| `microstructure/model/backtest_walkforward_persist.py` | The same walk-forward (documented adaptations only) run on the persist-mode simulated fills — `results/maker_fills_sim_persist.csv` (1.1 MB, included) → `results/walkforward_toxicidad_h300_persist.json`, fully reproducible |
-| `microstructure/model/backtest_nulo_delta.py` | Null test of the filter's delta: random-filter null (same per-fold retention) + market-block bootstrap + permuted-label control — published verbatim from the private bot |
+| Module | Purpose | Runs on |
+|---|---|---|
+| `microstructure/capture/http.py` | ISP-fault-tolerant HTTP + pinned-IP DNS fallback (selective NXDOMAIN resilience) | repo only (library) |
+| `microstructure/data/tsdb.py` | TimescaleDB connection + micro-batch flush helpers | private TimescaleDB |
+| `microstructure/model/features_ml.py` | Feature engineering: OFI, micro-price, multi-horizon momentum, markout labels | private capture DB (input) |
+| `microstructure/model/entrenar_toxicidad.py` | Classifier training: GroupKFold by market, per-market z-score, leakage-safe features | private dataset (gitignored) |
+| `microstructure/model/backtest_walkforward.py` | Walk-forward backtest of the toxicity filter: temporal splits, 300s embargo, exact fill P&L — published verbatim from the private bot | private dataset (gitignored) |
+| `microstructure/model/backtest_desglose.py` | OOS P&L breakdown of the walk-forward verdict: by horizon, side, fill aggressiveness, spread + maker-realistic adjustment | private dataset (gitignored) |
+| `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Queue-fill simulation over the REAL capture with three comparable requote modes (**persist** = honest, no auto-cancel / **cancel** = status quo / **contra** = conservative) + its dataset builder — published verbatim from the private bot | private capture DB (fills CSV shipped) |
+| `microstructure/model/backtest_walkforward_persist.py` | The same walk-forward (documented adaptations only) run on the persist-mode simulated fills — `results/maker_fills_sim_persist.csv` (1.1 MB, included) → `results/walkforward_toxicidad_h300_persist.json`, fully reproducible | **standalone** — ships with the repo (copy the shipped CSV into `microstructure/model/dataset/`) |
+| `microstructure/model/backtest_nulo_delta.py` | Null test of the filter's delta: random-filter null (same per-fold retention) + market-block bootstrap + permuted-label control — published verbatim from the private bot | private dataset (gitignored) |
 
 ## The model (honest numbers)
 - **Target:** markout of each real trade at +horizon (book mid vs fill price).
@@ -159,10 +175,11 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
 | AUC per temporal fold (range, 5 folds, h=300s) | **0.653 / 0.787** |
 | Walk-forward rows (single horizon h=300s, 2026-10-22 refresh) | 129,175 total; 80,379 OOS ops at fixed 0.7 |
 | **Walk-forward OOS maker P&L (single horizon h=300s, 2026-10-22 refresh, 129,175 rows — GROSS, tape-fill assumptions; queue+costs pending)** | **DELTA-POSITIVE, LEVEL-NEGATIVE, still fragile** — exact-markout, temporal splits, 300s embargo, one fill = one sample: unfiltered **−106.75 USD** · filter @0.7 **−7.51** (80,379 ops) · **delta over unfiltered +99.24** · per-fold-optimal thresholds 0.6/0.5/0.7/0.6/0.55 (**not stable**) → fixed 0.7 filter. WFE **−0.8% per op** (OOS vs in-sample P&L per op; below the 30% overfitting-warning line). Previous 4×-counted estimate (382,582-row scheme, all four horizons per fill): +488.98 @0.7. Gate stays closed pending queue simulation + costs; numbers reported anyway. |
-| **Per-horizon walk-forward (one fill = one sample per horizon, fixed 0.7, GROSS tape-fill assumptions, re-runs 2026-10-23)** | delta is positive at **all four** horizons and grows with the horizon — h=1s: **+18.49** (fold AUC 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). The unfiltered LEVEL flips sign with horizon (+77.84 / +101.32 / +40.62 / −106.75) — adverse selection grows with horizon; the delta is the stable quantity. The pooled **AUC 0.7276** above comes from the fill×horizon scheme (382,582 rows); the per-horizon fold AUCs are the ranges in this row (deltas now null-tested — rows below). JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
+| **Per-horizon walk-forward (one fill = one sample per horizon, fixed 0.7, GROSS tape-fill assumptions, re-runs 2026-10-23)** | delta is positive at **all four** horizons and grows with the horizon — h=1s: **+18.49** (fold AUC 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). The unfiltered LEVEL flips sign with horizon (+77.84 / +101.32 / +40.62 / −106.75) — adverse selection grows with horizon; the delta is the stable quantity. The pooled **AUC 0.7276** above comes from the fill×horizon scheme (382,582 rows); the per-horizon fold AUCs are the ranges in this row (deltas now null-tested — rows below). **These four horizons come from the same fills — the deltas are correlated, not four independent confirmations.** The headline h=300s was fixed **a priori** by the 2026-10-23 decision rule (row below); the other horizons are secondary. JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
 | **Null test of the delta (decision rule fixed a priori on 2026-10-23, before running: single horizon h=300s, threshold 0.7, statistic = delta; reject at 5% if pooled delta ≥ p95 of a random-filter null AND delta > 0 in ≥4/5 folds)** | **REJECTED at 5%.** Observed pooled delta **+98.23** (GPU re-run; CPU reference +99.24) vs random-filter null (same per-fold retention, 1,000 fixed-seed draws) p95 **+45.27** — the observed delta sits above the null's 100th percentile (p99 +52.01, max +61.02), and is > 0 in **4/5 folds**. Control: 50 re-trainings with labels permuted within market → delta **−1.10 ± 10.21** (min −22.23, max +19.09): the pipeline does not manufacture signal. Secondary (threshold re-drawn per draw): observed delta at p98.9 of that null. **Honest caveat:** the market-block bootstrap CI of the delta, **[−20.45, +121.74], includes 0** (high sampling volatility; 2 of 5 folds nearly zero) — both results are reported. Gate stays closed (level negative, WFE negative, queue+costs pending). Code and JSON: `microstructure/model/backtest_nulo_delta.py`, `results/nulo_delta_h300.json`. |
 | **The auditor audited: Monte Carlo of the 5 leak detectors (2026-10-24 re-run with the survivorship fix, alpha=0.01, 999 permutations/test)** | Over 200 edge-free null strategies (4 types × 50 seeds, 90-day markets, spread 2×40 bps): **false-positive rate per detector — capturabilidad 0%, fills-at-book 0%, tuning-in-sample 0%, kfold-cv 1.5%, survivorship 1.0% (2/200, exactly at the nominal alpha); union 2.5%**. **Power: 100% (union) on all three look-ahead traps** (full look-ahead caught by tuning/kfold/survivorship — survivorship alone 83/100; 1-bar look-ahead by all five; 50% partial look-ahead: capturabilidad 86%). An honest but tiny edge is flagged **0%** of the time — the detectors catch plumbing, not the existence of edge. Known limitation: capturabilidad cannot see a full-hold look-ahead (a 1-bar delay removes only 1/30 of the peek); the other four detectors cover it. JSON: `results/monte_carlo_fp_power.json`. |
 | **The auditor audited itself: five synthetic controls × two price scales (2026-10-23, 3 honest + 2 look-ahead traps, p0=0.5 vs p0=100; all five are synthetic — written by us for this audit, no third-party code)** | **Scale invariance restored and verified**: the harness now scales the round-trip cost with the market scale (constant 80 bps: `half_spread = HALF_SPREAD * p0 / P0`), and the audit rng is seeded identically per strategy across scales — 5/5 strategies return **identical verdicts at both scales**, pnl ratio exactly 200.0×. Verdicts: the 2 look-ahead traps FAIL/WARN in both scales (tuning-in-sample, kfold, fills-at-book all fire); the 3 honest strategies PASS — including `spread_sniper` since the **2026-10-24 forensic audit**: the old survivorship flag (7/24 honest runs = 29.2% at both scales) was **NOT a fixed-cost artifact** — pnl_net = pnl_gross − 2·half_spread is a pure translation and the rank-based tail test is shift-invariant ((nl, nr, p) identical net vs gross in 48/48 runs; identical 7/24 FP at 200× relative cost). The real root cause was **broken sample independence**: level-selective clients enter in bursts — one price excursion spawns a run of entries whose hold windows share the same realized path — so the binomial treated 9.7k–54k reported rows as independent draws (worst seed: one cluster held 61% of trades). Check 5 now runs the tail test on **non-overlapping trades** (same units as the honest Sharpe; <200 units → SKIP): **0/24 flagged at both scales, absolute and relative pnl**; the Monte Carlo survivorship FP dropped 5.0% → 1.0% with trap power preserved (83–100/100). The resolved diagnosis is recorded in the JSON (`limitaciones_conocidas`); study script + JSON: `demo/estudio_limitacion_supervivencia.py`, `results/estudio_limitacion_supervivencia.json`. The false edge previously reported for `momentum_chaser` at p0=100 (mean +0.086/trade) came from an additive spread over lognormal prices — the cost-scaling fix removes it. |
+| **Maker-realistic queue sim, persist mode (walk-forward on simulated persistent-quote fills, 2026-10-23)** | The closest test to a real maker: queue-position fills with **persistent quotes (no auto-cancel)** — the assumption whose removal caused the old −$682 artifact; sim engine published verbatim in `microstructure/sim/`. On 1,580 simulated fills (one fill = one sample, h=300s, 2 temporal folds): unfiltered **−$15.57** → filter @0.7 **−$6.31**, **delta +$9.26, positive in both folds**; pooled OOS AUC **0.5563** (folds 0.533–0.599 — features approximated by design, out-of-distribution); per-op WFE **−33%** (totals −19.6%). The sample is ~80× smaller than the real dataset → reads as **DIRECTION, not magnitude**; the gate stays closed. JSON: `results/walkforward_toxicidad_h300_persist.json`. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
 Second venue feeding the same TimescaleDB stack, same order-book sync protocol

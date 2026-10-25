@@ -11,6 +11,7 @@
 __pycache__/
 *.pyc
 microstructure/model/dataset/
+results/mc_fp_power_checkpoint.jsonl
 
 # OS
 .DS_Store

@@ -27,7 +27,7 @@ El gate de trading está CERRADO y así se declara.
 3. **`results/MODEL_STATUS.md`** — disciplina de procedencia del modelo: el
    número revisado por humano entra al README; lo viejo queda datado con su
    regla de veredicto (gate cerrado).
-4. **`results/RESULTS.md`** — historia de la validación de toxicidad: el run
+4. **`RESULTS.md`** — historia de la validación de toxicidad: el run
    19-oct (fill×horizonte) marcado SUPERSEDED 24-oct + el run 16-oct
    (perspectiva agresor, con fugas) kept on record. Publicar las propias
    correcciones ES parte del producto.
@@ -64,7 +64,7 @@ El gate de trading está CERRADO y así se declara.
 | Auto-auditoría 4h: AUDIT OK, única marca spread_sniper×supervivencia como limitación conocida, 29.2% (7/24) a ambas escalas (L162) | `audit_controles_sinteticos.json` (`veredicto`, `limitaciones_conocidas` con evidencia binomial) + `estudio_limitacion_supervivencia.json` (`resumen.sniper_abs_por_escala` fail_rate 0.2917 a p0=0.5 y p0=100) | OK |
 | "AUC inflated 0.736→0.765" / "-$106.75 unfiltered" / WFE −0.8% (L56, L131-132) | historia + `walkforward_toxicidad_h300.json` (`wfe_maker_per_op_pct`) | OK |
 | Markout bps multi-símbolo (Venue 2, L179) | `markout_report.json` (`resumen_por_simbolo`, frescura del mid declarada) | OK |
-| Números prohibidos 0.688 / $361 | `results/RESULTS.md` L56/L78 SOLO dentro de la sección History etiquetada ("kept on record", "That was an artifact") — patrón permitido por el checklist | OK (gate: 0 hits como cifra actual) |
+| Números prohibidos 0.688 / $361 | `RESULTS.md` L56/L78 SOLO dentro de la sección History etiquetada ("kept on record", "That was an artifact") — patrón permitido por el checklist | OK (gate: 0 hits como cifra actual) |
 
 ## GAP resuelto (24-oct, para el registro)
 
@@ -82,7 +82,7 @@ cifra huérfana, corregida a la baja — más honesto.
 
 ## Otras notas para el auditor
 
-- `results/RESULTS.md` sección CURRENT: marcada SUPERSEDED 24-oct (era el run
+- `RESULTS.md` sección CURRENT: marcada SUPERSEDED 24-oct (era el run
   19-oct presentado como actual; el README ya narraba el refresh 22-oct).
 - MC round 2 (FP con IC Wilson, familias con stop-loss/asimetría/edge-corto y
   curva de potencia vs intensidad q) está corriendo consolidado LOCALMENTE en
