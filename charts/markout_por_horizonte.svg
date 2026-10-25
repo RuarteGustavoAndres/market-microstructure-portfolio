@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="540" viewBox="0 0 880 540">
+<rect x="0" y="0" width="880" height="540" fill="#ffffff"/>
+<text x="440.0" y="30.0" font-size="17" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Mean markout by horizon and symbol (Binance USDT-M perps)</text>
+<text x="440.0" y="52.0" font-size="12" text-anchor="middle" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">markout in bps of mid; positive = taker flow profitable at that horizon, negative = adverse</text>
+<rect x="480.0" y="62.0" width="14.0" height="14.0" fill="#5f7d95"/>
+<text x="500.0" y="74.0" font-size="12" text-anchor="start" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">BTCUSDT</text>
+<rect x="610.0" y="62.0" width="14.0" height="14.0" fill="#6b8f71"/>
+<text x="630.0" y="74.0" font-size="12" text-anchor="start" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">ETHUSDT</text>
+<rect x="740.0" y="62.0" width="14.0" height="14.0" fill="#a06a5f"/>
+<text x="760.0" y="74.0" font-size="12" text-anchor="start" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">SOLUSDT</text>
+<line x1="80.0" y1="400.0" x2="840.0" y2="400.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="404.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.4</text>
+<line x1="80.0" y1="338.0" x2="840.0" y2="338.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="342.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.2</text>
+<line x1="80.0" y1="276.0" x2="840.0" y2="276.0" stroke="#8a97a3" stroke-width="1"/>
+<text x="72.0" y="280.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">0</text>
+<line x1="80.0" y1="214.0" x2="840.0" y2="214.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="218.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.2</text>
+<line x1="80.0" y1="152.0" x2="840.0" y2="152.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="156.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.4</text>
+<line x1="80.0" y1="90.0" x2="840.0" y2="90.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="94.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.6</text>
+<text x="24.0" y="245.0" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif" transform="rotate(-90 24 245.0)">mean markout (bps of mid)</text>
+<rect x="95.0" y="160.1" width="48.0" height="115.9" fill="#5f7d95"/>
+<text x="119.0" y="154.1" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.37</text>
+<rect x="151.0" y="98.4" width="48.0" height="177.6" fill="#6b8f71"/>
+<text x="175.0" y="92.4" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.57</text>
+<rect x="207.0" y="276.0" width="48.0" height="87.6" fill="#a06a5f"/>
+<text x="231.0" y="377.6" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.28</text>
+<text x="175.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">5s</text>
+<rect x="285.0" y="139.0" width="48.0" height="137.0" fill="#5f7d95"/>
+<text x="309.0" y="133.0" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.44</text>
+<rect x="341.0" y="105.2" width="48.0" height="170.8" fill="#6b8f71"/>
+<text x="365.0" y="99.2" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.55</text>
+<rect x="397.0" y="276.0" width="48.0" height="83.5" fill="#a06a5f"/>
+<text x="421.0" y="373.5" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.27</text>
+<text x="365.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">30s</text>
+<rect x="475.0" y="154.7" width="48.0" height="121.3" fill="#5f7d95"/>
+<text x="499.0" y="148.7" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.39</text>
+<rect x="531.0" y="122.0" width="48.0" height="154.0" fill="#6b8f71"/>
+<text x="555.0" y="116.0" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.50</text>
+<rect x="587.0" y="276.0" width="48.0" height="92.9" fill="#a06a5f"/>
+<text x="611.0" y="382.9" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.30</text>
+<text x="555.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">60s</text>
+<rect x="665.0" y="157.9" width="48.0" height="118.1" fill="#5f7d95"/>
+<text x="689.0" y="151.9" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.38</text>
+<rect x="721.0" y="141.4" width="48.0" height="134.6" fill="#6b8f71"/>
+<text x="745.0" y="135.4" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">+0.43</text>
+<rect x="777.0" y="276.0" width="48.0" height="88.7" fill="#a06a5f"/>
+<text x="801.0" y="378.7" font-size="11" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-0.29</text>
+<text x="745.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">300s</text>
+<text x="460.0" y="444.0" font-size="13" text-anchor="middle" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">horizon</text>
+<text x="16.0" y="470.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Source: results/markout_report.json — capture window 2026-10-16 22:54:29 UTC → 2026-10-19 00:05:08 UTC, 3,145,683 input trades.</text>
+<text x="16.0" y="490.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Per-fill model scores are not in the public data, so a score-decile chart is not available;</text>
+<text x="16.0" y="508.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">This chart shows markout by horizon and symbol. Generated by charts/generar_graficos.py — deterministic, stdlib only.</text>
+</svg>

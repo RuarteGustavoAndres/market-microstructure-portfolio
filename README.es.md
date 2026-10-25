@@ -40,6 +40,15 @@ titulares.
 | Una sim de cola maker-realista (quotes persistentes) confirma que el delta persiste | ⚠️ **FUNCIONA (solo dirección)** — delta +$9.26, ambos folds; AUC ≈ 0.56 | [walkforward_toxicidad_h300_persist.json](results/walkforward_toxicidad_h300_persist.json) · fila *Sim de cola, modo persist* |
 | Gate de trading en vivo (cola + costos + tamaño) | ⏳ **PENDIENTE** — el gate sigue cerrado | [PLAN_SIM_COLA.md](PLAN_SIM_COLA.md) · filas *The model* / *Next steps* |
 
+**Gráficos** — generados por [`charts/generar_graficos.py`](charts/generar_graficos.py)
+(determinista, solo stdlib: dos corridas producen SVG byte-idénticos):
+
+![Filtro de toxicidad: delta de P&L por fold temporal (umbral fijo 0.7)](charts/delta_por_fold.svg)
+*Delta por fold del filtro de toxicidad (esquema fill x horizonte, umbral fijo 0.7), con el IC 95% por block-bootstrap del esquema h=300s como referencia.*
+
+![Markout medio por horizonte y símbolo](charts/markout_por_horizonte.svg)
+*Markout medio (bps del mid) por horizonte y símbolo — los scores del modelo por fill no están en los datos públicos, así que es el reemplazo honesto de un gráfico por deciles de score.*
+
 ## Servicio: auditoría de backtests
 
 Auditamos backtests de trading cuantitativo buscando los modos de falla que

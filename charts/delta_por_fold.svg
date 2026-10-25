@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="520" viewBox="0 0 880 520">
+<rect x="0" y="0" width="880" height="520" fill="#ffffff"/>
+<text x="440.0" y="30.0" font-size="17" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Toxicity filter: P&amp;L delta per temporal fold (fixed threshold 0.7)</text>
+<text x="440.0" y="52.0" font-size="12" text-anchor="middle" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fill x horizon scheme — 382,582 rows, 268,446 OOS (each fill counted once per horizon)</text>
+<rect x="92.0" y="57.0" width="16.0" height="12.0" fill="#9aa5ad" fill-opacity="0.4"/>
+<text x="114.0" y="68.0" font-size="12" text-anchor="start" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">block-bootstrap 95% CI (h=300s): [-20.45, +121.74]</text>
+<line x1="80.0" y1="400.0" x2="840.0" y2="400.0" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="404.0" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">-100</text>
+<line x1="80.0" y1="338.5" x2="840.0" y2="338.5" stroke="#8a97a3" stroke-width="1"/>
+<text x="72.0" y="342.5" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">0</text>
+<line x1="80.0" y1="276.9" x2="840.0" y2="276.9" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="280.9" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">100</text>
+<line x1="80.0" y1="215.4" x2="840.0" y2="215.4" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="219.4" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">200</text>
+<line x1="80.0" y1="153.8" x2="840.0" y2="153.8" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="157.8" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">300</text>
+<line x1="80.0" y1="92.3" x2="840.0" y2="92.3" stroke="#d8dde2" stroke-width="1"/>
+<text x="72.0" y="96.3" font-size="12" text-anchor="end" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">400</text>
+<text x="24.0" y="240.0" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif" transform="rotate(-90 24 240.0)">P&amp;L delta vs no filter (USD)</text>
+<rect x="80.0" y="263.5" width="760.0" height="87.5" fill="#9aa5ad" fill-opacity="0.22"/>
+<line x1="80.0" y1="263.5" x2="840.0" y2="263.5" stroke="#9aa5ad" stroke-width="1.5"/>
+<line x1="80.0" y1="351.0" x2="840.0" y2="351.0" stroke="#9aa5ad" stroke-width="1.5"/>
+<line x1="80.0" y1="107.4" x2="840.0" y2="107.4" stroke="#2f3b45" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="92.0" y="99.4" font-size="12" text-anchor="start" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">pooled delta (fill x horizon): +375.51 — OOS P&amp;L: 113.47 (no filter) → 488.98 (fixed 0.7)</text>
+<rect x="114.0" y="277.6" width="84.0" height="60.8" fill="#5f7d95"/>
+<text x="156.0" y="269.6" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">+98.85</text>
+<text x="156.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fold 1</text>
+<rect x="266.0" y="236.6" width="84.0" height="101.9" fill="#5f7d95"/>
+<text x="308.0" y="228.6" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">+165.56</text>
+<text x="308.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fold 2</text>
+<rect x="418.0" y="336.3" width="84.0" height="2.2" fill="#5f7d95"/>
+<text x="460.0" y="328.3" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">+3.50</text>
+<text x="460.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fold 3</text>
+<rect x="570.0" y="271.8" width="84.0" height="66.7" fill="#5f7d95"/>
+<text x="612.0" y="263.8" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">+108.37</text>
+<text x="612.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fold 4</text>
+<rect x="722.0" y="338.5" width="84.0" height="0.5" fill="#a06a5f"/>
+<text x="764.0" y="354.9" font-size="13" text-anchor="middle" fill="#2f3b45" font-weight="bold" font-family="Helvetica, Arial, sans-serif">-0.77</text>
+<text x="764.0" y="420.0" font-size="12" text-anchor="middle" fill="#2f3b45" font-weight="normal" font-family="Helvetica, Arial, sans-serif">fold 5</text>
+<text x="460.0" y="444.0" font-size="13" text-anchor="middle" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">temporal fold (chronological)</text>
+<text x="16.0" y="470.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Source: results/walkforward_toxicidad.json (per-fold and pooled deltas, fill x horizon scheme, fixed threshold 0.7);</text>
+<text x="16.0" y="488.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">results/nulo_delta_h300.json (block-bootstrap CI, h=300s single-horizon scheme).</text>
+<text x="16.0" y="506.0" font-size="11" text-anchor="start" fill="#8a97a3" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Generated by charts/generar_graficos.py — deterministic, stdlib only.</text>
+</svg>
