@@ -25,7 +25,7 @@ On the reference pipeline (the portfolio's own pipeline, which the method was de
 - **Pre-registered null test (rule fixed a priori):** observed delta +98.23 vs p95 of the random-filter null +45.27 — rejected at 5%, 4/5 folds positive. Permutation-label control: −1.10 ± 10.21.
 - **Central caveat (this is what makes the audit credible):** the IC block-bootstrap CI is [−20.45, +121.74] and includes 0. The positive delta is *not* proven as a robust gain. The trading gate is **CLOSED** and declared as such.
 - **Toxicity classifier:** AUC 0.7276 pooled OOS out-of-time (PR-AUC 0.4963 vs prevalence 0.304); folds reproduced byte-identical (CPU, seed 42).
-- **Audit of the auditor:** 5 leak detectors with Monte Carlo-measured FP rates (union 6% vs alpha 1%), plus synthetic price-scale-invariant controls.
+- **Audit of the auditor:** 5 leak detectors with Monte Carlo-measured FP rates (union 1.87% — 131/7,000, Wilson 95% CI [1.58, 2.22] — vs alpha 1%), plus synthetic price-scale-invariant controls.
 
 **Honest bottom line:** the pipeline does *not* have an edge yet, and the audit says so. What is being sold is the *method* of audit — the detectors, the pre-registered nulls, the reproducibility — not a profitable model.
 

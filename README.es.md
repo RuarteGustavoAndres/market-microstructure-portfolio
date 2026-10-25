@@ -14,8 +14,8 @@ titulares.
 
 **Tres resultados, con su salvedad**
 
-1. **119M+ eventos de libro y 645k+ fills reales** capturados 24/7 a
-   TimescaleDB (12,900+ mercados trackeados, 237 tokens activos en los últimos
+1. **159M+ eventos de libro y 958k+ fills reales** capturados 24/7 a
+   TimescaleDB (15,161+ mercados trackeados, 237 tokens activos en los últimos
    7 días). Estado en vivo, generado a diario:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Clasificador de toxicidad: AUC 0.7276 OOS pooled, walk-forward temporal
@@ -63,8 +63,8 @@ python3 demo/audit_demo.py
 ```
 
 ## Lo más relevante
-- **119M+ eventos de libro** (libro_eventos) + **645k+ fills** (trades_full)
-  capturados 24/7 a hypertables de TimescaleDB — **12,900+ mercados trackeados,
+- **159M+ eventos de libro** (libro_eventos) + **958k+ fills** (trades_full)
+  capturados 24/7 a hypertables de TimescaleDB — **15,161+ mercados trackeados,
   237 tokens activos en los últimos 7 días** (results/CAPTURE_STATUS.md,
   2026-10-24).
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una

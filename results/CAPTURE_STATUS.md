@@ -23,4 +23,4 @@ UTC (~3h). Trades stream: no gaps. See README "Data status".
 
 Model re-training is NOT run daily — model metrics are re-validated on explicit
 cadence and always cite a human-reviewed provenance: see results/MODEL_STATUS.md
-(current: leak-free re-run 2026-10-19, AUC 0.739 pooled OOS / PR-AUC 0.514).
+(current: leak-free re-run 2026-10-19, AUC 0.7356 pooled OOS / PR-AUC 0.514).

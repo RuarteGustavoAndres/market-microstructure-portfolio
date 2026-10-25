@@ -14,8 +14,8 @@ index + headlines.
 
 **Three results, with their caveats**
 
-1. **119M+ order-book events and 645k+ real fills** captured 24/7 into
-   TimescaleDB (12,900+ markets tracked, 237 active tokens in the last 7 days).
+1. **159M+ order-book events and 958k+ real fills** captured 24/7 into
+   TimescaleDB (15,161+ markets tracked, 237 active tokens in the last 7 days).
    Live status, machine-generated daily:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Toxicity classifier: AUC 0.7276 pooled OOS, out-of-time walk-forward
@@ -62,9 +62,9 @@ python3 demo/audit_demo.py
 ```
 
 ## Highlights
-- **119M+ order-book events** (libro_eventos) + **645k+ fills** (trades_full)
-  captured 24/7 into TimescaleDB hypertables — **12,900+ markets tracked**
-  (verified 2026-10-22).
+- **159M+ order-book events** (libro_eventos) + **958k+ fills** (trades_full)
+  captured 24/7 into TimescaleDB hypertables — **15,161+ markets tracked**
+  (verified 2026-10-24, results/CAPTURE_STATUS.md).
 - **Hundreds of thousands of order-book events per hour, sustained 24/7**, into
   a TimescaleDB hypertable (compression + retention policies).
 - **Toxicity classifier: LightGBM AUC 0.7276 pooled OOS (out-of-time,
