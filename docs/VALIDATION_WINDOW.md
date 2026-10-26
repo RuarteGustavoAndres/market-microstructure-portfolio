@@ -48,7 +48,7 @@ The result is published **once, unconditionally** — green or red:
 
 No re-runs, no "one more check", no threshold changes after seeing the
 window. If the rule rejects, the gate may be reconsidered under
-`PLAN_SIM_COLA.md`; if it does not, the gate stays closed and the negative
+`docs/PLAN_SIM_COLA.md`; if it does not, the gate stays closed and the negative
 result stands as the headline.
 
 ## 5. What NOT to do until 2026-11-08
@@ -62,6 +62,17 @@ result stands as the headline.
   2026-11-08, never by editing the original rule.
 - The capture pipeline itself keeps running normally (it is not a
   model-facing decision); only *analysis* of the window is reserved.
+
+## 6. Addendum 2026-10-26 (before the evaluation date)
+
+- **No re-training on window data.** No re-train run (weekly or otherwise)
+  may train on, or publish metrics computed from, any data with
+  ts >= 2026-10-26T00:00:00Z until the 2026-11-08 evaluation. A re-train
+  before that date must be sliced to ts < 2026-10-26T00:00:00Z (or skipped).
+- **Block-level CI reported at evaluation.** When the rule is evaluated, the
+  block-level (per-market) bootstrap CI of the pooled delta is reported
+  alongside delta and p95, in the same JSON and the same README line.
+  It is descriptive, not part of the rejection rule.
 
 ---
 *Scope: this pre-registration covers the toxicity filter's economic verdict
