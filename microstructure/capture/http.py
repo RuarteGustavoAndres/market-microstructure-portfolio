@@ -16,7 +16,7 @@ DOH_ENDPOINT = "https://cloudflare-dns.com/dns-query"
 USER_AGENT = "predikt-bot/0.1"
 _cache = {}  # hostname -> (ips, expiry)
 
-# ─── Respaldo DNS: el resolver del ISP (Fibertel 181.30.140.197) devuelve ────
+# ─── Respaldo DNS: el resolver del ISP devuelve ────
 # NXDOMAIN selectivo para polymarket.com: clob queda cacheada pero gamma-api,
 # data-api y hasta cloudflare-dns.com fallan con gaierror [Errno -2/-3] y cada
 # ciclo de TODOS los daemons muere con "error en ciclo". DoH contra Cloudflare

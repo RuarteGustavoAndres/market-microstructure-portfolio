@@ -1,7 +1,6 @@
 """Tests de analytics/adverse_selection.py — markout puro, sin I/O.
 
-Corre con: ~/desarrollo/proyectos/predikt/bot/venv-live/bin/python -m pytest
-           ~/desarrollo/proyectos/predikt-portfolio/tests/ -q
+Corre con: python -m pytest tests/ -q
 """
 import os
 import sys

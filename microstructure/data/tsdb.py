@@ -22,7 +22,7 @@ import psycopg2.extras
 
 DSN = os.environ.get(
     "TS_DSN",
-    "postgresql://postgres:***@localhost:5432/microstructure")
+    "postgresql://postgres:***@localhost:5434/microstructure")
 
 BATCH_SIZE = int(os.environ.get("PREDIKT_BATCH", "500"))
 BATCH_SEGUNDOS = float(os.environ.get("PREDIKT_BATCH_S", "2.0"))

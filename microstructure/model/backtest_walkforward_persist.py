@@ -48,9 +48,7 @@ Salida: dataset/walkforward_toxicidad.json
 import csv
 import json
 import os
-import sys
 import time
-from collections import defaultdict
 
 import numpy as np
 import lightgbm as lgb

@@ -1,6 +1,6 @@
 # MAPA_AUDITORIA.md — guía de lectura para el auditor externo
 
-> Doc de trabajo (2026-10-24), NO pushear sin OK de Gustavo. Lenguaje: ES para
+> Doc de trabajo (2026-10-26). Lenguaje: ES para
 > el auditor (Claude). Cada cifra reclamada por el README se mapea a su archivo
 > fuente dentro del repo. Verificado por script (búsqueda numérica en los JSON,
 > no grep de texto — los floats no siempre se ven como string).

@@ -172,8 +172,34 @@ def test_monte_carlo_new_nulls_match_json():
         assert _present(text, _pct(sv["rate"]), 2), "asymmetric-payoff survivorship FP missing"
 
 
+# ---------------------------------------------------------------- markout
+def test_markout_table_matches_json():
+    """B1: the markout section (window, trade count, per-symbol bps, BTC
+    drift/entry decomposition, staleness) must come straight from
+    results/markout_report.json — this section went stale once already."""
+    mk = _load("markout_report.json")
+    until_date = mk["window"]["until"][:10]  # "2026-10-19"
+    total = mk["trades_input_totales"]
+    for text in READMES.values():
+        assert until_date in text, "markout window end missing from README"
+        assert f"{total:,}" in text, "markout total trades missing from README"
+        for sym in ("BTCUSDT", "ETHUSDT", "SOLUSDT"):
+            h5 = mk["resumen_por_simbolo"][sym]["por_horizonte"]["5"]
+            h300 = mk["resumen_por_simbolo"][sym]["por_horizonte"]["300"]
+            assert _present(text, h5["mean_bps"], 2), f"{sym} mean@5s missing"
+            assert _present(text, h5["median_bps"], 2), f"{sym} median@5s missing"
+            assert f"{round(h5['toxic_frac'] * 100)}%" in text, f"{sym} toxic frac missing"
+            assert _present(text, h300["mean_bps"], 2), f"{sym} mean@300s missing"
+        btc5 = mk["resumen_por_simbolo"]["BTCUSDT"]["por_horizonte"]["5"]
+        assert _present(text, btc5["drift_bps"], 2), "BTC drift bps missing"
+        assert _present(text, btc5["entry_bps"], 2), "BTC entry bps missing"
+        fresh = mk["frescura_mid_mediana_s"]
+        assert _present(text, fresh, 2), "mid-freshness staleness missing"
+
+
 # ---------------------------------------------------------------- absent
 def test_retired_numbers_stay_retired():
     for text in READMES.values():
-        for bad in ("0.7384", "0.506", "0.5057", "0.688", "361", "9,900"):
+        for bad in ("0.7384", "0.506", "0.5057", "0.688", "361", "9,900",
+                    "3,111,633", "Sharpe 34"):
             assert bad not in text, f"retired number {bad} reappeared in a README"

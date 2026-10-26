@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """TEST NULO del DELTA del filtro de toxicidad — datos REALES, h=300s.
 
-Diseño (nota ~/desarrollo/mapa/predikt-portfolio-pendientes-v2-claude-2026-10-22.md,
+Diseño (nota interna del vault, 2026-10-22,
 sección "Regla de decisión FIJADA 23/10", escrita ANTES de correr — no se modifica):
 
   - Horizonte único a priori: h=300s (1 fill = 1 muestra)

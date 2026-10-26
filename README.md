@@ -55,14 +55,14 @@ casual review: look-ahead bias, free fills, in-sample tuning, survivorship,
 scale-dependence. **What you get:** a written verdict per finding with the
 exact mechanism, a machine-readable JSON per check, and a reproducible
 stdlib-only harness you can run yourself. The audit method audits itself
-(see *The auditor audited* below: 200 edge-free null strategies, planted
+(see *The auditor audited* below: 7,000 edge-free null strategies, planted
 look-ahead traps, known detector limitations documented with a dedicated
 study). Scope and turnaround: fixed price $250–500 per backtest, delivered in 5
 business days — one-page example of the method applied to this very pipeline:
 [CASE_STUDY.md](CASE_STUDY.md). Contact: open a GitHub issue or
 email gustavoaruarte@gmail.com.
 
-`demo/audit_demo.py` and `tests/` run **standalone** (stdlib only): they need nothing beyond this repo.
+`demo/` and the charts run **standalone** (stdlib only); `tests/` additionally need pytest — nothing beyond that.
 
 ## Run the demo (stdlib only, dependency-free)
 
@@ -86,7 +86,7 @@ python3 demo/audit_demo.py
 - **Backtest Audit Demo** — a runnable, dependency-free teardown
   ([`demo/audit_demo.py`](demo/audit_demo.py), results in
   [`results/AUDIT_DEMO.md`](results/AUDIT_DEMO.md)): a synthetic backtest with
-  planted look-ahead, free fills and in-sample tuning reports Sharpe 34; forced
+  planted look-ahead, free fills and in-sample tuning reports Sharpe 98.33; forced
   to obey reality (tradeable information, book-priced fills, walk-forward
   tuning) it loses exactly the spread. Five audit checks, self-verifying.
 - **Venue 2 live: Binance USDT-M perpetuals** (2026-10-16) — same pipeline,
@@ -167,7 +167,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
   corrected** (persistent quotes — the old optimistic auto-cancel removed
   exactly the adverse fills a real maker eats; sim engine published verbatim
   in `microstructure/sim/`): the filter's delta over unfiltered is **+$9.26**
-  GROSS (unfiltered −$15.57 → filtered @0.7 −$6.31; 2 of 3 temporal folds,
+  GROSS (unfiltered −$15.57 → filtered @0.7 −$6.31; 2 of 3 temporal folds (fold 2 dropped by the embargo),
   1,580 fills, one fill = one sample, h=300s), **positive in both folds** —
   the old T2/T3 negative delta (−$682) was an artifact of that auto-cancel
   assumption. AUC on the sim stays near chance (pooled 0.556, folds
@@ -188,7 +188,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
 | **Per-horizon walk-forward (one fill = one sample per horizon, fixed 0.7, GROSS tape-fill assumptions, re-runs 2026-10-23)** | delta is positive at **all four** horizons and grows with the horizon — h=1s: **+18.49** (fold AUC 0.637–0.740) · h=10s: **+56.60** (0.682–0.756) · h=60s: **+89.27** (0.666–0.774) · h=300s: **+99.24** (0.653–0.787). The unfiltered LEVEL flips sign with horizon (+77.84 / +101.32 / +40.62 / −106.75) — adverse selection grows with horizon; the delta is the stable quantity. The pooled **AUC 0.7276** above comes from the fill×horizon scheme (382,582 rows); the per-horizon fold AUCs are the ranges in this row (deltas now null-tested — rows below). **These four horizons come from the same fills — the deltas are correlated, not four independent confirmations.** The headline h=300s was fixed **a priori** by the 2026-10-23 decision rule (row below); the other horizons are secondary. JSONs: `results/walkforward_toxicidad_h{1,10,60,300}.json`. |
 | **Null test of the delta (decision rule fixed a priori on 2026-10-23, before running: single horizon h=300s, threshold 0.7, statistic = delta; reject at 5% if pooled delta ≥ p95 of a random-filter null AND delta > 0 in ≥4/5 folds)** | **REJECTED at 5%.** Observed pooled delta **+98.23** (GPU re-run; CPU reference +99.24) vs random-filter null (same per-fold retention, 1,000 fixed-seed draws) p95 **+45.27** — the observed delta sits above the null's 100th percentile (p99 +52.01, max +61.02), and is > 0 in **4/5 folds**. Control: 50 re-trainings with labels permuted within market → delta **−1.10 ± 10.21** (min −22.23, max +19.09): the pipeline does not manufacture signal. Secondary (threshold re-drawn per draw): observed delta at p98.9 of that null. **Honest caveat:** the market-block bootstrap CI of the delta, **[−20.45, +121.74], includes 0** (high sampling volatility; 2 of 5 folds nearly zero) — both results are reported. Gate stays closed (level negative, WFE negative, queue+costs pending). Code and JSON: `microstructure/model/backtest_nulo_delta.py`, `results/nulo_delta_h300.json`. |
 | **The auditor audited: Monte Carlo of the 5 leak detectors (2026-10-25, alpha=0.01, 999 permutations/test, Wilson 95% CIs)** | Over **7,000 edge-free null strategies** (7 types × 1,000 seeds, 90-day markets, spread 2×40 bps): **false-positive rate per detector — capturabilidad 0.00%, fills-at-book 0.00%, tuning-in-sample 0.07% (5/7,000), kfold-cv 0.64% (45/7,000) [CI 0.48, 0.86], survivorship 1.19% (83/7,000) [CI 0.96, 1.47]; union 1.87% (131/7,000) [CI 1.58, 2.22]** — every detector ≤ 10%. **Power: 100% (union) on all three look-ahead traps** (full look-ahead caught by tuning/kfold/survivorship — survivorship alone 83/100; 1-bar look-ahead by all five; 50% partial look-ahead: capturabilidad 86%). **Three nulls added 2026-10-25:** mechanical stop-loss exit (declared → the survivorship check SKIPS it by design) union FP 0.70% [CI 0.34, 1.44]; asymmetric payoffs with a fat right tail, NOT declared (nothing is filtered out) union FP 6.10% [CI 4.78, 7.76] — almost all of it the survivorship detector (4.90% [CI 3.73, 6.42]): an honest mechanical-payoff FP, still under the 10% budget; small real fast alpha (edge = 10% of half-spread): 0.00% [CI 0.00, 0.38] — it produces ~1 trade per run, consistent with the tiny-edge trap. An honest but tiny edge is flagged **0%** of the time — the detectors catch plumbing, not the existence of edge. Known limitation: capturabilidad cannot see a full-hold look-ahead (a 1-bar delay removes only 1/30 of the peek); the other four detectors cover it. ~88 min wall on 12 CPU cores. JSON: `results/monte_carlo_fp_power.json`. |
-| **The auditor audited itself: five synthetic controls × two price scales (2026-10-23, 3 honest + 2 look-ahead traps, p0=0.5 vs p0=100; all five are synthetic — written by us for this audit, no third-party code)** | **Scale invariance restored and verified**: the harness now scales the round-trip cost with the market scale (constant 80 bps: `half_spread = HALF_SPREAD * p0 / P0`), and the audit rng is seeded identically per strategy across scales — 5/5 strategies return **identical verdicts at both scales**, pnl ratio exactly 200.0×. Verdicts: the 2 look-ahead traps FAIL/WARN in both scales (tuning-in-sample, kfold, fills-at-book all fire); the 3 honest strategies PASS — including `spread_sniper` since the **2026-10-24 forensic audit**: the old survivorship flag (7/24 honest runs = 29.2% at both scales) was **NOT a fixed-cost artifact** — pnl_net = pnl_gross − 2·half_spread is a pure translation and the rank-based tail test is shift-invariant ((nl, nr, p) identical net vs gross in 48/48 runs; identical 7/24 FP at 200× relative cost). The real root cause was **broken sample independence**: level-selective clients enter in bursts — one price excursion spawns a run of entries whose hold windows share the same realized path — so the binomial treated 9.7k–54k reported rows as independent draws (worst seed: one cluster held 61% of trades). Check 5 now runs the tail test on **non-overlapping trades** (same units as the honest Sharpe; <200 units → SKIP): **0/24 flagged at both scales, absolute and relative pnl**; the Monte Carlo survivorship FP dropped 5.0% → 1.0% with trap power preserved (83–100/100). The resolved diagnosis is recorded in the JSON (`limitaciones_conocidas`); study script + JSON: `demo/estudio_limitacion_supervivencia.py`, `results/estudio_limitacion_supervivencia.json`. The false edge previously reported for `momentum_chaser` at p0=100 (mean +0.086/trade) came from an additive spread over lognormal prices — the cost-scaling fix removes it. |
+| **The auditor audited itself: five synthetic controls × two price scales (2026-10-23, 3 honest + 2 look-ahead traps, p0=0.5 vs p0=100; all five are synthetic — written by us for this audit, no third-party code)** | **Scale invariance restored and verified**: the harness now scales the round-trip cost with the market scale (constant 80 bps: `half_spread = HALF_SPREAD * p0 / P0`), and the audit rng is seeded identically per strategy across scales — 5/5 strategies return **identical verdicts at both scales**, pnl ratio exactly 200.0×. Verdicts: the 2 look-ahead traps FAIL/WARN in both scales (tuning-in-sample, kfold, fills-at-book all fire); the 3 honest strategies PASS — including `spread_sniper` since the **2026-10-24 forensic audit**: the old survivorship flag (7/24 honest runs = 29.2% at both scales) was **NOT a fixed-cost artifact** — pnl_net = pnl_gross − 2·half_spread is a pure translation and the rank-based tail test is shift-invariant ((nl, nr, p) identical net vs gross in 48/48 runs; identical 7/24 FP at 200× relative cost). The real root cause was **broken sample independence**: level-selective clients enter in bursts — one price excursion spawns a run of entries whose hold windows share the same realized path — so the binomial treated 9.7k–54k reported rows as independent draws (worst seed: one cluster held 61% of trades). Check 5 now runs the tail test on **non-overlapping trades** (same units as the honest Sharpe; <200 units → SKIP): **0/24 flagged at both scales, absolute and relative pnl**; the Monte Carlo survivorship FP dropped 5.0% → 1.19% (supervivencia [0.96%, 1.47%] Wilson) with trap power preserved (83–100/100). The resolved diagnosis is recorded in the JSON (`limitaciones_conocidas`); study script + JSON: `demo/estudio_limitacion_supervivencia.py`, `results/estudio_limitacion_supervivencia.json`. The false edge previously reported for `momentum_chaser` at p0=100 (mean +0.086/trade) came from an additive spread over lognormal prices — the cost-scaling fix removes it. |
 | **Maker-realistic queue sim, persist mode (walk-forward on simulated persistent-quote fills, 2026-10-23)** | The closest test to a real maker: queue-position fills with **persistent quotes (no auto-cancel)** — the assumption whose removal caused the old −$682 artifact; sim engine published verbatim in `microstructure/sim/`. On 1,580 simulated fills (one fill = one sample, h=300s, 2 temporal folds): unfiltered **−$15.57** → filter @0.7 **−$6.31**, **delta +$9.26, positive in both folds**; pooled OOS AUC **0.5563** (folds 0.533–0.599 — features approximated by design, out-of-distribution); per-op WFE **−33%** (totals −19.6%). The sample is ~80× smaller than the real dataset → reads as **DIRECTION, not magnitude**; the gate stays closed. JSON: `results/walkforward_toxicidad_h300_persist.json`. |
 
 ## Venue 2 — Binance USDT-M perpetuals (live since 2026-10-16)
@@ -206,25 +206,25 @@ excluded, never extrapolated).
 Venue 1 (Polymarket CLOB, above) = discrete-event prediction markets; this
 venue 2 = continuous high-frequency books — same schema, same analytics.
 
-### Markout in bps of mid (2026-10-16 22:54 → 2026-10-18 23:42 UTC, 3,111,633 aggressive trades)
+### Markout in bps of mid (2026-10-16 22:54 → 2026-10-19 00:05 UTC, 3,145,683 aggressive trades)
 
 | Symbol | mean bps @5s | median bps @5s | toxic frac @5s | mean bps @300s |
 |---|---|---|---|---|
-| **BTCUSDT** | +0.22 | +0.06 | 47% | +0.34 |
-| **ETHUSDT** | +0.43 | +0.27 | 44% | +0.45 |
-| **SOLUSDT** | **−0.06** | **−0.48** | **66%** | −0.02 |
+| **BTCUSDT** | +0.37 | +0.09 | 46% | +0.38 |
+| **ETHUSDT** | +0.57 | +0.27 | 43% | +0.43 |
+| **SOLUSDT** | **−0.28** | **−0.48** | **68%** | −0.29 |
 
-**Decomposition (BTCUSDT @5s): drift +0.75 bps vs entry −0.53 bps.** This
+**Decomposition (BTCUSDT @5s): drift +0.81 bps vs entry −0.44 bps.** This
 changes the honest reading of the markout: the positive USD markout we first
 reported over the early capture window was **market drift, not execution
 skill** — the taker still **pays the spread at entry**; and for a maker, the
 flow the aggressor wins is adverse selection against it (maker P&L =
 −(aggressor markout)). SOL is directly toxic
-at short horizons (median −0.48 bps, 66% of taker trades lose).
+at short horizons (median −0.48 bps, 68% of taker trades lose).
 
 **Declared limitation — exit-mid freshness:** the exit mid is reconstructed
-from a book sampled at ~2s cadence; its median staleness is **1.14s** — up to
-~23% of the 5s horizon. Short-horizon markouts are therefore a lower bound on
+from a book sampled at ~2s cadence; its median staleness is **1.04s** — up to
+~21% of the 5s horizon. Short-horizon markouts are therefore a lower bound on
 precision.
 
 Regenerate with `microstructure/scripts/markout_binance.py` (read-only, live
