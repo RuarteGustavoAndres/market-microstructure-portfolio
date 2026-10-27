@@ -440,7 +440,7 @@ def run_power(n_perm, per_int):
         r = run_one((group, kind, i, seed), n_perm)
         out.append((r["kind"], r["seed"], r["flags"], r["verdicts"], r["mean"]))
         if k % 25 == 0:
-            print("  [POT %3d/%d] %s seed=%d flags=%s %.1fs"
+            print("  [POW %3d/%d] %s seed=%d flags=%s %.1fs"
                   % (k + 1, len(jobs), kind, seed, r["verdicts"],
                      time.time() - t0), flush=True)
     return out
@@ -462,9 +462,9 @@ def run_jobs_parallel(jobs, n_perm, jobs_n, ckpt_path, resume):
                     continue
                 r = json.loads(line)
                 done[(r["group"], r["kind"], r["i"])] = r
-        print("  resume: %d corridas ya en checkpoint" % len(done), flush=True)
+        print("  resume: %d runs already in checkpoint" % len(done), flush=True)
     todo = [j for j in jobs if (j[0], j[1], j[2]) not in done]
-    print("  jobs: %d por correr, %d ya hechas" % (len(todo), len(done)),
+    print("  jobs: %d to run, %d already done" % (len(todo), len(done)),
           flush=True)
     results = list(done.values())
     if todo:
@@ -479,15 +479,10 @@ def run_jobs_parallel(jobs, n_perm, jobs_n, ckpt_path, resume):
                     os.fsync(fh.fileno())
                 if k % 50 == 0 or k == len(todo):
                     el = time.time() - t0
-                    print("  [%4d/%4d] %.1f corridas/s, ETA %.0f min"
+                    print("  [%4d/%4d] %.1f runs/s, ETA %.0f min"
                           % (k, len(todo), k / el,
                              (len(todo) - k) * el / k / 60.0), flush=True)
     return results
-
-
-def _pool_job(args):
-    group, kind, i, seed, n_perm = args
-    return run_one((group, kind, i, seed), n_perm)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -597,7 +592,7 @@ def main(argv=None):
                       % (k + 1, n_nulls, kind, seed, r["verdicts"],
                          time.time() - t0), flush=True)
             elif r["group"] == "trap" and (k - n_nulls) % 25 == 0:
-                print("  [POT %3d/%d] %s seed=%d flags=%s %.1fs"
+                print("  [POW %3d/%d] %s seed=%d flags=%s %.1fs"
                       % (k - n_nulls + 1, n_traps, kind, seed, r["verdicts"],
                          time.time() - t0), flush=True)
     elapsed = time.time() - t_start
