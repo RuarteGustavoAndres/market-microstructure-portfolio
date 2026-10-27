@@ -1,70 +1,69 @@
 #!/usr/bin/env python3
-"""Auditoría de ESTRATEGIAS AJENAS a través del pipeline del auditor (4h).
+"""Audit of THIRD-PARTY STRATEGIES through the audit pipeline (4h).
 
-No mide los detectores (eso es `monte_carlo_fp_power.py`): demuestra el
-SERVICIO — un cliente tercero entrega 5 estrategias distintas sobre el
-mercado del demo (random walk de 1-min, sin edge por construcción) y el
-auditor las separa: las honestas salen con veredictos benignos (sin falsa
-alarma, ni siquiera en el ruido puro) y las tramposas salen WARN/FAIL.
-Luego el lote completo se repite con p0=0.5 y p0=100: la invariancia de
-escala que pidió el revisor (los tests del auditor son razones de
-estadísticos, así que deben dar el mismo veredicto a cualquier escala).
+Does not measure the detectors (that is `monte_carlo_fp_power.py`):
+demonstrates the SERVICE — a third-party client submits 5 distinct
+strategies on the demo market (1-min random walk, no edge by
+construction) and the audit separates them: the honest ones come out
+with benign verdicts (no false alarm, not even on pure noise) and the
+cheating ones come out WARN/FAIL. Then the full batch is repeated at
+p0=0.5 and p0=100: the scale invariance the reviewer asked for (the
+audit tests are ratios of statistics, so they must give the same
+verdict at any scale).
 
-Las 5 estrategias (cada una con setup documentado y seed fija):
+The 5 strategies (each with a documented setup and fixed seed):
 
-  1. momentum_chaser (hONESTA, naive) — entra tras k=3 subidas (bajadas)
-     seguidas: señal = momentum z-scoreado de 3 barras con signo ±1 solo
-     si las 3 últimas barras tuvieron el mismo signo, 0 en caso contrario.
-     Naive por diseño (perseguir el momentum en un random walk no predice
-     nada), pero el plumbing es honesto de punta a punta.
-  2. spread_sniper (hONESTA, mean reversion) — entra cuando el precio toca
-     el extremo: z = (px - media_120)/sd_120, señal = -z (fade del
-     extremo; long cuando toca el mínimo, short cuando toca el máximo).
-     El umbral |señal|>thr se elige walk-forward en la retícula 0.3-2.0.
-  3. ruido_puro (hONESTA, control nulo) — entrada aleatoria: señal iid
-     N(0,1). Debe dar veredictos benignos con P&L ~ -2 x half_spread
-     (paga el spread y no tiene edge: exactamente lo que un backtest
-     honesto de un mercado sin edge produce). Es el caso "sin falsa
-     alarma".
-  4. lookahead_parcial (TRAMPA) — usa información de 1 bar adelante en
-     el 50% de los trades (el otro 50%, ruido puro N(0,1): mismos
-     marginales, indistinguible para cualquier tuning in-sample).
-  5. lookahead_completo (TRAMPA, la trap clásica del demo) — la "indicación"
-     en t es el retorno completo del hold (30 barras) normalizado:
-     información que no existe al decidir.
+  1. momentum_chaser (hONEST, naive) — enters after k=3 consecutive
+     ups (downs): signal = z-scored 3-bar momentum with sign ±1 only if
+     the last 3 bars had the same sign, 0 otherwise. Naive by design
+     (chasing momentum in a random walk predicts nothing), but the
+     plumbing is honest end to end.
+  2. spread_sniper (hONEST, mean reversion) — enters when price touches
+     the extreme: z = (px - mean_120)/sd_120, signal = -z (fade of the
+     extreme; long when it touches the minimum, short when it touches
+     the maximum). The |signal|>thr threshold is chosen walk-forward on
+     the 0.3-2.0 grid.
+  3. ruido_puro (hONEST, null control) — random entry: signal iid
+     N(0,1). Must give benign verdicts with P&L ~ -2 x half_spread
+     (pays the spread and has no edge: exactly what an honest backtest
+     of a no-edge market produces). It is the "no false alarm" case.
+  4. lookahead_parcial (TRAP) — uses information 1 bar ahead in 50% of
+     the trades (the other 50%, pure noise N(0,1): same marginals,
+     indistinguishable for any in-sample tuning).
+  5. lookahead_completo (TRAP, the classic demo trap) — the "indicator"
+     at t is the full hold return (30 bars), normalized: information
+     that does not exist at decision time.
 
-Plumbing por tipo (documentado, mismo que el demo y el Monte Carlo):
-  honestas — tuning walk-forward (retícula 0.3-2.0 sobre la primera
-             mitad), entry_lag=1 (primera entrada ejecutable),
-             price_book=True con half_spread escalado con la escala del
-             mercado (bps constantes: half_spread = HALF_SPREAD * p0 / P0,
-             round trip = 2 x half_spread), reporta la segunda mitad
-             COMPLETA.
-  tramposas — mirror exacto del TRAP client del demo: tuning in-sample
-             sobre la ventana completa, entry_lag=0 (entra en la barra de
-             decisión), fills a mid (price_book=False), y el peor decil
-             de la lista de trades descartado (drop_worst_decile).
+Plumbing by type (documented, same as the demo and the Monte Carlo):
+  honest — walk-forward tuning (0.3-2.0 grid on the first half),
+           entry_lag=1 (first executable entry), price_book=True with
+           half_spread scaled with the market scale (constant bps:
+           half_spread = HALF_SPREAD * p0 / P0, round trip = 2 x
+           half_spread), reports the COMPLETE second half.
+  cheating — exact mirror of the demo TRAP client: in-sample tuning on
+             the full window, entry_lag=0 (enters on the decision bar),
+             fills at mid (price_book=False), and the worst decile of
+             the trade list dropped (drop_worst_decile).
 
-El auditor corre los 5 detectores con run_audit (prices + señal
-entregadas, half_spread escalado con la escala del mercado — bps
-constantes —, alpha=0.01, 999 permutaciones).
-Veredicto global por estrategia: FAIL si algún detector falla, WARN si el
-peor es WARN, OK (benigno) si todos PASS.
+The audit runs the 5 detectors with run_audit (prices + signal
+supplied, half_spread scaled with the market scale — constant bps —,
+alpha=0.01, 999 permutations).
+Global verdict per strategy: FAIL if any detector fails, WARN if the
+worst is WARN, OK (benign) if all PASS.
 
-Honestidad: si una honesta sale marcada (falsa alarma) o una trampa pasa
-limpia (trampa no detectada), se reporta TAL CUAL en el veredicto.
+Honesty: if an honest one comes out flagged (false alarm) or a trap
+passes clean (undetected trap), it is reported AS-IS in the verdict.
 
-Determinista: semillas fijas (mercado 7; señales 201-205; audit rng
-40_000_000+i, IDÉNTICO en las dos escalas para que la comparación de
-invariancia sea exacta — sin ruido de permutación), todas reportadas en
-el JSON. Stdlib only.
+Deterministic: fixed seeds (market 7; signals 201-205; audit rng
+40_000_000+i, IDENTICAL at both scales so the invariance comparison is
+exact — no permutation noise), all reported in the JSON. Stdlib only.
 
 CLI:
     python3 demo/audit_controles_sinteticos.py [--n-perm 999] [--no-write]
 
-Escribe results/audit_controles_sinteticos.json y una tabla resumen a
-stdout. Al final imprime VEREDICTOS_POR_ESTRATEGIA y VEREDICTO (una línea
-cada uno).
+Writes results/audit_controles_sinteticos.json and a summary table to
+stdout. At the end it prints VERDICTS_BY_STRATEGY and VERDICT (one line
+each).
 """
 import argparse
 import json
@@ -80,26 +79,26 @@ import audit_demo as ad  # noqa: E402
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                            "results")
 
-# Cinco detectores, en el orden en que run_audit los emite.
+# Five detectors, in the order run_audit emits them.
 DETS = ["capturabilidad", "fills_al_book", "tuning_in_sample", "kfold_cv",
         "supervivencia"]
-FLAG = ("FAIL", "WARN")   # un detector "marca" si devuelve FAIL o WARN
+FLAG = ("FAIL", "WARN")   # a detector "flags" if it returns FAIL or WARN
 
-SEED_MERCADO = 7          # mismo mercado para las 5 estrategias y ambas escalas
-P0S = [0.50, 100.0]       # invariancia de escala (pedido del revisor)
-SIG_SEED_BASE = 201       # señal de la i-ésima estrategia = base + i
+SEED_MERCADO = 7          # same market for the 5 strategies and both scales
+P0S = [0.50, 100.0]       # scale invariance (reviewer request)
+SIG_SEED_BASE = 201       # signal of the i-th strategy = base + i
 AUDIT_RNG_BASE = 40_000_000
-K_MOMENTUM = 3            # momentum_chaser: k subidas/bajadas seguidas
-WIN_SNIPER = 120          # spread_sniper: ventana rolling del extremo
+K_MOMENTUM = 3            # momentum_chaser: k consecutive ups/downs
+WIN_SNIPER = 120          # spread_sniper: rolling window of the extreme
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Señales de las 5 estrategias (cada una documentada arriba)
+# Signals of the 5 strategies (each documented above)
 # ──────────────────────────────────────────────────────────────────────
 def sig_momentum_chaser(px, k=K_MOMENTUM):
-    """±momentum z-scoreado de k barras, solo si las últimas k barras
-    tuvieron el mismo signo (3 subidas -> long, 3 bajadas -> short),
-    0 en caso contrario. Naive: en un random walk no predice nada."""
+    """±z-scored k-bar momentum, only if the last k bars had the same
+    sign (3 ups -> long, 3 downs -> short), 0 otherwise. Naive: in a
+    random walk it predicts nothing."""
     n = len(px)
     out = [0.0] * n
     s3 = ad.SIGMA * math.sqrt(k)
@@ -114,9 +113,9 @@ def sig_momentum_chaser(px, k=K_MOMENTUM):
 
 
 def sig_spread_sniper(px, window=WIN_SNIPER):
-    """Mean reversion: z = (px - media_window)/sd_window sobre las últimas
-    `window` barras; señal = -z (fade: precio toca el extremo superior ->
-    short, inferior -> long). En un random walk no hay reversión."""
+    """Mean reversion: z = (px - mean_window)/sd_window over the last
+    `window` bars; signal = -z (fade: price touches the upper extreme ->
+    short, lower -> long). In a random walk there is no reversion."""
     n = len(px)
     out = [0.0] * n
     s = sq = 0.0
@@ -135,59 +134,59 @@ def sig_spread_sniper(px, window=WIN_SNIPER):
 
 
 def sig_ruido_puro(px, seed):
-    """Entrada aleatoria: señal iid N(0,1) sin relación con el mercado."""
+    """Random entry: signal iid N(0,1) with no relation to the market."""
     rng = random.Random(seed)
     return [rng.gauss(0.0, 1.0) for _ in px]
 
 
 def sig_lookahead_parcial(px, seed):
-    """TRAMPA: en el 50% de las barras la "indicación" es el retorno de 1
-    bar adelante (peek de 1 barra, normalizado por sigma); en el otro 50%,
-    ruido puro N(0,1). Mismos marginales N(0,1): el tuning in-sample no
-    puede distinguir los dos conjuntos."""
+    """TRAP: in 50% of the bars the "indicator" is the 1-bar-ahead
+    return (1-bar peek, normalized by sigma); in the other 50%, pure
+    noise N(0,1). Same N(0,1) marginals: in-sample tuning cannot tell
+    the two sets apart."""
     rng = random.Random(seed)
     base = ad.look_ahead_signal(px)
     return [b if rng.random() < 0.5 else rng.gauss(0.0, 1.0) for b in base]
 
 
 def sig_lookahead_completo(px):
-    """TRAMPA clásica (la del demo): la "indicación" en t es el retorno
-    completo del hold (30 barras), normalizado — información que no existe
-    cuando se decide el trade."""
+    """Classic TRAP (the demo one): the "indicator" at t is the full
+    hold return (30 bars), normalized — information that does not exist
+    when the trade is decided."""
     H, s, n = ad.HOLD, ad.SIGMA, len(px)
     return [(px[i + H] / px[i] - 1.0) / (s * math.sqrt(H))
             if i + H < n else 0.0 for i in range(n)]
 
 
-# (función, tipo, setup documentado) — el orden define el índice de la seed.
+# (function, type, documented setup) — the order defines the seed index.
 STRATEGIES = [
     ("momentum_chaser", "honest", sig_momentum_chaser,
-     "entra tras k=3 subidas (bajadas) seguidas: señal = ±momentum z de 3 "
-     "barras solo si las 3 últimas tienen el mismo signo (naive)"),
+     "enters after k=3 consecutive ups (downs): signal = ±z-momentum of 3 "
+     "bars only if the last 3 have the same sign (naive)"),
     ("spread_sniper", "honest", sig_spread_sniper,
-     "mean reversion: entra cuando el precio toca el extremo rolling de "
-     "120 barras (|z|>thr), dirección = fade del extremo"),
+     "mean reversion: enters when price touches the rolling 120-bar "
+     "extreme (|z|>thr), direction = fade of the extreme"),
     ("ruido_puro", "honest", sig_ruido_puro,
-     "entrada aleatoria: señal iid N(0,1) — control nulo, P&L esperado "
+     "random entry: signal iid N(0,1) — null control, expected P&L "
      "~ -2 x half_spread"),
-    ("lookahead_parcial", "trampa", sig_lookahead_parcial,
-     "TRAMPA: usa info de 1 bar adelante en el 50% de los trades; el otro "
-     "50% es ruido N(0,1) (mismos marginales)"),
-    ("lookahead_completo", "trampa", sig_lookahead_completo,
-     "TRAMPA clásica: la señal en t es el retorno COMPLETO del hold "
-     "(30 barras) — el demo TRAP client"),
+    ("lookahead_parcial", "trap", sig_lookahead_parcial,
+     "TRAP: uses 1-bar-ahead info in 50% of the trades; the other "
+     "50% is N(0,1) noise (same marginals)"),
+    ("lookahead_completo", "trap", sig_lookahead_completo,
+     "classic TRAP: the signal at t is the FULL hold return "
+     "(30 bars) — the demo TRAP client"),
 ]
 HONEST = {n for n, _t, _f, _d in STRATEGIES if _t == "honest"}
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Pipelines de cliente (mismos que demo/audit_demo.py y el Monte Carlo)
+# Client pipelines (same as demo/audit_demo.py and the Monte Carlo)
 # ──────────────────────────────────────────────────────────────────────
 def build_honest_client(px, sig, hs):
-    """HONESTA: tuning walk-forward (primera mitad), primera entrada
-    ejecutable, spread pagado, reporta la segunda mitad completa.
-    hs = half_spread en unidades de precio de ESTA escala (bps constantes
-    entre escalas: hs = HALF_SPREAD * p0 / P0)."""
+    """HONEST: walk-forward tuning (first half), first executable entry,
+    spread paid, reports the complete second half.
+    hs = half_spread in price units of THIS scale (constant bps across
+    scales: hs = HALF_SPREAD * p0 / P0)."""
     half = len(px) // 2
     thr = ad.tune_threshold(px, sig, indices=(0, half), entry_lag=1,
                             price_book=True, half_spread=hs)
@@ -198,9 +197,9 @@ def build_honest_client(px, sig, hs):
 
 
 def build_trap_client(px, sig):
-    """TRAMPA (mirror del TRAP client del demo): tuning in-sample en la
-    ventana completa, fills a mid, entry en la barra de decisión, peor
-    decil descartado."""
+    """TRAP (mirror of the demo TRAP client): in-sample tuning on the
+    full window, fills at mid, entry on the decision bar, worst decile
+    dropped."""
     thr = ad.tune_threshold(px, sig, entry_lag=0, price_book=False,
                             half_spread=0.0)
     booked = ad.drop_worst_decile(
@@ -209,21 +208,21 @@ def build_trap_client(px, sig):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Lote: 5 estrategias x 2 escalas
+# Batch: 5 strategies x 2 scales
 # ──────────────────────────────────────────────────────────────────────
 def run_one(name, tipo, sig_fn, i, p0, n_perm):
-    """Construye la estrategia sobre el mercado (seed fija, misma para las
-    dos escalas: el walk geométrico escala exactamente por p0), la corre
-    por su pipeline de cliente y la audita."""
+    """Builds the strategy on the market (fixed seed, same for both
+    scales: the geometric walk scales exactly by p0), runs it through
+    its client pipeline and audits it."""
     px = ad.build_market(seed=SEED_MERCADO, p0=p0)
-    # El spread del libro es una fracción del precio (bps constantes), no
-    # una cantidad absoluta: a p0=0.5 el round trip son 80 bps, a p0=100
-    # también. Sin esto, el spread fijo en unidades de precio rompe la
-    # invariancia de escala en los checks que lo cargan sobre el pnl
+    # The book spread is a fraction of price (constant bps), not an
+    # absolute amount: at p0=0.5 the round trip is 80 bps, at p0=100
+    # too. Without this, a fixed price-unit spread breaks scale
+    # invariance in the checks that charge it over the pnl
     # (tuning_in_sample, fills_al_book).
     hs = ad.HALF_SPREAD * p0 / ad.P0
     seed_sig = SIG_SEED_BASE + i
-    # solo ruido_puro y lookahead_parcial consumen un seed propio de señal
+    # only ruido_puro and lookahead_parcial consume their own signal seed
     sig = sig_fn(px, seed_sig) if sig_fn in (sig_ruido_puro,
                                              sig_lookahead_parcial) \
         else sig_fn(px)
@@ -231,11 +230,11 @@ def run_one(name, tipo, sig_fn, i, p0, n_perm):
         booked, thr = build_honest_client(px, sig, hs)
     else:
         booked, thr = build_trap_client(px, sig)
-    # rng de auditoría idéntico por estrategia en ambas escalas: con el
-    # spread escalado, los pnl de p0=100 son exactamente 200x los de
-    # p0=0.5 (mismo walk escalado, mismas señales/trades), así que los
-    # detectores rank-based y las permutaciones reproducen el MISMO
-    # veredicto — la invariancia se demuestra exacta, no en promedio.
+    # identical audit rng per strategy at both scales: with the scaled
+    # spread, the p0=100 pnls are exactly 200x the p0=0.5 ones (same
+    # scaled walk, same signals/trades), so the rank-based detectors and
+    # the permutations reproduce the SAME verdict — the invariance is
+    # demonstrated exactly, not on average.
     rng = random.Random(AUDIT_RNG_BASE + i)
     findings, m = ad.run_audit(booked, px, sig, half_spread=hs,
                                rng=rng, n_perm=n_perm)
@@ -258,7 +257,7 @@ def run_one(name, tipo, sig_fn, i, p0, n_perm):
 
 
 def run_lote(n_perm):
-    """Devuelve {nombre: {setup, tipo, p0: {resultado}}} para todo el lote."""
+    """Returns {name: {setup, tipo, p0: {result}}} for the whole batch."""
     out = {}
     for i, (name, tipo, sig_fn, setup) in enumerate(STRATEGIES):
         rec = {"tipo": tipo, "setup": setup,
@@ -276,11 +275,10 @@ def run_lote(n_perm):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Veredictos (construidos a partir de los datos, no escritos a mano)
+# Verdicts (built from the data, not written by hand)
 # ──────────────────────────────────────────────────────────────────────
 def expected_ok(rec):
-    """La estrategia sale como se espera: honesta -> no marcada; trampa ->
-    marcada — en AMBAS escalas."""
+    """The strategy comes out as expected: honest -> unflagged; trap -> flagged — at BOTH scales."""
     p0s = [rec["p0"][p0] for p0 in P0S]
     if rec["tipo"] == "honest":
         return all(not r["flagged"] for r in p0s)
@@ -288,34 +286,34 @@ def expected_ok(rec):
 
 
 def escala_identica(rec):
-    """Veredicto por detector idéntico a p0=0.5 y p0=100; si difiere,
-    devuelve la lista de checks que cambian."""
+    """Per-detector verdict identical at p0=0.5 and p0=100; if it
+    differs, returns the list of checks that change."""
     a, b = rec["p0"][P0S[0]]["flags"], rec["p0"][P0S[1]]["flags"]
     return [d for d in DETS if a[d] != b[d]]
 
 
 def build_veredicto(lote):
-    """Auditor OK si: cada honesta sale benigna en las 2 escalas (sin
-    falsa alarma fuera de las limitaciones conocidas documentadas) y
-    cada trampa sale marcada en las 2 escalas. Las desviaciones se
-    reportan tal cual."""
+    """The audit is OK if: every honest strategy comes out benign at the 2 scales (no
+    false alarm outside the documented known limitations) and
+    every trap comes out flagged at the 2 scales. Deviations are
+    reported as-is."""
 
-    # Limitaciones conocidas del auditor: la única histórica
-    # (spread_sniper x supervivencia) quedó RESUELTA con el audit forense
-    # de 2026-10-24 — la causa raíz era el tamaño muestral (el sniper
-    # selectivo de nivel entra en ráfaga: entradas solapadas tratadas
-    # como dibujos independientes), no el costo fijo (el test es
-    # rank-based, invariante por traslación: net vs gross da (nl, nr, p)
-    # idénticos 48/48). El check 5 ahora corre sobre los trades NO
-    # solapados. El sniper debe salir benigno; si volviera a disparar
-    # es una falsa alarma real, sin whitelist que la justifique:
+    # Known audit limitations: the only historical one
+    # (spread_sniper x survivorship) was RESOLVED by the forensic audit
+    # of 2026-10-24 — the root cause was the sample size (the level
+    # selective sniper enters in BURSTS: overlapping entries treated
+    # as independent draws), not the fixed cost (the test is
+    # rank-based, invariant to translation: net vs gross gives (nl, nr, p)
+    # identical 48/48). Check 5 now runs over the NON
+    # overlapping trades. The sniper must come out benign; if it fires again
+    # it is a real false alarm, with no whitelist to justify it:
     LIMITACIONES_CONOCIDAS = {}
 
     problemas = []
     documentadas = []
     falsas = [n for n, r in lote.items() if r["tipo"] == "honest"
               and expected_ok(r) is False]
-    trampas_libres = [n for n, r in lote.items() if r["tipo"] == "trampa"
+    trampas_libres = [n for n, r in lote.items() if r["tipo"] == "trap"
                       and expected_ok(r) is False]
     for n in falsas:
         r = lote[n]
@@ -324,44 +322,44 @@ def build_veredicto(lote):
             extras = [d for d in marc
                       if d not in LIMITACIONES_CONOCIDAS.get(n, set())]
             if extras:
-                problemas.append("falsa alarma: %s marcada por %s a p0=%g"
+                problemas.append("false alarm: %s flagged by %s at p0=%g"
                                  % (n, extras or "?", p0))
             elif marc:
-                documentadas.append("%s marcada por %s a p0=%g "
-                                    "(limitación conocida del detector, "
-                                    "ver limitaciones_conocidas)"
+                documentadas.append("%s flagged by %s at p0=%g "
+                                    "(known limitation of the detector, "
+                                    "see limitaciones_conocidas)"
                                     % (n, marc, p0))
     for n in trampas_libres:
         r = lote[n]
         for p0 in P0S:
             if not r["p0"][p0]["flagged"]:
-                problemas.append("TRAMPA NO DETECTADA: %s pasa limpia a "
+                problemas.append("TRAP NOT DETECTED: %s passes clean at "
                                  "p0=%g" % (n, p0))
 
-    # Invariancia de escala: con el spread escalado con el precio (bps
-    # constantes) y el rng de auditoría idéntico, el pipeline completo es
-    # escala-invariante y se espera el MISMO veredicto por detector en
-    # p0=0.5 y p0=100; cualquier diferencia es invariancia ROTA.
+    # Scale invariance: with the spread scaled with the price (constant
+    # bps) and the identical audit rng, the full pipeline is
+    # scale-invariant and the SAME per-detector verdict is expected at
+    # p0=0.5 and p0=100; any difference is invariance BROKEN.
     diffs = {n: escala_identica(lote[n]) for n in lote}
     diffs = {n: d for n, d in diffs.items() if d}
 
     if not problemas:
-        v = ("AUDIT OK: el auditor separa las honestas de las %d "
-             "tramposas (WARN/FAIL en las 2 escalas); las 3 honestas "
-             "dan veredicto benigno en las 2 escalas, sin falsas "
-             "alarmas — incluido el spread_sniper desde el fix del "
-             "check 5 (test de colas sobre trades NO solapados; audit "
-             "forense 2026-10-24)"
+        v = ("AUDIT OK: the audit separates the honest ones from the %d "
+             "traps (WARN/FAIL at the 2 scales); the 3 honest ones "
+             "give a benign verdict at the 2 scales, no false "
+             "alarms — including spread_sniper since the fix of "
+             "check 5 (tail test over NON-overlapping trades; "
+             "forensic audit 2026-10-24)"
              % (len(STRATEGIES) - len(HONEST)))
         if documentadas:
-            v += (" — con %d limitación(es) conocida(s) documentada(s) del "
+            v += (" — with %d documented known limitation(s) of the "
                   "detector: %s" % (len(documentadas), "; ".join(documentadas)))
     else:
         v = "REVISAR: " + "; ".join(problemas)
 
     if diffs:
-        det = "; ".join("%s cambia en %s" % (n, d) for n, d in sorted(diffs.items()))
-        v += "; invariancia de escala ROTA: %s" % det
+        det = "; ".join("%s changes in %s" % (n, d) for n, d in sorted(diffs.items()))
+        v += "; scale invariance BROKEN: %s" % det
     return v
 
 
@@ -371,34 +369,34 @@ def build_veredicto(lote):
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     ap = argparse.ArgumentParser(
-        description="Auditoría de 5 controles sintéticos x 2 escalas (p0) "
-                    "a través del pipeline del auditor.")
+        description="Audit of 5 synthetic controls x 2 scales (p0) "
+                    "through the audit pipeline.")
     ap.add_argument("--n-perm", type=int, default=ad.N_PERM,
-                    help="permutaciones por test (default %d)" % ad.N_PERM)
+                    help="permutations per test (default %d)" % ad.N_PERM)
     ap.add_argument("--no-write", dest="write", action="store_false",
-                    default=True, help="no escribir el JSON")
+                    default=True, help="do not write the JSON")
     args = ap.parse_args(argv)
 
     t_start = time.time()
-    print("Lote: %d estrategias x %d escalas p0=%s"
+    print("Batch: %d strategies x %d scales p0=%s"
           % (len(STRATEGIES), len(P0S), P0S), flush=True)
     lote = run_lote(args.n_perm)
     elapsed = time.time() - t_start
     veredicto = build_veredicto(lote)
 
-    # ── tabla resumen ───────────────────────────────────────────────
+    # ── summary table ───────────────────────────────────────────────
     L = []
     L.append("=" * 100)
-    L.append("AUDITORIA DE ESTRATEGIAS AJENAS — 5 estrategias x 2 escalas  "
-             "(%.0fs de CPU)" % elapsed)
-    L.append("mercado: random walk %d días, seed %d, sigma %g; alpha=%.2f, "
-             "%d perm/test, spread 2x%d bps, hold %d barras"
+    L.append("AUDIT OF THIRD-PARTY STRATEGIES — 5 strategies x 2 scales  "
+             "(%.0fs of CPU)" % elapsed)
+    L.append("market: random walk %d days, seed %d, sigma %g; alpha=%.2f, "
+             "%d perm/test, spread 2x%d bps, hold %d bars"
              % (ad.N_DAYS, SEED_MERCADO, ad.SIGMA, ad.ALPHA, args.n_perm,
                 ad.HALF_SPREAD * 1e4, ad.HOLD))
     L.append("=" * 100)
     L.append("")
     L.append("%-20s %-6s %6s %8s %12s %8s %7s  %s  %s"
-             % ("estrategia", "tipo", "p0", "n_tr", "P&L/trade", "Sharpe",
+             % ("strategy", "type", "p0", "n_tr", "P&L/trade", "Sharpe",
                 "win%", "flags(1-5)", "GLOBAL"))
     for name, rec in lote.items():
         for p0 in P0S:
@@ -407,14 +405,14 @@ def main(argv=None):
                      % (name, rec["tipo"][:6], p0, r["n_trades"],
                         r["mean_pnl"], r["sharpe"], r["win"] * 100,
                         r["verdicts"], r["global"],
-                        "  <- marcada" if r["flagged"] else ""))
+                        "  <- flagged" if r["flagged"] else ""))
         L.append("  setup: %s (thr tuned=%s)" % (rec["setup"],
                                                  rec["p0"][P0S[0]]["thr"]))
         L.append("")
-    L.append("plumbing honestas: walk-forward, entry_lag=1, spread pagado, "
-             "reporta 2a mitad completa")
-    L.append("plumbing trampas: tuning in-sample, entry_lag=0, fills a mid, "
-             "peor decil descartado (mirror del TRAP client del demo)")
+    L.append("honest plumbing: walk-forward, entry_lag=1, paid spread, "
+             "reports full 2nd half")
+    L.append("trap plumbing: in-sample tuning, entry_lag=0, fills at mid, "
+             "worst decile dropped (mirror of the demo TRAP client)")
     L.append("")
 
     # ── JSON ────────────────────────────────────────────────────────
@@ -423,20 +421,20 @@ def main(argv=None):
             "alpha": ad.ALPHA, "n_perm": args.n_perm, "n_days": ad.N_DAYS,
             "bars": ad.N_DAYS * 60 * 24, "hold": ad.HOLD,
             "half_spread": ad.HALF_SPREAD, "sigma": ad.SIGMA,
-            "half_spread_modelo": "bps constantes entre escalas: "
+            "half_spread_modelo": "constant bps across scales: "
                                   "half_spread_efectivo = HALF_SPREAD * p0 / P0",
             "p0s": P0S, "seed_mercado": SEED_MERCADO,
             "seeds_senal": {n: SIG_SEED_BASE + i
                             for i, (n, _t, _f, _d) in enumerate(STRATEGIES)},
             "audit_rng_base": AUDIT_RNG_BASE,
-            "honest_plumbing": "tuning walk-forward (1a mitad), entry_lag=1, "
-                               "price_book=True, half_spread, reporta 2a "
-                               "mitad completa",
-            "trap_plumbing": "tuning in-sample, entry_lag=0, price_book="
+            "honest_plumbing": "walk-forward tuning (1st half), entry_lag=1, "
+                               "price_book=True, half_spread, reports full "
+                               "2nd half",
+            "trap_plumbing": "in-sample tuning, entry_lag=0, price_book="
                              "False, drop_worst_decile (mirror TRAP client)",
-            "global_definition": "peor veredicto entre los 5 detectores; "
-                                 "flagged = al menos un FAIL/WARN",
-            "elapsed_s": round(elapsed, 1), "cpu": "solo CPU, stdlib",
+            "global_definition": "worst verdict among the 5 detectors; "
+                                 "flagged = at least one FAIL/WARN",
+            "elapsed_s": round(elapsed, 1), "cpu": "CPU only, stdlib",
         },
         "estrategias": {
             n: {
@@ -453,59 +451,58 @@ def main(argv=None):
                     } for p0, rr in r["p0"].items()
                 },
                 "checks_con_escala_diferente": escala_identica(r),
-                "esperado": ("benigno (sin marcar)" if r["tipo"] == "honest"
+                "esperado": ("benign (unflagged)" if r["tipo"] == "honest"
                              else "flagged (WARN/FAIL)"),
                 "ok": expected_ok(r),
             } for n, r in lote.items()
         },
         "limitaciones_conocidas": {
             "spread_sniper x supervivencia": {
-                "estado": "RESUELTA (audit forense 2026-10-24)",
-                "diagnostico_anterior_y_erroneo": "limitación del detector: "
-                               "todo trade perdedor paga el mismo costo fijo "
-                               "de round-trip (masa puntual en "
-                               "−2·half_spread), lo que comprime el IQR de "
-                               "los pnls e infla mecánicamente el conteo "
-                               "de outliers de cola derecha (nr > nl)",
+                "estado": "RESOLVED (forensic audit 2026-10-24)",
+                "diagnostico_anterior_y_erroneo": "detector limitation: "
+                               "every losing trade pays the same fixed "
+                               "round-trip cost (point mass at "
+                               "−2·half_spread), which compresses the IQR "
+                               "of the pnls and mechanically inflates the "
+                               "count of right-tail outliers (nr > nl)",
                 "por_que_era_erroneo": "pnl_net = pnl_gross − 2·half_spread "
-                               "es una traslación PURA y tail_symmetry_test "
-                               "es rank-based: invariante por traslación. "
-                               "Verificado: (nl, nr, p) idénticos net vs "
-                               "gross en 48/48 corridas (24 seeds × 2 "
-                               "escalas), y el FP del sniper es idéntico "
-                               "7/24 con costo relativo 200× distinto "
-                               "(p0=0.5 vs p0=100) — el costo no puede ser "
-                               "la causa",
-                "causa_raiz": "violación de independencia muestral: un "
-                               "sniper selectivo de nivel entra en RÁFAGA "
-                               "(una excursión de precio genera una corrida "
-                               "de entradas cuyas ventanas de hold "
-                               "comparten el mismo camino realizado); el "
-                               "test binomial trataba las 9.7k–54k filas "
-                               "reportadas como dibujos independientes "
-                               "(peor seed: un solo clúster concentra el "
-                               "61% de los trades) — FP 29.2% (7/24) en "
-                               "clientes honestos vs 1% nominal",
-                "solucion": "el check 5 corre tail_symmetry_test sobre los "
-                               "trades NO solapados (ad.nonoverlapping_"
-                               "pnls, mismas unidades de muestreo que el "
-                               "Sharpe honesto); con <200 unidades "
-                               "independientes reporta SKIP, nunca un "
-                               "veredicto sobre muestra inflada",
-                "potencia_preservada": "re-ejecución del MC con el "
-                               "detector corregido: potencia intacta en "
-                               "las trampas de look-ahead (results/"
-                               "monte_carlo_fp_power.json) y trampa del "
-                               "demo sigue FAIL (self_check OK); el "
-                               "estudio de 24 seeds × 2 escalas muestra "
-                               "abs vs abs_noov por seed (results/"
+                               "is a PURE translation and tail_symmetry_test "
+                               "is rank-based: invariant to translation. "
+                               "Verified: (nl, nr, p) identical net vs "
+                               "gross in 48/48 runs (24 seeds × 2 "
+                               "scales), and the sniper's FP is identical "
+                               "7/24 with a 200× different relative cost "
+                               "(p0=0.5 vs p0=100) — the cost cannot be "
+                               "the cause",
+                "causa_raiz": "violation of sample independence: a "
+                               "level-selective sniper enters in BURSTS "
+                               "(one price excursion generates a run of "
+                               "entries whose hold windows share the same "
+                               "realized path); the binomial test treated "
+                               "the 9.7k–54k reported rows as independent "
+                               "draws (worst seed: a single cluster "
+                               "concentrates 61% of the trades) — FP 29.2% "
+                               "(7/24) on honest clients vs 1% nominal",
+                "solucion": "check 5 runs tail_symmetry_test over the "
+                               "NON-overlapping trades (ad.nonoverlapping_"
+                               "pnls, same sampling units as the honest "
+                               "Sharpe); with <200 independent units it "
+                               "reports SKIP, never a verdict on an "
+                               "inflated sample",
+                "potencia_preservada": "re-run of the MC with the "
+                               "corrected detector: power intact on the "
+                               "look-ahead traps (results/"
+                               "monte_carlo_fp_power.json) and the demo "
+                               "trap still FAIL (self_check OK); the "
+                               "24 seeds × 2 scales study shows "
+                               "abs vs abs_noov per seed (results/"
                                "estudio_limitacion_supervivencia.json)",
-                "lectura_correcta": "sin cambio: un FAIL en check 5 sigue "
-                               "detectando asimetría de colas — ahora "
-                               "sobre unidades independientes; el "
-                               "PERMUTACION-DE-POSICIONES (nulo con "
-                               "estructura de nivel) sigue propuesto como "
-                               "mejora opcional",
+                "lectura_correcta": "unchanged: a FAIL in check 5 still "
+                               "detects tail asymmetry — now over "
+                               "independent units; the "
+                               "PERMUTACION-DE-POSICIONES (null with "
+                               "level structure) remains proposed as an "
+                               "optional improvement",
             },
         },
         "veredicto": veredicto,
@@ -513,13 +510,13 @@ def main(argv=None):
 
     for line in L:
         print(line)
-    print("VEREDICTOS_POR_ESTRATEGIA: " + " | ".join(
+    print("VERDICTS_BY_STRATEGY: " + " | ".join(
         "%s[%s]: %s@%g/%s@%g -> %s"
         % (n, r["tipo"], r["p0"][P0S[0]]["verdicts"], P0S[0],
            r["p0"][P0S[1]]["verdicts"], P0S[1],
-           "OK" if expected_ok(r) else "PROBLEMA")
+           "OK" if expected_ok(r) else "PROBLEM")
         for n, r in lote.items()))
-    print("VEREDICTO: " + veredicto)
+    print("VERDICT: " + veredicto)
 
     if args.write:
         os.makedirs(RESULTS_DIR, exist_ok=True)

@@ -18,9 +18,9 @@ client every check passes — the audit punishes broken plumbing, not losing
 strategies. On a no-edge market an honest backtest loses exactly the spread,
 and says so.
 
-Each check is a detector with a formal test (PASO 4a-4b of the audit):
+Each check is a detector with a formal test (STEP 4a-4b of the audit):
 
-  1. Capturabilidad       — every reported trade re-executed with a 1-bar
+  1. Capturability       — every reported trade re-executed with a 1-bar
                             delay, same direction (permutation test,
                             H1: reported > delayed). FAIL if the edge
                             VANISHES with one bar of latency; WARN if it
@@ -295,7 +295,7 @@ def nonoverlapping_pnls(trades, hold=HOLD):
 
 def metrics(trades, hold=HOLD):
     """Headline Sharpe = non-overlapping trades (honest annualization,
-    PASO 4c); `sharpe_all` keeps the uncorrected number for comparison."""
+    STEP 4c); `sharpe_all` keeps the uncorrected number for comparison."""
     tr = [p for _t, _pos, p in trades if p != 0]
     if len(tr) < 3:
         return {"n": len(tr), "mean": 0.0, "sharpe": 0.0,
@@ -356,7 +356,7 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
     pnls = [p for _t, _pos, p in booked]
     f = []
 
-    # CHECK 1 — capturabilidad: does the edge survive a 1-bar entry delay?
+    # CHECK 1 — capturability: does the edge survive a 1-bar entry delay?
     # Reworked twice (round 2 + 3, review Claude 19-oct):
     #  - testing bar+1 edge vs 0 flagged REAL short-term edges (false +);
     #  - the share fix had a UNITS bug: relative return / price-unit P&L is
@@ -387,25 +387,25 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         ratio = obsD / obsR if obsR > 0 else 1.0
         if p is not None and p <= ALPHA and obsR > 0 and obsD <= 0:
             verdict, extra = "FAIL", (
-                " Con 1 bar de retraso el edge DESAPARECE: solo paga la "
-                "barra que la señal pudo ver — la dirección anticipa "
-                "información que no existía al decidir.")
+                " With a 1-bar delay the edge DISAPPEARS: only the bar "
+                "the signal could see paid — the direction anticipates "
+                "information that did not exist at decision time.")
         elif p is not None and p <= ALPHA and obsR > 0 and ratio < 0.5:
             verdict, extra = "WARN", (
-                " Con 1 bar de retraso el edge cae a %.0f%% del reportado: "
-                "no se distingue look-ahead de alfa rápido con solo "
-                "precios+trades — pedir timestamps de las entradas de la "
-                "señal." % (100.0 * ratio))
+                " With a 1-bar delay the edge drops to %.0f%% of the "
+                "reported value: look-ahead cannot be distinguished from "
+                "fast alpha with prices+trades alone — ask for the "
+                "signal-entry timestamps." % (100.0 * ratio))
         else:
             verdict, extra = "PASS", (
-                " El edge sobrevive a 1 bar de retraso: es capturable a "
-                "latencia realista (o no hay edge que perder).")
+                " The edge survives a 1-bar delay: capturable at "
+                "realistic latency (or there is no edge to lose).")
         f.append({
             "check": "Capturabilidad del edge (re-ejecución con 1 bar de retraso)",
             "verdict": verdict,
-            "detail": ("Edge reportado %+.5f/trade; re-ejecutado 1 bar más "
-                       "tarde (misma dirección, mismo horizonte) %+.5f "
-                       "(%s, %d permutations, H1: reportado > retrasado)."
+            "detail": ("Reported edge %+.5f/trade; re-executed 1 bar later "
+                       "(same direction, same horizon) %+.5f "
+                       "(%s, %d permutations, H1: reported > delayed)."
                        "%s"
                        % (obsR, obsD, _fmt_p(p, n_perm), n_perm, extra)),
         })
@@ -590,7 +590,7 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
 
 
 # ──────────────────────────────────────────────────────────────────────
-# The two demo cases (PASO 4d): a trap client and a clean control
+# The two demo cases (STEP 4d): a trap client and a clean control
 # ──────────────────────────────────────────────────────────────────────
 def drop_worst_decile(trades, frac=10):
     """Plant the survivorship bias: the client's universe was quietly
@@ -632,9 +632,9 @@ def build_cases(rng, n_days=N_DAYS, seed=SEED):
 
 
 def self_check(trap_findings, clean_findings, m_trap, m_clean):
-    """The demo's own invariant (PASO 4d): the trap client must be CAUGHT by
+    """The demo's own invariant (STEP 4d): the trap client must be CAUGHT by
     every check (FAIL, or WARN where look-ahead vs fast alpha is
-    indistinguishable — capturabilidad); the clean control must pass every
+    indistinguishable — capturability); the clean control must pass every
     one. If not, the demo is broken."""
     bad = [f["check"] for f in trap_findings if f["verdict"] == "PASS"]
     assert not bad, "trap client must not PASS any check, passed: %r" % bad
@@ -679,7 +679,7 @@ def build_report(cases):
     L.append("## What the demo proves\n")
     L.append("> The audit **detects**: the trap client — Sharpe %s and a "
              "plausible win rate — gets flagged by every check (4 FAIL + "
-             "1 WARN: the capturabilidad check reports WARN where look-ahead "
+             "1 WARN: the capturability check reports WARN where look-ahead "
              "and fast alpha are indistinguishable from prices+trades, and "
              "asks for signal-entry timestamps); the clean control — a "
              "losing strategy on a no-edge market — passes every one. The "

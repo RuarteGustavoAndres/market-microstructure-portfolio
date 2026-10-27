@@ -1,35 +1,35 @@
 #!/usr/bin/env python3
-"""Tareas 2-4: colas del sniper honesto a 2 escalas + controles + pnl relativo.
+"""Tasks 2-4: honest-sniper tails at 2 scales + controls + relative pnl.
 
-Evidencia del FALSO POSITIVO del detector "supervivencia"
-(tail_symmetry_test) sobre spread_sniper, documentada en
+Evidence for the FALSE POSITIVE of the "survivorship" detector
+(tail_symmetry_test) on spread_sniper, documented in
 results/audit_controles_sinteticos.json (limitaciones_conocidas)
-y en el README: 29.2% = 7/24 FAIL sobre clientes HONESTOS. Y
-validación del detector CORREGIDO (audit forense 2026-10-24):
-  - Causa raíz real: tamaño muestral. El sniper selectivo de nivel
-    entra en ráfaga (entradas solapadas que comparten el mismo
-    camino realizado); el test binomial trataba la LISTA REPORTADA
-    como dibujos independientes.
-  - El costo fijo NO es la causa: pnl_net = pnl_gross - costo es
-    una traslación pura y el test es rank-based (invariante por
-    traslación) — (nl, nr, p) idénticos net vs gross 48/48; FP
-    idéntico 7/24 con costo relativo 200x distinto.
-  - Fix: el check 5 ahora corre sobre los trades NO solapados
-    (ad.nonoverlapping_pnls, mismas unidades que el Sharpe honesto).
-Correr desde demo/ o cualquier cwd: importa los
-módulos del propio directorio. Stdlib only, solo CPU.
-Salida: resumen impreso + JSON en results/estudio_limitacion_supervivencia.json.
+and in the README: 29.2% = 7/24 FAIL on HONEST clients. And
+validation of the CORRECTED detector (forensic audit 2026-10-24):
+  - Real root cause: sample size. The selective level sniper
+    enters in bursts (overlapping entries that share the same
+    realized path); the binomial test treated the REPORTED LIST
+    as independent draws.
+  - The fixed cost is NOT the cause: pnl_net = pnl_gross - cost is
+    a pure translation and the test is rank-based (invariant under
+    translation) — (nl, nr, p) identical net vs gross 48/48; FP
+    identical 7/24 with a 200x different relative cost.
+  - Fix: check 5 now runs on the NON-overlapping trades
+    (ad.nonoverlapping_pnls, the same units as the honest Sharpe).
+Run from demo/ or any cwd: imports the
+modules from its own directory. Stdlib only, CPU only.
+Output: printed summary + JSON at results/estudio_limitacion_supervivencia.json.
 
-  Tarea 2: 24 seeds de mercado x p0=0.5/100, pipeline honesto exacto de
-           aea.build_honest_client, tail_symmetry_test(pnls) absolutos
-           (detector ANTIGUO, registro "abs") y sobre trades no
-           solapados (detector CORREGIDO, registro "abs_noov").
-  Tarea 3: controles momentum_chaser y ruido_puro (señal 203 del 4h) en
-           8 seeds a p0=0.5, mismo test.
-  Tarea 4: variante relative-pnl del sniper:
+  Task 2: 24 market seeds x p0=0.5/100, exact honest pipeline of
+           aea.build_honest_client, tail_symmetry_test(pnls) absolute
+           (OLD detector, record "abs") and on non-overlapping
+           trades (CORRECTED detector, record "abs_noov").
+  Task 3: momentum_chaser and ruido_puro controls (4h signal 203) on
+           8 seeds at p0=0.5, same test.
+  Task 4: relative-pnl variant of the sniper:
            pnl_rel = pos*(px[x_t]/px[e_t]-1) - 2*half_spread_rel,
-           half_spread_rel = HALF_SPREAD/0.5 = 0.008 (equivalente en bps
-           a la escala base).
+           half_spread_rel = HALF_SPREAD/0.5 = 0.008 (bps-equivalent
+           to the base scale).
 """
 import json
 import os
@@ -43,17 +43,17 @@ sys.path.insert(0, HERE)
 import audit_demo as ad               # noqa: E402
 import audit_controles_sinteticos as aea  # noqa: E402
 
-# 24 semillas de mercado (primas 7..103; las 6 del probe son un subconjunto).
+# 24 market seeds (primes 7..103; the 6 from the probe are a subset).
 SEEDS = [7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
          53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103]
 P0S = [0.5, 100.0]
-SEEDS_CTRL = SEEDS[:8]               # controles: 8 seeds a p0=0.5
+SEEDS_CTRL = SEEDS[:8]               # controls: 8 seeds at p0=0.5
 HALF_SPREAD_REL = ad.HALF_SPREAD / 0.5   # 0.008
 ALPHA = ad.ALPHA
 
 
 def tail_record(pnls):
-    """tail_symmetry_test + verdict replicando la logica del check 5."""
+    """tail_symmetry_test + verdict replicating the check-5 logic."""
     n = len(pnls)
     ts = ad.tail_symmetry_test(pnls)
     if ts is None:
@@ -67,9 +67,9 @@ def tail_record(pnls):
 
 
 def noov_record(booked):
-    """Registro del check 5 CORREGIDO: el test corre sobre los trades NO
-    solapados (unidades independientes; mismas de las que sale el Sharpe
-    honesto), no sobre la lista reportada."""
+    """Record for the CORRECTED check 5: the test runs on the NON-
+    overlapping trades (independent units; the same ones the honest Sharpe
+    comes out of), not on the reported list."""
     n_rep = len(booked)
     noov = [p for p in ad.nonoverlapping_pnls(booked, ad.HOLD) if p != 0]
     n_noov = len(noov)
@@ -88,14 +88,14 @@ def noov_record(booked):
 def run_sniper(seed, p0):
     px = ad.build_market(seed=seed, p0=p0)
     sig = aea.sig_spread_sniper(px)
-    # Pipeline EXACTO del 4h original: hs constante 0.004 en ambas escalas
-    # (el repo actual ya escala hs; se pinta explicitamente por especificacion).
-    booked, thr = aea.build_honest_client(px, sig, ad.HALF_SPREAD)   # pipeline exacto del 4h
+    # EXACT pipeline of the original 4h: hs constant 0.004 at both scales
+    # (the current repo already scales hs; pinned explicitly per spec).
+    booked, thr = aea.build_honest_client(px, sig, ad.HALF_SPREAD)   # exact 4h pipeline
     pnls = [p for _t, _pos, p in booked]
     rec = {"seed": seed, "p0": p0, "thr": round(thr, 4)}
     rec["abs"] = tail_record(pnls)
     rec["abs_noov"] = noov_record(booked)
-    # Variante relative-pnl (tarea 4): entry_lag=1, hold=HOLD.
+    # Relative-pnl variant (task 4): entry_lag=1, hold=HOLD.
     rel_booked = []
     for t, pos, _p in booked:
         e_t = t + 1
@@ -110,9 +110,9 @@ def run_sniper(seed, p0):
 def run_control(name, seed_mkt, p0):
     px = ad.build_market(seed=seed_mkt, p0=p0)
     if name == "momentum_chaser":
-        sig = aea.sig_momentum_chaser(px)           # sin seed (determinista)
+        sig = aea.sig_momentum_chaser(px)           # no seed (deterministic)
     else:
-        sig = aea.sig_ruido_puro(px, 203)           # seed de señal del 4h
+        sig = aea.sig_ruido_puro(px, 203)           # 4h signal seed
     booked, thr = aea.build_honest_client(px, sig, ad.HALF_SPREAD)
     pnls = [p for _t, _pos, p in booked]
     rec = {"name": name, "seed": seed_mkt, "p0": p0, "thr": round(thr, 4)}
@@ -122,7 +122,7 @@ def run_control(name, seed_mkt, p0):
 
 
 def summarize(rows, key):
-    """rows: lista de recs; key: 'abs'/'rel' o None (campos de primer nivel)."""
+    """rows: list of recs; key: 'abs'/'rel' or None (top-level fields)."""
     def row_of(r):
         return r[key] if key is not None else r
     tested = [row_of(r) for r in rows
@@ -143,7 +143,7 @@ def summarize(rows, key):
 
 def main():
     t0 = time.time()
-    print("seeds mercado: %d (7..%d), escalas %s, half_spread_rel=%.3f, "
+    print("market seeds: %d (7..%d), scales %s, half_spread_rel=%.3f, "
           "alpha=%.2f" % (len(SEEDS), SEEDS[-1], P0S, HALF_SPREAD_REL, ALPHA),
           flush=True)
 
@@ -169,7 +169,7 @@ def main():
                   % (name, seed, c["p0"], c["thr"], c["n"], c["nl"], c["nr"],
                      c["p"], c["verdict"]), flush=True)
 
-    # ── resúmenes ────────────────────────────────────────────────────
+    # ── summaries ────────────────────────────────────────────────────
     per_scale = {p0: summarize([r for r in sniper if r["p0"] == p0], "abs")
                  for p0 in P0S}
     per_scale_noov = {p0: summarize([r for r in sniper if r["p0"] == p0],
@@ -181,15 +181,15 @@ def main():
                                         "rel_noov")
                           for p0 in P0S}
 
-    # Consistencia del signo de (nr-nl) entre escalas (debe ser idéntica:
-    # el test es rank-based e invariante de escala).
+    # Consistency of the sign of (nr-nl) across scales (must be identical:
+    # the test is rank-based and scale-invariant).
     mism = 0
     for i in range(len(SEEDS)):
         r05 = sniper[2 * i]["abs"]["nr_minus_nl"]
         r100 = sniper[2 * i + 1]["abs"]["nr_minus_nl"]
         if r05 is None or r100 is None or r05 != r100:
             mism += 1
-    # y el trío (nl, nr, p) exacto
+    # and the exact triple (nl, nr, p)
     triples_diff = 0
     for i in range(len(SEEDS)):
         a = sniper[2 * i]["abs"]
@@ -204,35 +204,35 @@ def main():
                                       if c["name"] == name], None)
                      for name in ("momentum_chaser", "ruido_puro")}
 
-    print("\n=== RESUMEN ===", flush=True)
+    print("\n=== SUMMARY ===", flush=True)
     for p0 in P0S:
         s = per_scale[p0]
         sr = per_scale_rel[p0]
         sn = per_scale_noov[p0]
         srn = per_scale_rel_noov[p0]
-        print("sniper ABS p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
-              "media nl=%.1f nr=%.1f"
+        print("sniper ABS p0=%-6g: tested=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "mean nl=%.1f nr=%.1f"
               % (p0, s["n_tested"], s["n_fail"], 100 * s["fail_rate"],
                  s["median_nr_minus_nl"], s["mean_nl"], s["mean_nr"]))
-        print("sniper NOOV p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
-              "media nl=%.1f nr=%.1f   <- detector CORREGIDO"
+        print("sniper NOOV p0=%-6g: tested=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "mean nl=%.1f nr=%.1f   <- CORRECTED detector"
               % (p0, sn["n_tested"], sn["n_fail"], 100 * sn["fail_rate"],
                  sn["median_nr_minus_nl"], sn["mean_nl"], sn["mean_nr"]))
-        print("sniper REL  p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
-              "media nl=%.1f nr=%.1f"
+        print("sniper REL  p0=%-6g: tested=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "mean nl=%.1f nr=%.1f"
               % (p0, sr["n_tested"], sr["n_fail"], 100 * sr["fail_rate"],
                  sr["median_nr_minus_nl"], sr["mean_nl"], sr["mean_nr"]))
-        print("sniper RNVL p0=%-6g: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
-              "media nl=%.1f nr=%.1f   <- rel con detector CORREGIDO"
+        print("sniper RNVL p0=%-6g: tested=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "mean nl=%.1f nr=%.1f   <- rel with CORRECTED detector"
               % (p0, srn["n_tested"], srn["n_fail"], 100 * srn["fail_rate"],
                  srn["median_nr_minus_nl"], srn["mean_nl"], srn["mean_nr"]))
-    print("consistencia entre escalas: seeds con (nr-nl) distinto = %d/%d; "
-          "tríos (nl,nr,p) distintos = %d/%d"
+    print("consistency across scales: seeds with differing (nr-nl) = %d/%d; "
+          "differing (nl,nr,p) triples = %d/%d"
           % (mism, len(SEEDS), triples_diff, len(SEEDS)))
     for name in ("momentum_chaser", "ruido_puro"):
         s = ctrl_sum[name]
-        print("CTRL %-16s: testados=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
-              "media nl=%.1f nr=%.1f"
+        print("CTRL %-16s: tested=%d FAIL=%d rate=%.1f%% med(nr-nl)=%s "
+              "mean nl=%.1f nr=%.1f"
               % (name, s["n_tested"], s["n_fail"], 100 * (s["fail_rate"] or 0),
                  s["median_nr_minus_nl"], s["mean_nl"], s["mean_nr"]))
     print("elapsed %.1fs" % (time.time() - t0))
@@ -242,9 +242,9 @@ def main():
             "seeds": SEEDS, "p0s": P0S, "seeds_ctrl": SEEDS_CTRL,
             "half_spread": ad.HALF_SPREAD,
             "half_spread_rel": HALF_SPREAD_REL, "alpha": ALPHA,
-            "pipeline": "aea.build_honest_client (walk-forward 1a mitad, "
+            "pipeline": "aea.build_honest_client (walk-forward 1st half, "
                         "entry_lag=1, price_book=True, half_spread=HALF_SPREAD, "
-                        "reporta 2a mitad)",
+                        "reports 2nd half)",
             "n_days": ad.N_DAYS, "sigma": ad.SIGMA, "hold": ad.HOLD,
             "elapsed_s": round(time.time() - t0, 1),
         },

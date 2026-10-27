@@ -31,8 +31,8 @@ import audit_demo as ad  # noqa: E402
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                            "results")
 
-CHECK_LABELS = ["1 capturabilidad", "2 fills al book", "3 tuning in-sample",
-                "4 K-fold CV", "5 supervivencia"]
+CHECK_LABELS = ["1 capturability", "2 fills on the book", "3 tuning in-sample",
+                "4 K-fold CV", "5 survivorship"]
 
 
 def one_run(seed, n_perm):
@@ -55,7 +55,7 @@ def one_run(seed, n_perm):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Monte Carlo FP/FN del audit demo.")
+    ap = argparse.ArgumentParser(description="Monte Carlo FP/FN of the audit demo.")
     ap.add_argument("--runs", type=int, default=30,
                     help="number of seeds to run (default 30)")
     ap.add_argument("--seed-start", type=int, default=0,
@@ -87,29 +87,29 @@ def main(argv=None):
                            for i in range(5)]
     per_check_clean_fire = [sum(1 for _s, _t, cv, _m, _x in runs if cv[i] != "P")
                             for i in range(5)]
-    # distribution of the trap capturabilidad verdict (1 = WARN catch, 4 = FAIL)
+    # distribution of the trap capturability verdict (1 = WARN catch, 4 = FAIL)
     trap_c1 = {v: sum(1 for _s, tv, _c, _m, _x in runs if tv[0] == v)
                for v in "FWP"}
 
     L = []
-    L.append("# Monte Carlo del audit demo — tasas de FP/FN sobre semillas\n")
+    L.append("# Monte Carlo of the audit demo — FP/FN rates over seeds\n")
     L.append("Source: [`demo/monte_carlo_audit.py`](../demo/monte_carlo_audit.py) — "
-             "corre el pipeline completo de [`demo/audit_demo.py`](../demo/audit_demo.py) "
-             "(mismo market aleatorio sin edge, mismo rng compartido entre los dos "
-             "clientes) variando la semilla del generador, y mide los errores del audit.\n")
-    L.append("**Definiciones.** *FP*: el audit APRUEBA una estrategia rota — un check "
-             "de la TRAMPA que debería disparar (FAIL/WARN) vuelve PASS. *FN*: el audit "
-             "FLAGEA una estrategia honesta perdedora — un check del control limpio que "
-             "debería pasar vuelve FAIL/WARN.\n")
-    L.append("## Resumen\n")
+             "runs the full pipeline of [`demo/audit_demo.py`](../demo/audit_demo.py) "
+             "(same no-edge random market, same rng shared between the two "
+             "clients) varying the generator seed, and measures the audit's errors.\n")
+    L.append("**Definitions.** *FP*: the audit APPROVES a broken strategy — a TRAP "
+             "check that should fire (FAIL/WARN) comes back PASS. *FN*: the audit "
+             "FLAGS an honest losing strategy — a check of the clean control that "
+             "should pass comes back FAIL/WARN.\n")
+    L.append("## Summary\n")
     L.append("```\n"
-             "N = %d runs (seeds %d..%d), alpha=%.2f, %d permutaciones/check\n"
+             "N = %d runs (seeds %d..%d), alpha=%.2f, %d permutations/check\n"
              "\n"
-             "RUN-LEVEL:  FP (trampa aprobada de punta a punta, 5/5 PASS) = %d/%d\n"
-             "            FN (control honesto flaggeado por >=1 check)    = %d/%d\n"
+             "RUN-LEVEL:  FP (trap approved end to end, 5/5 PASS) = %d/%d\n"
+             "            FN (honest control flagged by >=1 check)    = %d/%d\n"
              "\n"
-             "DETECTOR-LEVEL (checks que FALLARON en su objetivo):\n"
-             "   check                  FP: trampa no cazada   FN: limpio flaggeado\n"
+             "DETECTOR-LEVEL (checks that FAILED on their target):\n"
+             "   check                  FP: trap not caught   FN: clean flagged\n"
              % (args.runs, args.seed_start, args.seed_start + args.runs - 1,
                 ad.ALPHA, args.n_perm, len(full_fp), args.runs,
                 len(full_fn), args.runs))
@@ -118,11 +118,11 @@ def main(argv=None):
                  % (label, per_check_trap_miss[i], args.runs,
                     per_check_clean_fire[i], args.runs))
     if per_check_clean_fire and all(c == 0 for c in per_check_clean_fire):
-        L.append("   (ningún check disparó sobre el control limpio en ningún run)")
+        L.append("   (no check fired on the clean control in any run)")
     L.append("```\n")
-    L.append("## Runs individuales\n")
-    L.append("Veredictos por check (F=FAIL, W=WARN, P=PASS, orden: %s). "
-             "Marco `*` = FP (la trampa pasó un check).\n"
+    L.append("## Individual runs\n")
+    L.append("Verdicts per check (F=FAIL, W=WARN, P=PASS, order: %s). "
+             "A `*` mark = FP (the trap passed a check).\n"
              % ", ".join(CHECK_LABELS))
     L.append("```")
     L.append("%5s  %-9s %-9s %10s %11s" % ("seed", "TRAP", "CLEAN", "Sh_trap", "mean_clean"))
@@ -133,39 +133,39 @@ def main(argv=None):
         L.append(line)
     L.append("```\n")
     if selfcheck_break:
-        L.append("## Nota — el modo demo (`--seed`) tropieza con su propio invariant\n")
-        L.append("El `self_check` del demo exige que la TRAMPA no pase ningún check; con "
-                 "la semilla %s el check 2 (fills al book) devuelve PASS y el modo demo de "
-                 "`audit_demo.py --seed <esa>` terminaría con assert (exit != 0). El Monte "
-                 "Carlo no llama a `self_check` — lo mide. Los checks 1/3/4/5 siguen "
-                 "disparando en ese run: la trampa nunca se aprobó de punta a punta.\n"
+        L.append("## Note — the demo mode (`--seed`) trips over its own invariant\n")
+        L.append("The demo's `self_check` requires that the TRAP not pass any check; with "
+                 "seed %s check 2 (fills on the book) returns PASS and the demo mode of "
+                 "`audit_demo.py --seed <that>` would end in an assert (exit != 0). The Monte "
+                 "Carlo does not call `self_check` — it measures it. Checks 1/3/4/5 keep "
+                 "firing in that run: the trap was never approved end to end.\n"
                  % sorted(selfcheck_break))
-    L.append("## Lectura\n")
-    L.append("- **FP de punta a punta = 0/%d**: ninguna semilla aprobó la trampa completa; "
-             "en las 30, al menos checks 1 (WARN) + 3 + 4 + 5 dispararon.\n" % args.runs)
+    L.append("## Reading\n")
+    L.append("- **End-to-end FP = 0/%d**: no seed approved the full trap; "
+             "in the 30, at least checks 1 (WARN) + 3 + 4 + 5 fired.\n" % args.runs)
     if per_check_trap_miss[1]:
-        L.append("- **El único miss detector-level sobre la trampa es check 2, y no es "
-                 "ruido estadístico: es el sesgo plantado superando el fee.** En seed %s el "
-                 "edge look-ahead de la trampa dio +0.0084/trade (vs los ~+0.0049 típicos): "
-                 "mayor que el round trip (2 x 40 bps = 0.008), así que el mean con spread "
-                 "quedó en +0.0004/trade > 0 y \"el edge sobrevive el spread\" es, por "
-                 "definición del check, cierto (p = 0.85, H1: mean <= 0 no se rechaza porque "
-                 "el mean es positivo). El detector no falló su test; la trampa fue tan "
-                 "lucrativa sobre ese pase aleatorio que soportó el costo. La trampa sigue "
-                 "cazada por checks 1 (WARN), 3, 4 y 5.\n" % sorted(fp_seeds))
+        L.append("- **The only detector-level miss on the trap is check 2, and it is not "
+                 "statistical noise: it is the planted bias beating the fee.** In seed %s the "
+                 "trap's look-ahead edge gave +0.0084/trade (vs the typical ~+0.0049): "
+                 "larger than the round trip (2 x 40 bps = 0.008), so the mean with spread "
+                 "landed at +0.0004/trade > 0 and \"the edge survives the spread\" is, by "
+                 "the check's definition, true (p = 0.85, H1: mean <= 0 is not rejected because "
+                 "the mean is positive). The detector did not fail its test; the trap was so "
+                 "profitable on that random pass that it absorbed the cost. The trap is still "
+                 "caught by checks 1 (WARN), 3, 4 and 5.\n" % sorted(fp_seeds))
     if len(full_fn):
-        L.append("- **FN = %d/%d a nivel run — y es calibración, no sesgo del audit**: en "
-                 "seed %s el check 5 (supervivencia, binomial exacto a alpha=%.2f) "
-                 "disparó FAIL sobre el control limpio (asimetría de colas por azar del "
-                 "pase aleatorio). 5 checks x %d runs = %d tests bajo la hipótesis nula "
-                 "para el limpio: con alpha=1%% se espera ~%.1f falso disparo; se observó "
-                 "1. Los checks están calibrados, no inflados.\n"
+        L.append("- **FN = %d/%d at run level — and it is calibration, not audit bias**: in "
+                 "seed %s check 5 (survivorship, exact binomial at alpha=%.2f) "
+                 "fired FAIL on the clean control (tail asymmetry by chance of the "
+                 "random pass). 5 checks x %d runs = %d tests under the null hypothesis "
+                 "for the clean client: at alpha=1%% we expect ~%.1f false fire; we observed "
+                 "1. The checks are calibrated, not inflated.\n"
                  % (len(full_fn), args.runs, sorted(full_fn), ad.ALPHA,
                     args.runs, 5 * args.runs, 5 * args.runs * ad.ALPHA))
     else:
-        L.append("- **FN = 0/%d**: en ninguna semilla el audit flaggeó al control honesto. "
-                 "Una estrategia perdedora de verdad (pierde exactamente el spread en un "
-                 "mercado sin edge) pasa los 5 checks en todos los runs.\n" % args.runs)
+        L.append("- **FN = 0/%d**: in no seed did the audit flag the honest control. "
+                 "A truly losing strategy (losing exactly the spread in a "
+                 "no-edge market) passes the 5 checks in all runs.\n" % args.runs)
     report = "\n".join(L) + "\n"
 
     print(report)
