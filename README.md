@@ -19,7 +19,9 @@ index + headlines.
    Live status, machine-generated daily:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Toxicity classifier: AUC 0.7276 pooled OOS, out-of-time walk-forward
-   (leak-free); PR-AUC 0.4963 vs 0.304 prevalence.** Caveat: it *ranks*
+   (leak-free); PR-AUC 0.4963 vs 0.304 prevalence** — pooled over the
+   fill×horizon scheme (382,582 rows); the by-market scheme scores 0.7356
+   (see docs/RESULTS.md, "AUC provenance").** Caveat: it *ranks*
    toxicity — it is a scoring/filter layer, **not** a decision-maker. The
    AUC is the ranking answer; the economic answer is item 3 — the P&L
    delta with its market-block CI, **not** the AUC.
@@ -33,7 +35,7 @@ index + headlines.
 
 | Claim | Verdict | Evidence |
 |---|---|---|
-| The model ranks fill toxicity out-of-sample without leakage (AUC 0.7276) | ✅ **FUNCIONA** | [folds_mercado_toxicidad.json](results/folds_mercado_toxicidad.json) · row *The model* |
+| The model ranks fill toxicity out-of-sample without leakage (AUC 0.7276 fill×horizon; 0.7356 by market) | ✅ **FUNCIONA** | [walkforward_toxicidad.json](results/walkforward_toxicidad.json) · [folds_mercado_toxicidad.json](results/folds_mercado_toxicidad.json) · row *The model* |
 | The filter's P&L delta over unfiltered is positive and rejects the random-filter null at 5% (+$99.24 GROSS) | ✅ **FUNCIONA** — caveat: CI [−$20.45, +$121.74] includes 0 | [nulo_delta_h300.json](results/nulo_delta_h300.json) · row *Null test of the delta* |
 | The filter makes money in absolute terms / is trade-ready | ❌ **NO FUNCIONA** — level @0.7 negative (−$7.51), WFE −0.8%, thresholds unstable | [walkforward_toxicidad_h300.json](results/walkforward_toxicidad_h300.json) · row *P&L maker walk-forward* |
 | A maker-realistic queue sim (persistent quotes) confirms the delta persists | ⚠️ **FUNCIONA (direction only)** — delta +$9.26, both folds; AUC ≈ 0.56 | [walkforward_toxicidad_h300_persist.json](results/walkforward_toxicidad_h300_persist.json) · row *Queue sim, persist mode* |
@@ -78,7 +80,7 @@ python3 demo/audit_demo.py
 - **Hundreds of thousands of order-book events per hour, sustained 24/7**, into
   a TimescaleDB hypertable (compression + retention policies).
 - **Toxicity classifier: LightGBM AUC 0.7276 pooled OOS (out-of-time,
-  leak-free)**, per-fold range **0.689-0.786** — rows are fill×horizon pairs
+  leak-free, fill×horizon scheme; by-market 0.7356)**, per-fold range **0.689-0.786** — rows are fill×horizon pairs
   (each fill appears once per horizon), so every P&L table sums each fill 4×.
   The pooled/per-market gap is a difference in base rates, and we declare it.
 - Caught and removed **feature-leakage traps** (incoming-trade size, stale snapshots, horizon pooling) that had inflated AUC from 0.736 to 0.765.
@@ -119,7 +121,7 @@ TimescaleDB hypertables (libro_eventos, trades_full, libro_top5, market_meta
                           + binance_* tables for venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (leak-free)
+Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (leak-free; fill×horizon scheme; by-market 0.7356)
 ```
 
 ## Pipeline modules
@@ -150,7 +152,9 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
   (MLP baseline).
 - **Leak-free re-run:** pooled AUC **0.7356** out-of-fold on unseen markets
   (GroupKFold by market; freshness-capped snapshots, causal standardization) —
-  `results/folds_mercado_toxicidad.json`.
+  `results/folds_mercado_toxicidad.json`. Same leak-free pipeline as the
+  temporal fill×horizon headline (AUC 0.7276): different validation scheme,
+  not a contradiction — see docs/RESULTS.md, "AUC provenance".
 - **Honest limitations:** the model ranks toxicity (AUC) but binary accuracy
   sits below the majority baseline → it is a scoring/filter layer, not an
   autonomous decision-maker. Under exact-markout single-horizon walk-forward
@@ -181,7 +185,7 @@ Fill-toxicity classifier (LightGBM)  →  AUC 0.7276 pooled OOS, out-of-time (le
 
 | Metric | Value |
 |---|---|
-| AUC-ROC pooled OOS (LightGBM, out-of-time, leak-free) | **0.7276** |
+| AUC-ROC pooled OOS (LightGBM, out-of-time, leak-free, fill×horizon scheme) | **0.7276** |
 | PR-AUC OOS / prevalence | **0.4963 / 0.304** |
 | AUC per temporal fold (range, 5 folds, h=300s) | **0.653 / 0.787** |
 | Walk-forward rows (single horizon h=300s, 2026-10-22 refresh) | 129,175 total; 80,379 OOS ops at fixed 0.7 |
@@ -242,7 +246,7 @@ DB; latest machine-readable report in
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Next steps (scoped)
-- ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7356 pooled OOS, unseen markets).
+- ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7356 by-market / 0.7276 fill×horizon, both leak-free).
 - ~~Backtest the toxicity filter against P&L under tape-fill assumptions~~ **done on leak-free features
   (freshness-capped snapshots, causal standardization, temporal folds) —
   under the strict single-horizon walk-forward (h=300s, one fill = one

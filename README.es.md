@@ -19,7 +19,9 @@ titulares.
    7 días). Estado en vivo, generado a diario:
    [`results/CAPTURE_STATUS.md`](results/CAPTURE_STATUS.md).
 2. **Clasificador de toxicidad: AUC 0.7276 OOS pooled, walk-forward temporal
-   (sin fugas); PR-AUC 0.4963 vs prevalencia 0.304.** Salvedad: *rankea*
+   (sin fugas); PR-AUC 0.4963 vs prevalencia 0.304** — pooled sobre el
+   esquema fill×horizonte (382,582 filas); el esquema por mercado puntúa 0.7356
+   (ver docs/RESULTS.md, "AUC provenance").** Salvedad: *rankea*
    toxicidad — es una capa de scoring/filtro, **no** un decisor. El AUC es
    la respuesta de ranking; la respuesta económica es el ítem 3 — el delta
    de P&L con su IC por bloques de mercado, **no** el AUC.
@@ -34,7 +36,7 @@ titulares.
 
 | Afirmación | Veredicto | Evidencia |
 |---|---|---|
-| El modelo rankea la toxicidad de fills OOS sin fugas (AUC 0.7276) | ✅ **FUNCIONA** | [folds_mercado_toxicidad.json](results/folds_mercado_toxicidad.json) · fila *The model* |
+| El modelo rankea la toxicidad de fills OOS sin fugas (AUC 0.7276 fill×horizonte; 0.7356 por mercado) | ✅ **FUNCIONA** | [walkforward_toxicidad.json](results/walkforward_toxicidad.json) · [folds_mercado_toxicidad.json](results/folds_mercado_toxicidad.json) · fila *The model* |
 | El delta de P&L del filtro sobre sin-filtro es positivo y rechaza el nulo de filtro aleatorio al 5% (+$99.24 BRUTO) | ✅ **FUNCIONA** — salvedad: el IC [−$20.45, +$121.74] incluye 0 | [nulo_delta_h300.json](results/nulo_delta_h300.json) · fila *Test nulo del delta* |
 | El filtro gana dinero en términos absolutos / está listo para operar | ❌ **NO FUNCIONA** — nivel @0.7 negativo (−$7.51), WFE −0.8%, umbrales inestables | [walkforward_toxicidad_h300.json](results/walkforward_toxicidad_h300.json) · fila *P&L maker walk-forward* |
 | Una sim de cola maker-realista (quotes persistentes) confirma que el delta persiste | ⚠️ **FUNCIONA (solo dirección)** — delta +$9.26, ambos folds; AUC ≈ 0.56 | [walkforward_toxicidad_h300_persist.json](results/walkforward_toxicidad_h300_persist.json) · fila *Sim de cola, modo persist* |
@@ -80,7 +82,7 @@ python3 demo/audit_demo.py
 - **Cientos de miles de eventos de libro por hora, sostenido 24/7**, a una
   hypertable de TimescaleDB (compresión + retención).
 - **Clasificador de toxicidad: LightGBM AUC 0.7276 OOS pooled (temporal, sin
-  fugas)**, rango por fold **0.689-0.786** — las filas son pares
+  fugas, esquema fill×horizonte; por mercado 0.7356)**, rango por fold **0.689-0.786** — las filas son pares
   fill×horizonte (cada fill aparece una vez por horizonte), así que las tablas
   de P&L suman cada fill 4×. La brecha pooled/por-mercado es diferencia de
   tasas base, y se declara.
@@ -124,7 +126,7 @@ Hypertables TimescaleDB (libro_eventos, trades_full, libro_top5, market_meta
                           + tablas binance_* del venue 2)
    │  feature engineering (OFI, microprice_bias, momentum, ...)
    ▼
-Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin fugas)
+Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin fugas; esquema fill×horizonte; por mercado 0.7356)
 ```
 
 ## Módulos
@@ -155,6 +157,9 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin 
 - **Upgrade a LightGBM:** AUC pooled **0.7356** OOS en mercados no vistos
   (re-corrída sin fugas, GroupKFold por mercado: snapshots con tope de
   frescura, estandarización causal) — `results/folds_mercado_toxicidad.json`.
+  Mismo pipeline sin fugas que el titular temporal fill×horizonte (AUC
+  0.7276): esquema de validación distinto, no una contradicción — ver
+  docs/RESULTS.md, "AUC provenance".
 - **Limitaciones honestas:** rankea toxicidad (AUC) pero el accuracy binario
   está bajo el baseline mayoritario → es una capa de scoring/filtro, no un
   decisor autónomo. Con markout exacto + walk-forward de horizonte único
@@ -187,7 +192,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin 
 
 | Métrica | Valor |
 |---|---|
-| AUC-ROC pooled OOS (LightGBM, sin fugas, temporal) | **0.7276** |
+| AUC-ROC pooled OOS (LightGBM, sin fugas, temporal, esquema fill×horizonte) | **0.7276** |
 | PR-AUC OOS / prevalencia | **0.4963 / 0.304** |
 | AUC por fold temporal (rango, 5 folds, h=300s) | **0.653 / 0.787** |
 | Filas walk-forward (horizonte único h=300s, refresh 22-10-2026) | 129,175 totales; 80,379 ops OOS al umbral fijo 0.7 |
@@ -253,7 +258,7 @@ en vivo; último reporte machine-readable en
 [`results/markout_report.json`](results/markout_report.json)).
 
 ## Próximos pasos (acotados)
-- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 OOS, mercados no vistos).
+- ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 por mercado / 0.7276 fill×horizonte, ambos sin fugas).
 - ~~Backtestear el filtro contra P&L bajo supuestos de cinta~~ **hecho sobre features sin fugas
   (snapshots con tope de frescura, estandarización causal, folds temporales) —
   en walk-forward temporal estricto de horizonte único (h=300s, 1 fill = 1

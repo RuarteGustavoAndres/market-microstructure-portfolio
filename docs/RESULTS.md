@@ -52,6 +52,26 @@ unstable per-fold thresholds, and missing queue-position/cost models keep the
 trading gate CLOSED. The gate closes for real with the queue-aware maker
 simulation (PLAN_SIM_COLA.md).**
 
+## AUC provenance: the three published AUCs (reconciled 2026-10-27)
+
+Every AUC cited in this repo comes from one of three artifacts — different
+validation schemes over the same leak-free pipeline, not different models:
+
+| AUC | Scheme | Rows | Artifact |
+|---|---|---|---|
+| **0.7276** | Temporal walk-forward pooled OOS, fill×horizon pairs (each fill contributes one row per horizon), 6 blocks, 300s embargo | 382,582 total; 268,446 OOS across 224 distinct fills | `results/walkforward_toxicidad.json` |
+| **0.7356** | GroupKFold by market pooled OOS (unseen-market generalization), K=5 | 285,764 rows, 215 markets | `results/folds_mercado_toxicidad.json` |
+| **0.7007** | Weekly re-train artifact (2026-10-25, same per-market GroupKFold scheme), PENDING HUMAN REVIEW — raw machine output; the training log printed 0.745 (per-fold max 0.7459) and is treated as a reporting bug until reconciled | 530,452-row pool (321 markets); OOF eval n=285,764 / 215 markets — the same eval set as 0.7356, so the 0.7007↔0.7356 gap is purely the re-train date | `results/pending_retrain/modelo_toxicidad_metricas.json` + `results/MODEL_STATUS_WEEKLY.md` |
+
+**Which AUC is citable:** for public material the headline is **0.7276**
+(temporal walk-forward, fill×horizon — the strictest scheme and the one the
+P&L walk-forward is built on). The per-market **0.7356** is the companion
+ranking number on unseen markets. They answer different questions — can the
+model rank toxicity out-of-time, and does it generalize to markets it has
+never seen — so neither is "the real AUC and the other is wrong"; report
+them as an ordering comparison, never as a hit-rate. The **0.7007** is a
+raw weekly artifact, not reviewed — never cite it in public material.
+
 ## History: 2026-10-16 first validation (aggressor perspective, leaky features)
 
 > Superseded by the section above, kept on record. Its P&L numbers measure the
