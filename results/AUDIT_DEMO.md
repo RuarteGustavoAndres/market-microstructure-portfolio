@@ -24,10 +24,10 @@ n=5253  mean=0.0049  Sharpe=98.33 (overlap-corrected)  win=75%   (threshold 2.00
    SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Walk-forward: tune the threshold on the first half only (thr 1.30), report the second half with honest plumbing: Sharpe -104.18, mean trade -0.0079 — vs reported Sharpe 95.06, mean 0.0049 (p <= 1e-03, 999 permutations). Tuning on the reported window is fitting the answer.
 
 4. Random K-fold CV on temporal data — **FAIL**
-   SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Shuffled 5-fold 'validation' reports Sharpe 95.74 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks, hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -125.23, mean trade -0.0080 (p <= 1e-03, 999 permutations). Random K-fold on temporal data happily validates what honest execution denies.
+   SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Shuffled 5-fold 'validation' reports Sharpe 95.74 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks (block 0 skipped: no tuning history), hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -119.07, mean trade -0.0080 (p <= 1e-03, 999 permutations). Random K-fold on temporal data happily validates what honest execution denies.
 
 5. Survivorship (universe filtered by outcome) — **FAIL**
-   Reported trade list (n=5253). Deep tails beyond median +/- 1.5*IQR: left 0 vs right 324 trades (exact binomial, p <= 3e-98). The left tail is missing: a universe filtered by outcome. Trimming the worst decile of any sample always raises its mean — the trim itself is arithmetic; the missing tail is the evidence.
+   Reported list n=5253; tested on the 2433 non-overlapping (independent) units: deep tails beyond median +/- 1.5*IQR hold left 0 vs right 145 trades (exact binomial, p <= 2e-44). The left tail is missing: a universe filtered by outcome. Trimming the worst decile of any sample always raises its mean — the trim itself is arithmetic; the missing tail is the evidence.
 
 ## Case 2 — the clean control — same market, honest plumbing
 
@@ -49,10 +49,10 @@ n=10336  mean=-0.0078  Sharpe=-106.72 (overlap-corrected)  win=19%   (threshold 
    SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Walk-forward: tune the threshold on the first half only (thr 1.40), report the second half with honest plumbing: Sharpe -106.72, mean trade -0.0078 — vs reported Sharpe -104.35, mean -0.0078 (p = 0.289, 999 permutations).
 
 4. Random K-fold CV on temporal data — **PASS**
-   SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Shuffled 5-fold 'validation' reports Sharpe -106.32 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks, hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -144.23, mean trade -0.0081 (p = 0.056, 999 permutations).
+   SCOPE: applies only to threshold-over-signal strategies (grid and annualization are demo-tuned). Shuffled 5-fold 'validation' reports Sharpe -106.32 — but shuffling P&L and averaging fold Sharpes is commutative: it returns the full-sample number and validates nothing. The audit's validation: contiguous temporal blocks (block 0 skipped: no tuning history), hold-length embargo, threshold re-tuned on the past only, honest plumbing: Sharpe -138.14, mean trade -0.0080 (p = 0.184, 999 permutations).
 
 5. Survivorship (universe filtered by outcome) — **PASS**
-   Reported trade list (n=10336). Deep tails beyond median +/- 1.5*IQR: left 345 vs right 359 trades (exact binomial, p = 0.312).
+   Reported list n=10336; tested on the 1616 non-overlapping (independent) units: deep tails beyond median +/- 1.5*IQR hold left 68 vs right 64 trades (exact binomial, p = 0.668).
 
 ## What the demo proves
 

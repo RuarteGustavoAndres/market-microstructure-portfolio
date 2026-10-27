@@ -500,11 +500,14 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
         for i in range(k):
             lo, hi = edges[i], edges[i + 1]
             if i == 0:
-                thr_b = 1.0                    # no history: neutral default
-            else:
-                thr_b = tune_threshold(prices, sig,
-                                       indices=(0, max(lo - hold, 1)),
-                                       half_spread=half_spread)  # embargo = hold
+                # no history -> no threshold can be tuned on the past; a
+                # neutral made-up threshold would trade a strategy the
+                # client never claimed and bias m_cv against profitable
+                # clients. The walk-forward starts at block 1.
+                continue
+            thr_b = tune_threshold(prices, sig,
+                                   indices=(0, max(lo - hold, 1)),
+                                   half_spread=half_spread)  # embargo = hold
             audit_cv.extend(run_backtest(prices, sig, thr_b, entry_lag=1,
                                          price_book=True,
                                          half_spread=half_spread,
@@ -522,7 +525,8 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
                        "but shuffling P&L and averaging fold Sharpes is "
                        "commutative: it returns the full-sample number and "
                        "validates nothing. The audit's validation: contiguous "
-                       "temporal blocks, hold-length embargo, threshold "
+                       "temporal blocks (block 0 skipped: no tuning history), "
+                       "hold-length embargo, threshold "
                        "re-tuned on the past only, honest plumbing: Sharpe "
                        "%.2f, mean trade %.4f (%s, %d permutations).%s"
                        % (kf_claim, m_cv["sharpe"], m_cv["mean"],

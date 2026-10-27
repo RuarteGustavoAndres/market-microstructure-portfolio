@@ -6,12 +6,13 @@ mide la calidad del auditor mismo, es decir, los cinco detectores de
 `audit_demo.run_audit` como instrumentos de medición:
 
   FP rate (falsos positivos) — N estrategias NULAS: mercado sin edge
-      (random walk) + señal sin poder predictivo en SIETE niveles
+      (random walk) + señal sin poder predictivo en OCHO niveles
       (ruido puro iid, momentum causal, ruido + micro-drift, ruido AR(1),
       stop-loss mecánico declarado, take-profit asimétrico mecánico,
-      alpha rápido real chico), plumbing HONESTO de punta a punta (tuning
-      walk-forward, primera entrada ejecutable, spread pagado, lista
-      completa de trades — el mismo cliente "clean" del demo). Por detector:
+      alpha rápido real chico, edge neto positivo frecuente), plumbing
+      HONESTO de punta a punta (tuning walk-forward, primera entrada
+      ejecutable, spread pagado, lista completa de trades — el mismo
+      cliente "clean" del demo). Por detector:
       % de estrategias nulas que cada uno marca (FAIL o WARN) con intervalo
       de Wilson 95% + % marcada por al menos uno.
 
@@ -49,6 +50,22 @@ mide la calidad del auditor mismo, es decir, los cinco detectores de
                             un cliente genuinamente rentable NO debería
                             marcarse (idéntico a la intensidad
                             edge_realo_pequeno, contado en el lado FP).
+
+  Control de ESPECIFICIDAD (task_3, 27-10-2026) — edge_neto_positivo:
+      el alpha_rapido_real original casi no opera (815/1000 corridas con
+      0 trades; las 185 restantes PIERDEN el spread: edge bruto 0.1 x
+      half_spread << costo de round trip) — no prueba nada. Este nulo es
+      el control que falta: un cliente HONESTO con edge real chico
+      POSITIVO NETO de costos y >= 200 trades reportados. Mercado con
+      alpha real (componente predictable = SPEC_S_EPS_FRAC x SIGMA por
+      barra, observable con 2 barras de lead), half-spread calibrado
+      (SPEC_HALF_SPREAD) para que el edge neto quede positivo pero chico
+      (~30% del costo de round trip), señal causal normalizada por la
+      escala del alpha, tuning walk-forward, spread pagado, lista
+      completa, fills declarados NETOS de costos (--fills-net-of-costs:
+      el audit no puede cobrar el spread dos veces). Un backtest bueno y
+      honesto NO debe marcarse: si el MC lo marca, el auditor acusa por
+      error a un cliente legítimo (GATE piloto Upwork).
 
 Honestidad: si un detector tiene FP alto o potencia baja se reporta tal cual
 — es exactamente lo que hay que saber antes de ofrecer el servicio.
@@ -99,7 +116,8 @@ TRAP_SEED_BASE = 3_000_000
 AUDIT_RNG_BASE = 10_000_000
 
 NULL_TYPES = ["ruido_puro", "momento_causal", "ruido_micro_drift", "ruido_ar1",
-              "stop_loss", "pagos_asimetricos", "alpha_rapido_real"]
+              "stop_loss", "pagos_asimetricos", "alpha_rapido_real",
+              "edge_neto_positivo"]
 INTENSITIES = ["lookahead_completo", "lookahead_1bar", "lookahead_50pct",
                "edge_realo_pequeno"]
 
@@ -111,6 +129,14 @@ WILSON_FORMULA = ("centro = (p + z^2/(2n)) / (1 + z^2/n); "
 # Parametrización de los exits mecánicos de los nulos nuevos.
 STOP_MULT = 2.0            # stop-loss a 2 x sigma_path (sigma * sqrt(hold))
 TP_MULT_HALF_SPREAD = 3.0  # take-profit a +3 x half_spread bruto
+
+# Control de especificidad (task_3): cliente honesto, edge neto positivo chico.
+# s_eps = SPEC_S_EPS_FRAC * SIGMA (alpha real observable con 2 barras de lead);
+# SPEC_HALF_SPREAD calibrado para edge neto ~ +30% del costo de round trip con
+# el umbral que el tuner elige (ver piloto). Piso de trades declarado.
+SPEC_S_EPS_FRAC = 0.5
+SPEC_HALF_SPREAD = 0.00045
+SPEC_MIN_TRADES = 200
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -241,15 +267,15 @@ def tune_threshold_mech(px, sig, bt, indices=None, lo=0.3, hi=2.0, steps=18):
 # ──────────────────────────────────────────────────────────────────────
 # Pipelines de cliente (nulo honesto / trampa rota)
 # ──────────────────────────────────────────────────────────────────────
-def build_null_client(px, sig):
+def build_null_client(px, sig, half_spread=ad.HALF_SPREAD):
     """Cliente NULO honesto: tuning walk-forward (primera mitad), primera
     entrada ejecutable, spread pagado, reporta la segunda mitad completa.
     Mismo pipeline que el control 'clean' del demo."""
     half = len(px) // 2
     thr = ad.tune_threshold(px, sig, indices=(0, half),
-                            half_spread=ad.HALF_SPREAD)
+                            half_spread=half_spread)
     booked = ad.run_backtest(px, sig, thr, entry_lag=1, price_book=True,
-                             half_spread=ad.HALF_SPREAD,
+                             half_spread=half_spread,
                              indices=(half, len(px)))
     return booked, sig, thr
 
@@ -264,11 +290,14 @@ def build_trap_client(px, sig):
     return booked, sig, thr
 
 
-def audit_flags(booked, px, sig, rng, n_perm, stop_loss=False):
+def audit_flags(booked, px, sig, rng, n_perm, stop_loss=False,
+                half_spread=ad.HALF_SPREAD, fills_net=False):
     """Corre run_audit y devuelve (flags por detector 0/1, verdicts F/W/P/S,
-    metrics reportados)."""
-    f, m = ad.run_audit(booked, px, sig, half_spread=ad.HALF_SPREAD,
-                        rng=rng, n_perm=n_perm, stop_loss=stop_loss)
+    metrics reportados). fills_net=True declara fills NETOS de costos
+    (check 2 no puede cobrar el spread dos veces)."""
+    f, m = ad.run_audit(booked, px, sig, half_spread=half_spread,
+                        rng=rng, n_perm=n_perm, stop_loss=stop_loss,
+                        fills_net_of_costs=fills_net)
     return ([1 if x["verdict"] in FLAG else 0 for x in f],
             "".join(x["verdict"][0] for x in f), m)
 
@@ -333,6 +362,22 @@ def run_one(job, n_perm):
         flags, verdicts, m = audit_flags(booked, px, sig,
                                          random.Random(AUDIT_RNG_BASE + i),
                                          n_perm)
+    elif group == "null" and kind == "edge_neto_positivo":
+        # control de ESPECIFICIDAD: cliente honesto con edge real chico
+        # POSITIVO neto de costos y >= 200 trades. Fills declarados netos
+        # (--fills-net-of-costs): el audit no cobra el spread dos veces.
+        s_eps = SPEC_S_EPS_FRAC * ad.SIGMA
+        sigma_z = math.sqrt(ad.SIGMA ** 2 - s_eps ** 2)
+        px, eps = build_market_alpha(n, ad.P0, s_eps, sigma_z, seed)
+        sig = [eps[t + 2] / s_eps if t + 2 < n else 0.0
+               for t in range(n)]
+        booked, sig, _thr = build_null_client(px, sig,
+                                              half_spread=SPEC_HALF_SPREAD)
+        flags, verdicts, m = audit_flags(booked, px, sig,
+                                         random.Random(AUDIT_RNG_BASE + i),
+                                         n_perm,
+                                         half_spread=SPEC_HALF_SPREAD,
+                                         fills_net=True)
     elif group == "null":
         px = ad.build_market(seed=seed)
         sig = null_signal(kind, px, random.Random(seed + 500_000))
@@ -357,7 +402,7 @@ def run_one(job, n_perm):
                                          n_perm)
     return {"group": group, "kind": kind, "i": i, "seed": seed,
             "flags": flags, "verdicts": verdicts, "mean": m["mean"],
-            "t": round(time.time() - t0, 2)}
+            "n": m["n"], "t": round(time.time() - t0, 2)}
 
 
 def _pool_job(args):
@@ -565,6 +610,30 @@ def main(argv=None):
     pot = {k: summarize([r for r in pot_rows if r["kind"] == k], [k])
            for k in INTENSITIES}
 
+    # ── especificidad: cliente honesto rentable (edge neto+, >=200 trades) ──
+    spec_rows = [r for r in fp_rows if r["kind"] == "edge_neto_positivo"]
+    spec = None
+    if spec_rows:
+        ns = [r.get("n", 0) or 0 for r in spec_rows]
+        flagged = sum(1 for r in spec_rows if any(r["flags"]))
+        lo, hi, p = wilson(flagged, len(spec_rows))
+        srt = sorted(ns)
+        spec = {
+            "n_runs": len(spec_rows),
+            "min_trades": min(ns),
+            "median_trades": srt[len(srt) // 2],
+            "runs_ge_min": sum(1 for x in ns if x >= SPEC_MIN_TRADES),
+            "min_trades_declarado": SPEC_MIN_TRADES,
+            "mean_net_per_trade": round(
+                sum(r["mean"] for r in spec_rows) / len(spec_rows), 6),
+            "flagged": flagged,
+            "flag_rate": p,
+            "ci95": [round(lo, 4), round(hi, 4)],
+            "s_eps_frac_de_sigma": SPEC_S_EPS_FRAC,
+            "half_spread": SPEC_HALF_SPREAD,
+            "fills": "netos de costos, declarados (--fills-net-of-costs)",
+        }
+
     # ── tablas resumen ──────────────────────────────────────────────
     L = []
     L.append("=" * 78)
@@ -594,6 +663,16 @@ def main(argv=None):
                            100 * fp["_union"]["rate"],
                            100 * fp["_union"]["ci95"][0],
                            100 * fp["_union"]["ci95"][1]))
+    if spec:
+        L.append("")
+        L.append("ESPECIFICIDAD — cliente honesto con edge NETO positivo y "
+                 "trades suficientes (control task_3)")
+        L.append("  edge_neto_positivo: %d/%d marcadas (%.1f%% [IC95 %.1f%%,"
+                 "%.1f%%]); trades: min %d, mediana %d; mean neto %+.5f/trade"
+                 % (spec["flagged"], spec["n_runs"], 100 * spec["flag_rate"],
+                    100 * spec["ci95"][0], 100 * spec["ci95"][1],
+                    spec["min_trades"], spec["median_trades"],
+                    spec["mean_net_per_trade"]))
     L.append("")
     L.append("POTENCIA — estrategias trampa por intensidad (n=%d c/u)"
              % args.per_intensity)
@@ -642,6 +721,11 @@ def main(argv=None):
                                               if v < 0.80]))
     if notas:
         veredicto += "; limitaciones honestas: " + " | ".join(notas)
+    if spec:
+        veredicto += ("; especificidad edge neto+ (%d trades+): %.1f%% "
+                      "marcadas [IC95 %.1f%%,%.1f%%]"
+                      % (spec["min_trades_declarado"], 100 * spec["flag_rate"],
+                         100 * spec["ci95"][0], 100 * spec["ci95"][1]))
 
     # ── JSON ────────────────────────────────────────────────────────
     result = {
@@ -655,6 +739,11 @@ def main(argv=None):
             "flag_definition": "verdict FAIL o WARN",
             "null_client": "tuning walk-forward, entry_lag=1, spread pagado, "
                            "reporta segunda mitad completa (control honesto)",
+            "spec_s_eps_frac_de_sigma": SPEC_S_EPS_FRAC,
+            "spec_half_spread": SPEC_HALF_SPREAD,
+            "spec_min_trades": SPEC_MIN_TRADES,
+            "spec_fills": "netos de costos declarados (no se cobra el "
+                          "spread dos veces)",
             "trap_client": "tuning in-sample, entry_lag=0, fills a mid, "
                            "drop_worst_decile (mirror de la trampa del demo)",
             "stop_loss_null": "exits mecánicos: stop a %.1f x sigma_path "
@@ -705,6 +794,7 @@ def main(argv=None):
             for g in NULL_TYPES
         },
         "fp_union": fp["_union"],
+        "especificidad": spec,
         "fp_verdicts_distribution": fp["_verdicts_dist"],
         "potencia_por_intensidad": {
             k: {name: pot[k][name] for name in DETS}

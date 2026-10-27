@@ -14,7 +14,8 @@
       "ruido_ar1",
       "stop_loss",
       "pagos_asimetricos",
-      "alpha_rapido_real"
+      "alpha_rapido_real",
+      "edge_neto_positivo"
     ],
     "intensities": [
       "lookahead_completo",
@@ -26,20 +27,24 @@
     "n_trap_per_intensity": 100,
     "flag_definition": "verdict FAIL o WARN",
     "null_client": "tuning walk-forward, entry_lag=1, spread pagado, reporta segunda mitad completa (control honesto)",
+    "spec_s_eps_frac_de_sigma": 0.5,
+    "spec_half_spread": 0.00045,
+    "spec_min_trades": 200,
+    "spec_fills": "netos de costos declarados (no se cobra el spread dos veces)",
     "trap_client": "tuning in-sample, entry_lag=0, fills a mid, drop_worst_decile (mirror de la trampa del demo)",
     "stop_loss_null": "exits mecánicos: stop a 2.0 x sigma_path (sigma*sqrt(hold) = 0.02191 bruto); DECLARADO (stop_loss=True → check 5 SKIP por diseño)",
     "pagos_asimetricos_null": "take-profit mecánico a +3.0 x half_spread bruto (+0.0120), pérdidas corren hasta el hold; NO declarado (cola truncada = DERECHA, nada filtrado: prueba si check 5 confunde payoff mecánico con survivorship)",
     "alpha_rapido_real_null": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; mismo motor que la intensidad edge_realo_pequeno, contado en el lado FP",
     "edge_realo_pequeno": "edge genuino = 0.1 x half_spread/trade bruto (E|eps| = sqrt(2/pi) s_eps), plumbing honesto; NO es trampa",
     "wilson_ci": "centro = (p + z^2/(2n)) / (1 + z^2/n); half = z*sqrt(p(1-p)/n + z^2/(4n^2)) / (1 + z^2/n); z = 1.959963984540054 (95% dos colas)",
-    "elapsed_s": 5252.8,
-    "jobs": 12,
+    "elapsed_s": 6049.1,
+    "jobs": 6,
     "cpu": "solo CPU, stdlib"
   },
   "seeds": {
     "null_market": {
       "start": 2000000,
-      "count": 7000,
+      "count": 8000,
       "note": "seed i-ésima = start + i, por tipo (bloques de n_null_per_type)"
     },
     "trap_market": {
@@ -69,7 +74,7 @@
   },
   "fp_rate_por_detector": {
     "capturabilidad": {
-      "n": 7000,
+      "n": 8000,
       "marcadas": 0,
       "rate": 0.0,
       "ci95": [
@@ -78,7 +83,7 @@
       ]
     },
     "fills_al_book": {
-      "n": 7000,
+      "n": 8000,
       "marcadas": 0,
       "rate": 0.0,
       "ci95": [
@@ -87,30 +92,30 @@
       ]
     },
     "tuning_in_sample": {
-      "n": 7000,
+      "n": 8000,
       "marcadas": 5,
-      "rate": 0.0007142857142857143,
+      "rate": 0.000625,
       "ci95": [
         0.0003,
-        0.0017
+        0.0015
       ]
     },
     "kfold_cv": {
-      "n": 7000,
-      "marcadas": 45,
-      "rate": 0.0064285714285714285,
+      "n": 8000,
+      "marcadas": 69,
+      "rate": 0.008625,
       "ci95": [
-        0.0048,
-        0.0086
+        0.0068,
+        0.0109
       ]
     },
     "supervivencia": {
-      "n": 7000,
-      "marcadas": 83,
-      "rate": 0.011857142857142858,
+      "n": 8000,
+      "marcadas": 120,
+      "rate": 0.015,
       "ci95": [
-        0.0096,
-        0.0147
+        0.0126,
+        0.0179
       ]
     }
   },
@@ -145,11 +150,11 @@
       },
       "kfold_cv": {
         "n": 1000,
-        "marcadas": 6,
-        "rate": 0.006,
+        "marcadas": 8,
+        "rate": 0.008,
         "ci95": [
-          0.0028,
-          0.013
+          0.0041,
+          0.0157
         ]
       },
       "supervivencia": {
@@ -163,11 +168,11 @@
       },
       "union": {
         "n": 1000,
-        "marcadas": 15,
-        "rate": 0.015,
+        "marcadas": 17,
+        "rate": 0.017,
         "ci95": [
-          0.0091,
-          0.0246
+          0.0106,
+          0.0271
         ]
       }
     },
@@ -201,11 +206,11 @@
       },
       "kfold_cv": {
         "n": 1000,
-        "marcadas": 12,
-        "rate": 0.012,
+        "marcadas": 3,
+        "rate": 0.003,
         "ci95": [
-          0.0069,
-          0.0209
+          0.001,
+          0.0088
         ]
       },
       "supervivencia": {
@@ -219,11 +224,11 @@
       },
       "union": {
         "n": 1000,
-        "marcadas": 21,
-        "rate": 0.021,
+        "marcadas": 12,
+        "rate": 0.012,
         "ci95": [
-          0.0138,
-          0.0319
+          0.0069,
+          0.0209
         ]
       }
     },
@@ -257,11 +262,11 @@
       },
       "kfold_cv": {
         "n": 1000,
-        "marcadas": 5,
-        "rate": 0.005,
+        "marcadas": 3,
+        "rate": 0.003,
         "ci95": [
-          0.0021,
-          0.0117
+          0.001,
+          0.0088
         ]
       },
       "supervivencia": {
@@ -275,11 +280,11 @@
       },
       "union": {
         "n": 1000,
-        "marcadas": 10,
-        "rate": 0.01,
+        "marcadas": 9,
+        "rate": 0.009,
         "ci95": [
-          0.0054,
-          0.0183
+          0.0047,
+          0.017
         ]
       }
     },
@@ -369,11 +374,11 @@
       },
       "kfold_cv": {
         "n": 1000,
-        "marcadas": 5,
-        "rate": 0.005,
+        "marcadas": 7,
+        "rate": 0.007,
         "ci95": [
-          0.0021,
-          0.0117
+          0.0034,
+          0.0144
         ]
       },
       "supervivencia": {
@@ -387,11 +392,11 @@
       },
       "union": {
         "n": 1000,
-        "marcadas": 7,
-        "rate": 0.007,
+        "marcadas": 9,
+        "rate": 0.009,
         "ci95": [
-          0.0034,
-          0.0144
+          0.0047,
+          0.017
         ]
       }
     },
@@ -425,11 +430,11 @@
       },
       "kfold_cv": {
         "n": 1000,
-        "marcadas": 10,
-        "rate": 0.01,
+        "marcadas": 5,
+        "rate": 0.005,
         "ci95": [
-          0.0054,
-          0.0183
+          0.0021,
+          0.0117
         ]
       },
       "supervivencia": {
@@ -443,11 +448,11 @@
       },
       "union": {
         "n": 1000,
-        "marcadas": 61,
-        "rate": 0.061,
+        "marcadas": 55,
+        "rate": 0.055,
         "ci95": [
-          0.0478,
-          0.0776
+          0.0425,
+          0.0709
         ]
       }
     },
@@ -506,27 +511,104 @@
           0.0038
         ]
       }
+    },
+    "edge_neto_positivo": {
+      "capturabilidad": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "fills_al_book": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "tuning_in_sample": {
+        "n": 1000,
+        "marcadas": 0,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.0038
+        ]
+      },
+      "kfold_cv": {
+        "n": 1000,
+        "marcadas": 36,
+        "rate": 0.036,
+        "ci95": [
+          0.0261,
+          0.0494
+        ]
+      },
+      "supervivencia": {
+        "n": 1000,
+        "marcadas": 37,
+        "rate": 0.037,
+        "ci95": [
+          0.027,
+          0.0506
+        ]
+      },
+      "union": {
+        "n": 1000,
+        "marcadas": 72,
+        "rate": 0.072,
+        "ci95": [
+          0.0576,
+          0.0897
+        ]
+      }
     }
   },
   "fp_union": {
-    "n": 7000,
-    "marcadas": 131,
-    "rate": 0.018714285714285715,
+    "n": 8000,
+    "marcadas": 191,
+    "rate": 0.023875,
     "ci95": [
-      0.0158,
-      0.0222
+      0.0208,
+      0.0275
     ]
   },
+  "especificidad": {
+    "n_runs": 1000,
+    "min_trades": 2808,
+    "median_trades": 3645,
+    "runs_ge_min": 1000,
+    "min_trades_declarado": 200,
+    "mean_net_per_trade": 0.000454,
+    "flagged": 72,
+    "flag_rate": 0.072,
+    "ci95": [
+      0.0576,
+      0.0897
+    ],
+    "s_eps_frac_de_sigma": 0.5,
+    "half_spread": 0.00045,
+    "fills": "netos de costos, declarados (--fills-net-of-costs)"
+  },
   "fp_verdicts_distribution": {
-    "PPPPP": 5876,
+    "PPPPP": 5890,
+    "PPPFP": 25,
     "PPPPF": 81,
-    "PPPFP": 39,
-    "PPPFF": 1,
-    "PPPPS": 993,
-    "PPPFS": 5,
+    "PPPPS": 991,
+    "PPPFS": 7,
     "PPFPS": 2,
+    "PPPFF": 1,
     "PPFPP": 2,
-    "PPFPF": 1
+    "PPFPF": 1,
+    "PSPPP": 928,
+    "PSPPF": 36,
+    "PSPFP": 35,
+    "PSPFF": 1
   },
   "potencia_por_intensidad": {
     "lookahead_completo": {
@@ -559,11 +641,11 @@
       },
       "kfold_cv": {
         "n": 100,
-        "marcadas": 100,
-        "rate": 1.0,
+        "marcadas": 99,
+        "rate": 0.99,
         "ci95": [
-          0.963,
-          1.0
+          0.9455,
+          0.9982
         ]
       },
       "supervivencia": {
@@ -588,7 +670,8 @@
         "PPFFF": 66,
         "PPFFP": 15,
         "PFFFF": 10,
-        "PPPFF": 7,
+        "PPPFF": 6,
+        "PPPPF": 1,
         "PFFFP": 2
       }
     },
@@ -772,5 +855,5 @@
       }
     }
   },
-  "veredicto": "AUDIT OK: FP <= 10% por detector (max 1.2%) y potencia >= 80% en trampas evidentes (min 100%); union FP 1.9%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge"
+  "veredicto": "AUDIT OK: FP <= 10% por detector (max 1.5%) y potencia >= 80% en trampas evidentes (min 100%); union FP 2.4%, union potencia trampas 100%; limitaciones honestas: c1(capturabilidad) no pilla look-ahead de hold completo (el retraso de 1 barra solo quita 1/30 del peek; detecta el peek de 1 barra: 100%) | c2(fills al book) no dispara cuando el edge supera el costo del round trip (edge completo > 2x spread) | edge real pequeño no detectado (0%) — correcto: no es trampa y los detectores cazan sesgos de plumbing, no la existencia de edge; especificidad edge neto+ (200 trades+): 7.2% marcadas [IC95 5.8%,9.0%]"
 }

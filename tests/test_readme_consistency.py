@@ -152,7 +152,7 @@ def test_monte_carlo_row_matches_json():
                (_pct(fu["ci95"][0]), 2, "union ci low"),
                (_pct(fu["ci95"][1]), 2, "union ci high")]
     for text in READMES.values():
-        assert "7,000" in text or "7.000" in text, "total nulls missing from README"
+        assert "8,000" in text or "8.000" in text, "total nulls missing from README"
         for value, nd, label in checks:
             assert _present(text, value, nd), f"MC {label} ({value}) missing from README"
 
