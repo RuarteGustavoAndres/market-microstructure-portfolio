@@ -18,5 +18,5 @@ results/mc_fp_power_checkpoint.jsonl
 Thumbs.db
 
 # Docs de estrategia interna — nunca al repo público
-UPWORK_PERFIL.md
-PROPUESTA_MODELO.md
+docs/UPWORK_PERFIL.md
+docs/PROPUESTA_MODELO.md

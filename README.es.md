@@ -9,7 +9,7 @@ USDT-M de Binance): captura multi-venue del libro por WebSocket a TimescaleDB,
 más un modelo de ML sin fugas que predice la **toxicidad de fills (selección
 adversa)** desde features del libro. Todos los números son reales y
 out-of-sample — **incluidas las partes que no funcionaron**. El detalle
-denso por fila vive en [RESULTS.md](RESULTS.md); los README son índice +
+denso por fila vive en [RESULTS.md](docs/RESULTS.md); los README son índice +
 titulares.
 
 **Tres resultados, con su salvedad**
@@ -38,7 +38,7 @@ titulares.
 | El delta de P&L del filtro sobre sin-filtro es positivo y rechaza el nulo de filtro aleatorio al 5% (+$99.24 BRUTO) | ✅ **FUNCIONA** — salvedad: el IC [−$20.45, +$121.74] incluye 0 | [nulo_delta_h300.json](results/nulo_delta_h300.json) · fila *Test nulo del delta* |
 | El filtro gana dinero en términos absolutos / está listo para operar | ❌ **NO FUNCIONA** — nivel @0.7 negativo (−$7.51), WFE −0.8%, umbrales inestables | [walkforward_toxicidad_h300.json](results/walkforward_toxicidad_h300.json) · fila *P&L maker walk-forward* |
 | Una sim de cola maker-realista (quotes persistentes) confirma que el delta persiste | ⚠️ **FUNCIONA (solo dirección)** — delta +$9.26, ambos folds; AUC ≈ 0.56 | [walkforward_toxicidad_h300_persist.json](results/walkforward_toxicidad_h300_persist.json) · fila *Sim de cola, modo persist* |
-| Gate de trading en vivo (cola + costos + tamaño) | ⏳ **PENDIENTE** — el gate sigue cerrado | [PLAN_SIM_COLA.md](PLAN_SIM_COLA.md) · filas *The model* / *Next steps* |
+| Gate de trading en vivo (cola + costos + tamaño) | ⏳ **PENDIENTE** — el gate sigue cerrado | [PLAN_SIM_COLA.md](docs/PLAN_SIM_COLA.md) · filas *The model* / *Next steps* |
 
 **Gráficos** — generados por [`charts/generar_graficos.py`](charts/generar_graficos.py)
 (determinista, solo stdlib: dos corridas producen SVG byte-idénticos):
@@ -137,7 +137,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin 
 | `microstructure/sim/sim_cola.py` + `microstructure/sim/sim_maker_dataset.py` | Simulación de fills con cola sobre la captura REAL con tres modos de re-quote comparables (**persist** = honesto, sin auto-cancel / **cancel** = status quo / **contra** = conservador) + su constructor de dataset — publicado verbatim desde el bot privado | captura privada (CSV de fills incluido) |
 | `microstructure/model/backtest_walkforward_persist.py` | El mismo walk-forward (solo adaptaciones documentadas) sobre los fills simulados en modo persist — `results/maker_fills_sim_persist.csv` (1.1 MB, incluido) → `results/walkforward_toxicidad_h300_persist.json`, totalmente reproducible | **standalone** — viene con el repo (copiar el CSV incluido a `microstructure/model/dataset/`) |
 | `microstructure/model/backtest_nulo_delta.py` | Test nulo del delta del filtro: nulo de filtro aleatorio (misma retención por fold) + bootstrap por bloques de mercado + control con labels permutadas — publicado verbatim desde el bot privado | dataset privado (gitignored) |
-| [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md) | Ventana de validación reservada pre-registrada: congelamiento 2026-10-25, evaluación única 2026-11-08, regla de decisión fijada de antemano (misma regla que el nulo del 23-10) | **standalone** — documentación, sin datos |
+| [VALIDATION_WINDOW.md](docs/VALIDATION_WINDOW.md) | Ventana de validación reservada pre-registrada: congelamiento 2026-10-25, evaluación única 2026-11-08, regla de decisión fijada de antemano (misma regla que el nulo del 23-10) | **standalone** — documentación, sin datos |
 
 ## El modelo (números honestos)
 - **Target:** markout de cada trade real a +horizonte (mid del libro vs precio
@@ -167,7 +167,7 @@ Clasificador de toxicidad (LightGBM)  →  AUC 0.7276 OOS pooled, temporal (sin 
   fold son inestables, y una primera simulación con cola (T2/T3, 18-10) fue
   **inconclusa**: el AUC del modelo sobre fills simulados es ~0.50-0.56
   (features aproximadas, fuera de distribución), así que los números de cinta
-  asumen fills ideales ([PLAN_SIM_COLA.md](PLAN_SIM_COLA.md)). **Re-corrida de
+  asumen fills ideales ([PLAN_SIM_COLA.md](docs/PLAN_SIM_COLA.md)). **Re-corrida de
   la sim con la suposición 3 corregida** (quotes persistentes — el viejo
   auto-cancel optimista eliminaba justo los fills adversos que un maker real
   sufre; motor de sim publicado verbatim en `microstructure/sim/`): el delta
@@ -222,19 +222,30 @@ misma analítica.
 | **ETHUSDT** | +0.57 | +0.27 | 43% | +0.43 |
 | **SOLUSDT** | **−0.28** | **−0.48** | **68%** | −0.29 |
 
-**Descomposición (BTCUSDT @5s): deriva +0.81 bps vs entrada −0.44 bps.** Esto
-cambia la lectura honesta del markout: el markout USD positivo que reportamos
-primero sobre la ventana inicial de captura era **deriva del mercado, no
-habilidad de ejecución** — el taker igual **paga el spread de entrada**; y para
-un maker, el flujo que gana el agresor es adverse selection en su contra
-(P&L del maker = −(markout del agresor)). SOL es tóxico directo a horizontes
-cortos (mediana −0.48 bps, 68% de los trades taker
-pierden).
+**Cómo leer esto (y qué NO afirmar):** el markout del mid mide adverse
+selection del flujo *agresivo* — un maker que toma el otro lado gana el
+negativo de esto. BTC/ETH muestran markout positivo chico (sus agresores
+aciertan a 5s); SOL es claramente tóxico (mediana −0.48 bps, 66–68% de los
+trades taker pierden). **Estas magnitudes viven dentro del spread:** la
+entrada de BTC −0.44 bps es ~$3.6 sobre ~$81k — el spread cotizado es ~un
+tick (~$0.01), así que el término de entrada está dominado por el movimiento
+del mid dentro del segundo, o sea el ~1s de staleness del mid de salida
+reconstruido, no por pagar el spread.
+**No leer esto como "el taker paga el spread dos veces" ni como una medida de
+calidad de ejecución** — es una medición de toxicidad de flujo, y los números
+de horizonte corto son ruido de piso, no un modelo de costos.
 
-**Limitación declarada — frescura del mid de salida:** el mid de salida se
-reconstruye de un libro muestreado a ~2s; su staleness mediana es **1.04s** —
-hasta ~21% del horizonte de 5s. Los markouts de horizonte corto son entonces
-una cota inferior de precisión.
+**Robustez — tope estricto de frescura (0.5s):** re-corrida con
+`--max-mid-age 0.5` (descarta ~78% de los fills, frescura mediana del
+mid de salida 0.25s), solo mids de salida frescos;
+[`results/markout_strict_freshness.json`](results/markout_strict_freshness.json)
+conserva la misma forma: BTC +0.38, ETH +0.50, SOL −0.26 bps medios @5s
+(deriva ~+0.81/+1.08/+0.31, entrada ~−0.43/−0.58/−0.58). El orden y los
+signos por mercado son estables; la descomposición entrada/deriva **no** se
+cita como modelo de costos — el término de deriva casi no escala con el
+horizonte (0.81 @5s → 0.68 @300s), así que "deriva del mercado" vs
+"desfase del mid" no se pueden separar con estos datos y la descomposición
+se quitó de la lectura principal.
 
 Regenerar con `microstructure/scripts/markout_binance.py` (solo lectura, DB
 en vivo; último reporte machine-readable en
@@ -254,7 +265,7 @@ en vivo; último reporte machine-readable en
   delta +$376 / nivel +$489 — misma historia cualitativa, nivel inflado. La
   eficiencia walk-forward por op es **−0.8%** y los umbrales óptimos por fold
   siguen **inestables** (0.6/0.5/0.7/0.6/0.55); falta simular la cola
-  (PLAN_SIM_COLA.md) — el gate sigue cerrado.** El AUC rankea el flujo;
+  (docs/PLAN_SIM_COLA.md) — el gate sigue cerrado.** El AUC rankea el flujo;
   convertirlo a P&L maker rentable (cola, rewards, fees) sigue abierto.
 - Investigar por qué el ranking no traduce: P&L por horizonte/régimen,
   simulación con posición en cola, calibración del modelo de costos.
@@ -263,7 +274,7 @@ en vivo; último reporte machine-readable en
   decisión exacta pre-registrada el 23-10 (h=300s, umbral fijo 0.7, delta
   pooled vs p95 del nulo de filtro aleatorio, delta > 0 en ≥4/5 folds); el
   resultado se publica incondicionalmente — ver
-  [VALIDATION_WINDOW.md](VALIDATION_WINDOW.md).
+  [VALIDATION_WINDOW.md](docs/VALIDATION_WINDOW.md).
 
 ## Licencia
 MIT — ver [LICENSE](LICENSE). Uso libre, atribución apreciada.

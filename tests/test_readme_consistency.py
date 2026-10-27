@@ -193,8 +193,37 @@ def test_markout_table_matches_json():
         btc5 = mk["resumen_por_simbolo"]["BTCUSDT"]["por_horizonte"]["5"]
         assert _present(text, btc5["drift_bps"], 2), "BTC drift bps missing"
         assert _present(text, btc5["entry_bps"], 2), "BTC entry bps missing"
-        fresh = mk["frescura_mid_mediana_s"]
-        assert _present(text, fresh, 2), "mid-freshness staleness missing"
+
+
+def test_markout_strict_freshness_matches_json():
+    """Claude-audit item 3: the drift/entry headline decomposition was removed
+    and replaced by the strict-freshness paragraph (0.5s cap) — every number
+    in that paragraph must come straight from
+    results/markout_strict_freshness.json (review caught 0.39/0.87 written
+    before checking the JSON; artifact says 0.38/0.68)."""
+    sf = _load("markout_strict_freshness.json")
+    h = {s: sf["resumen_por_simbolo"][s]["por_horizonte"]
+         for s in ("BTCUSDT", "ETHUSDT", "SOLUSDT")}
+    for text in READMES.values():
+        for sym in h:
+            assert _present(text, h[sym]["5"]["mean_bps"], 2), \
+                f"{sym} strict-freshness mean@5s missing"
+            assert _present(text, h[sym]["5"]["drift_bps"], 2), \
+                f"{sym} strict-freshness drift@5s missing"
+            assert _present(text, h[sym]["5"]["entry_bps"], 2), \
+                f"{sym} strict-freshness entry@5s missing"
+        assert _present(text, h["BTCUSDT"]["300"]["drift_bps"], 2), \
+            "BTC strict-freshness drift@300s missing"
+        assert _present(text, sf["frescura_mid_mediana_s"], 2), \
+            "strict-freshness median staleness missing"
+        # "drops ~78% of fills" — cross-check the share against the JSON
+        for sym in h:
+            d = h[sym]["5"]["n_descartados_por_frescura"]
+            used = h[sym]["5"]["n_usados"]
+            share = 100 * d / (d + used)
+            assert 77 <= share <= 79, \
+                f"{sym} strict-freshness drop is {share:.1f}%, README says ~78%"
+        assert "78%" in text, "strict-freshness drop % missing"
 
 
 # ---------------------------------------------------------------- absent
