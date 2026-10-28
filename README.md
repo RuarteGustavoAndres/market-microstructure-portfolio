@@ -232,9 +232,11 @@ above the one-tick quoted spread, and an entry-staleness stratification
 read-only probe over the full capture table, ~11.5 days) shows it does
 **not** shrink with fresher mids: entry stays ≈−0.5 bps for entry mids
 younger than 2s (~90% of trades: 0–0.5s −0.52, 1–2s −0.53) and only
-degrades for mids ≥2s old (2–5s: −0.87). **Origin of the entry floor:
-not identified.** A follow-up timestamp-offset sweep
+degrades for mids ≥2s old (2–5s: −0.87). **Origin of the entry floor:** a
+follow-up timestamp-offset sweep
 ([`results/markout_entry_lag_probe.json`](results/markout_entry_lag_probe.json),
+script
+[`microstructure/scripts/markout_entry_lag_probe.py`](microstructure/scripts/markout_entry_lag_probe.py),
 read-only, 2026-10-21→10-28 window) recomputes the entry with the mid lookup
 shifted ±0.5 s: entry(delta) is *not* flat — it decays monotonically and
 reaches the static quoted half-spread at d≈+0.5 s (BTC median −0.006 vs
@@ -245,8 +247,10 @@ between the aggTrade and book-snapshot stamps as the origin of the floor —
 the two probes constrain different clocks (staleness = freshness within the
 book's own timeline; offset = cross-stream alignment), so staleness-flatness
 does not rescue an impact claim. The entry floor is *either* real adverse
-selection around the fill *or* a cross-stream stamping artifact — declared
-unresolved, not a fact; the toxicity signal this pipeline consumes is the
+selection around the fill *or* a cross-stream stamping artifact — the offset
+decay matches the lag hypothesis (monotonic collapse to the static
+half-spread, not a drift pattern), so a real-impact reading is **not
+established**; the toxicity signal this pipeline consumes is the
 exit-side drift term, not this floor. **Do not read this as "the taker pays
 the spread twice", as an execution-quality claim, or as an established impact
 figure** — it is a flow-toxicity measurement, and short-horizon numbers are

@@ -240,9 +240,11 @@ sonda de solo lectura sobre la tabla completa de captura, ~11.5 días)
 muestra que **no** se encoge con mids más frescos: la entrada se mantiene
 ≈−0.5 bps para mids de entrada de menos de 2s (~90% de los trades:
 0–0.5s −0.52, 1–2s −0.53) y solo degrada con mids de ≥2s (2–5s: −0.87).
-**Origen del piso de entrada: no identificado.** Una sonda posterior de
+**Origen del piso de entrada:** una sonda posterior de
 desfase de timestamps
 ([`results/markout_entry_lag_probe.json`](results/markout_entry_lag_probe.json),
+script
+[`microstructure/scripts/markout_entry_lag_probe.py`](microstructure/scripts/markout_entry_lag_probe.py),
 solo lectura, ventana 2026-10-21→10-28) recalcula la entrada con el mid
 corrido ±0.5s: entry(delta) **no** es plano — decae monotónicamente y llega
 al medio-spread estático en d≈+0.5s (BTC mediana −0.006 vs medio-spread
@@ -254,8 +256,10 @@ del piso — las dos sondas constriñen relojes distintos (staleness =
 frescura dentro de la propia línea de tiempo del libro; desfase =
 alineación entre streams), así que la planicie ante staleness no rescata un
 claim de impacto. El piso de entrada es *o* selección adversa real alrededor
-del fill *o* un artefacto de stamping entre streams — declarado como sin
-resolver, no como hecho; la señal de toxicidad que consume este pipeline es
+del fill *o* un artefacto de stamping entre streams — el patrón de decaimiento
+coincide con la hipótesis del desfase (colapso monotónico hacia el
+medio-spread estático, no un patrón de drift), así que una lectura de impacto
+real **no está establecida**; la señal de toxicidad que consume este pipeline es
 el término de deriva del lado de salida, no este piso. **No leer esto como
 "el taker paga el spread dos veces", ni como una medida de calidad de
 ejecución, ni como un impacto real establecido** — es una medición de
