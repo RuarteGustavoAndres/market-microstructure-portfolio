@@ -10,12 +10,19 @@ A backtest with a positive paper P&L is not evidence of an edge. Most "profitabl
 
 ## Method
 
-The audit is a fixed, pre-registered procedure, not a judgment call:
+The audit is a fixed, pre-registered procedure, not a judgment call. **Input: the trade list exactly as the client reports it** — `(entry_time, direction, pnl)` with their fills, their costs, their universe — plus, where available, per-bar mid prices and the raw signal series.
 
-- **Strict temporal walk-forward.** h = 300 s, 1 fill = 1 sample. No shuffling; no future leakage by construction.
+**What runs on any trade list (always delivered):**
+
+- **Leak detectors that need only the reported fills** — capturability (does the edge survive a 1-bar entry delay?), spread stress (does it survive realistic pricing?), and survivorship (is the reported universe missing its left tail?). Each detector's false-positive rate is measured by Monte Carlo; synthetic price-scale-invariant controls check that the detectors do not fire on structure-free data.
 - **Pre-registered null test of P&L.** The decision rule is fixed before any result is computed, then the observed delta is compared against a null distribution.
-- **Five leak detectors.** Each detector's false-positive rate is measured by Monte Carlo; synthetic price-scale-invariant controls check that the detectors do not fire on structure-free data.
-- **Reproducibility as a deliverable.** Folds are re-run and compared byte-for-byte.
+
+**What additionally runs when the client submits prices + the signal series** (i.e. a threshold strategy on a signal — the detector's native domain):
+
+- **Re-tuning walk-forward:** the threshold is re-fit on the past half and reported on the future (in-sample tuning check).
+- **Validation-protocol check:** shuffled K-fold vs temporal + embargo comparison.
+
+If a client's backtest is not a threshold strategy over a signal, those two checks are reported as **SKIP with a stated reason** — never as a pass, and the scope is agreed before the audit starts. Strict temporal walk-forward (h = 300 s, 1 fill = 1 sample, no shuffling) applies to everything. **Reproducibility is a deliverable:** folds are re-run and compared against the artifact.
 
 ## Findings
 
@@ -32,10 +39,13 @@ On the reference pipeline (the portfolio's own pipeline, which the method was de
 ## Deliverable
 
 A backtest audit report containing:
-1. Leak scan with the 5 detectors.
+
+1. Leak scan: the detectors that apply to your trade list — the three fill-level detectors (capturability, spread stress, survivorship) always; the two signal-level detectors (in-sample re-tuning, validation protocol) when your backtest is a threshold strategy over a signal, **SKIP with a stated reason otherwise**.
 2. Pre-registered null test of the P&L.
-3. Verified reproducibility.
-4. Report with findings and severities.
+3. Verified reproducibility: folds re-run and compared against the artifact.
+4. Report with findings and severities — including the caveat section when a result is not proven robust.
+
+Before the audit starts, the scope is confirmed in writing: which detectors apply to your backtest type and what inputs each one needs, so there are no surprise SKIPs in the final report.
 
 ## Price and timeline
 
