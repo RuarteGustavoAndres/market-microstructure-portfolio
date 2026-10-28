@@ -369,7 +369,7 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
     #            the client for signal-entry timestamps.
     #    PASS  — edge survives latency (what a client can actually trade).
     if prices is None:
-        f.append({"check": "Capturabilidad del edge (re-ejecución con 1 bar de retraso)",
+        f.append({"check": "Edge capturability (re-run with a 1-bar lag)",
                   "verdict": "SKIP",
                   "detail": "Needs the price series (--prices) to re-execute."})
     else:
@@ -401,7 +401,7 @@ def run_audit(booked, prices=None, sig=None, half_spread=0.0, hold=HOLD,
                 " The edge survives a 1-bar delay: capturable at "
                 "realistic latency (or there is no edge to lose).")
         f.append({
-            "check": "Capturabilidad del edge (re-ejecución con 1 bar de retraso)",
+            "check": "Edge capturability (re-run with a 1-bar lag)",
             "verdict": verdict,
             "detail": ("Reported edge %+.5f/trade; re-executed 1 bar later "
                        "(same direction, same horizon) %+.5f "
@@ -654,8 +654,14 @@ def _fmt(m):
             % (m["n"], m["mean"], m["sharpe"], m["win"] * 100))
 
 
-def build_report(cases):
-    """cases: list of (title, client_desc, findings, m_reported)."""
+def build_report(cases, demo=True):
+    """cases: list of (title, client_desc, findings, m_reported).
+
+    demo=True emits the demo-mode closing narrative (the planted TRAP vs
+    CLEAN story).  demo=False (--csv client audits) replaces it with a
+    data-driven summary of the verdicts actually found — the fixed demo
+    text must never be shown for a client's own backtest (re-audit
+    Claude 2026-10-28: the report contradicted its own CSV findings)."""
     L = []
     L.append("# Backtest Audit Demo — planted biases, quantified\n")
     L.append("Deterministic synthetic market (seed %d, %d days of 1-min bars, "
@@ -676,16 +682,35 @@ def build_report(cases):
         L.append("### Audit findings\n")
         for j, fd in enumerate(findings, 1):
             L.append("%d. %s — **%s**\n   %s\n" % (j, fd["check"], fd["verdict"], fd["detail"]))
-    L.append("## What the demo proves\n")
-    L.append("> The audit **detects**: the trap client — Sharpe %s and a "
-             "plausible win rate — gets flagged by every check (4 FAIL + "
-             "1 WARN: the capturability check reports WARN where look-ahead "
-             "and fast alpha are indistinguishable from prices+trades, and "
-             "asks for signal-entry timestamps); the clean control — a "
-             "losing strategy on a no-edge market — passes every one. The "
-             "audit punishes broken plumbing, not losing strategies: an "
-             "honest backtest of a no-edge market loses exactly the spread "
-             "and says so.\n" % _sh(cases[0][3]))
+    if demo:
+        L.append("## What the demo proves\n")
+        L.append("> The audit **detects**: the trap client — Sharpe %s and a "
+                 "plausible win rate — gets flagged by every check (4 FAIL + "
+                 "1 WARN: the capturability check reports WARN where look-ahead "
+                 "and fast alpha are indistinguishable from prices+trades, and "
+                 "asks for signal-entry timestamps); the clean control — a "
+                 "losing strategy on a no-edge market — passes every one. The "
+                 "audit punishes broken plumbing, not losing strategies: an "
+                 "honest backtest of a no-edge market loses exactly the spread "
+                 "and says so.\n" % _sh(cases[0][3]))
+    else:
+        L.append("## Audit summary\n")
+        L.append("Verdicts from the checks actually run on the submitted "
+                 "backtest (details above — this summary is generated from "
+                 "them, not from the demo narrative):\n")
+        for i, (title, desc, findings, m) in enumerate(cases, 1):
+            counts = {}
+            for fd in findings:
+                counts[fd["verdict"]] = counts.get(fd["verdict"], 0) + 1
+            tally = ", ".join("**%d %s**" % (counts[v], v) for v in
+                              ("FAIL", "WARN", "SKIP", "PASS") if v in counts)
+            L.append("- Case %d — %s: %s across %d checks run.\n"
+                     % (i, title, tally or "no findings", len(findings)))
+        L.append("FAIL/WARN items are what to fix or explain before "
+                 "resubmitting; SKIP items need more inputs (the reason is "
+                 "stated per check). The demo's planted-bias narrative above "
+                 "is NOT part of this report — it describes the synthetic "
+                 "trap client, not your backtest.\n")
     L.append("> Every claim must be checked against the plumbing, not the "
              "numbers. This demo is the checklist; the service runs it "
              "against YOUR backtest — `--csv` takes your trades and signal "
@@ -781,7 +806,8 @@ def main(argv=None):
                                 fills_net_of_costs=args.fills_net_of_costs,
                                 stop_loss=args.stop_loss)
         report = build_report([("Client submission — %s" % os.path.basename(args.csv),
-                                "as reported by the client", findings, m)])
+                                "as reported by the client", findings, m)],
+                              demo=False)
         print(report)
         if args.write:
             os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -806,7 +832,7 @@ def main(argv=None):
         ("the clean control — same market, honest plumbing",
          cases_raw["clean"]["desc"], clean_f, m_clean),
     ]
-    report = build_report(cases)
+    report = build_report(cases, demo=True)
     print(report)
     print("trap:", json.dumps(m_trap))
     print("clean:", json.dumps(m_clean))

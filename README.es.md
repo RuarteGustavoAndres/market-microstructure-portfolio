@@ -64,7 +64,7 @@ limitaciones de
 detectores documentadas con un estudio dedicado). Alcance y plazo: precio fijo
 $250–500 por backtest, entrega en 5 días hábiles — ejemplo de una página del
 método aplicado a este mismo pipeline: [CASE_STUDY.md](CASE_STUDY.md).
-Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
+Contacto: abrir un issue en GitHub (dirección de contacto dedicada en preparación).
 
 ## Correr la demo (solo stdlib, sin dependencias)
 
@@ -297,4 +297,4 @@ MIT — ver [LICENSE](LICENSE). Uso libre, atribución apreciada.
 
 ## Autor
 Gustavo Ruarte — market microstructure & ML engineering.
-Contacto: abrir un issue en GitHub o escribir a gustavoaruarte@gmail.com.
+Contacto: abrir un issue en GitHub (dirección de contacto dedicada en preparación).

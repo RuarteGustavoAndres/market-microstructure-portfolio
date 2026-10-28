@@ -14,8 +14,8 @@ n=5253  mean=0.0049  Sharpe=98.33 (overlap-corrected)  win=75%   (threshold 2.00
 
 ### Audit findings
 
-1. Capturabilidad del edge (re-ejecución con 1 bar de retraso) — **WARN**
-   Edge reportado +0.00494/trade; re-ejecutado 1 bar más tarde (misma dirección, mismo horizonte) +0.00169 (p <= 1e-03, 999 permutations, H1: reportado > retrasado). Con 1 bar de retraso el edge cae a 34% del reportado: no se distingue look-ahead de alfa rápido con solo precios+trades — pedir timestamps de las entradas de la señal.
+1. Edge capturability (re-run with a 1-bar lag) — **WARN**
+   Reported edge +0.00494/trade; re-executed 1 bar later (same direction, same horizon) +0.00169 (p <= 1e-03, 999 permutations, H1: reported > delayed). With a 1-bar delay the edge drops to 34% of the reported value: look-ahead cannot be distinguished from fast alpha with prices+trades alone — ask for the signal-entry timestamps.
 
 2. Fills priced at the book (spread on every round trip) — **FAIL**
    Round trip costs 2 x 40 bps. Reported mean trade 0.0049; spread-charged -0.0031 (p <= 1e-03, 999 permutations, H0: charged mean = 0). The reported edge does not survive the book: every round trip was a donation to the market makers.
@@ -39,8 +39,8 @@ n=10336  mean=-0.0078  Sharpe=-106.72 (overlap-corrected)  win=19%   (threshold 
 
 ### Audit findings
 
-1. Capturabilidad del edge (re-ejecución con 1 bar de retraso) — **PASS**
-   Edge reportado -0.00782/trade; re-ejecutado 1 bar más tarde (misma dirección, mismo horizonte) +0.00018 (p = 1.000, 999 permutations, H1: reportado > retrasado). El edge sobrevive a 1 bar de retraso: es capturable a latencia realista (o no hay edge que perder).
+1. Edge capturability (re-run with a 1-bar lag) — **PASS**
+   Reported edge -0.00782/trade; re-executed 1 bar later (same direction, same horizon) +0.00018 (p = 1.000, 999 permutations, H1: reported > delayed). The edge survives a 1-bar delay: capturable at realistic latency (or there is no edge to lose).
 
 2. Fills priced at the book (spread on every round trip) — **PASS**
    Round trip costs 2 x 40 bps. Reported mean trade -0.0078; spread-charged -0.0158 (p <= 1e-03, 999 permutations, H0: charged mean = 0). The client reports no positive edge to begin with — a reported loss is not a leak, nothing to catch here (the small p only says the charged mean sits below zero, as expected).
@@ -56,6 +56,6 @@ n=10336  mean=-0.0078  Sharpe=-106.72 (overlap-corrected)  win=19%   (threshold 
 
 ## What the demo proves
 
-> The audit **detects**: the trap client — Sharpe 98.33 and a plausible win rate — gets flagged by every check (4 FAIL + 1 WARN: the capturabilidad check reports WARN where look-ahead and fast alpha are indistinguishable from prices+trades, and asks for signal-entry timestamps); the clean control — a losing strategy on a no-edge market — passes every one. The audit punishes broken plumbing, not losing strategies: an honest backtest of a no-edge market loses exactly the spread and says so.
+> The audit **detects**: the trap client — Sharpe 98.33 and a plausible win rate — gets flagged by every check (4 FAIL + 1 WARN: the capturability check reports WARN where look-ahead and fast alpha are indistinguishable from prices+trades, and asks for signal-entry timestamps); the clean control — a losing strategy on a no-edge market — passes every one. The audit punishes broken plumbing, not losing strategies: an honest backtest of a no-edge market loses exactly the spread and says so.
 
 > Every claim must be checked against the plumbing, not the numbers. This demo is the checklist; the service runs it against YOUR backtest — `--csv` takes your trades and signal series, your fills, your costs.

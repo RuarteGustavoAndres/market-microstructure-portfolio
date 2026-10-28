@@ -45,7 +45,7 @@ def test_trap_fails_every_check(audited):
     # capturabilidad may WARN (look-ahead vs fast alpha indistinguishable
     # from prices+trades) — but the trap must never PASS a check
     assert all(v in ("FAIL", "WARN") for v in verdicts.values()), verdicts
-    assert verdicts["Capturabilidad del edge (re-ejecución con 1 bar de retraso)"] == "WARN"
+    assert verdicts["Edge capturability (re-run with a 1-bar lag)"] == "WARN"
     # the trap must look attractive as reported: positive mean, big Sharpe
     assert m_trap["mean"] > 0 and m_trap["sharpe"] > 5
 
@@ -226,6 +226,41 @@ def test_report_contains_both_cases(cases, audited):
     assert rep.count("— **FAIL**") == 4
     assert rep.count("— **WARN**") == 1
     assert rep.count("— **PASS**") == 5
+
+
+# ── re-audit Claude 2026-10-28: the report must match the actual mode ──
+def test_csv_report_has_no_demo_narrative(client_csvs, capsys):
+    """A client CSV audit must NEVER close with the fixed demo narrative
+    ("flagged by every check (4 FAIL + 1 WARN)... the clean control passes
+    every one") — that text describes the planted TRAP/CLEAN demo, not the
+    client's own findings. With trades-only CSV (trap with Sharpe ~97):
+    check 2 PASSes, three SKIPs, only survivorship FAILs — the report must
+    say exactly that."""
+    trades_path, _ = client_csvs
+    rc = ad.main(["--csv", trades_path, "--n-perm", str(N_PERM)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "What the demo proves" not in out
+    assert "gets flagged by every check" not in out
+    assert "passes every one" not in out
+    # data-driven summary reflecting the REAL verdicts (1 FAIL, 4 SKIP)
+    assert "## Audit summary" in out
+    assert "**1 FAIL**" in out and "**4 SKIP**" in out and "**1 PASS**" not in out
+
+
+def test_demo_report_keeps_narrative(cases, audited):
+    """The demo narrative belongs to demo mode — still emitted there."""
+    trap_f, m_trap, clean_f, m_clean = audited
+    rep = ad.build_report([
+        ("the trap client", "planted", trap_f, m_trap),
+        ("the clean control", "honest", clean_f, m_clean),
+    ], demo=True)
+    assert "What the demo proves" in rep and "gets flagged by every check" in rep
+    # and the summary block is data-driven for ANY mode input
+    rep2 = ad.build_report([
+        ("the trap client", "planted", trap_f, m_trap),
+    ], demo=False)
+    assert "## Audit summary" in rep2
 
 
 # ── check 5 must test INDEPENDENT units (forensic audit 24-oct-2026) ──
