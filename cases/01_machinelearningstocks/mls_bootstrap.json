@@ -1,0 +1,19 @@
+{
+ "method": "block bootstrap by calendar month (2000 resamples, seed 1) over the pooled temporal walk-forward test rows (2009, 2011-2013)",
+ "n_month_blocks": 35,
+ "n_trades": 303,
+ "outperformance_pts": {
+  "point": 0.24161716171617442,
+  "ci95": [
+   -4.585940284974096,
+   6.07520537630662
+  ]
+ },
+ "precision_minus_prevalence": {
+  "point": -0.0026759432700026453,
+  "ci95": [
+   -0.06421587344107905,
+   0.05661485979221338
+  ]
+ }
+}

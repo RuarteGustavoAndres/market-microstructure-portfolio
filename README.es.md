@@ -316,6 +316,16 @@ Regenerar con `microstructure/scripts/markout_binance.py` (solo lectura, DB
 en vivo; último reporte machine-readable en
 [`results/markout_report.json`](results/markout_report.json)).
 
+## Casos de estudio (auditorías públicas de backtests)
+
+Reproducciones independientes de backtests públicos conocidos — mismo archivo
+de datos (sha256 en cada página), mismo método, scripts propios. Recorridos
+completos en [`docs/cases/`](docs/cases/):
+
+- **[Caso 01 — MachineLearningStocks](docs/cases/CASE_01_MachineLearningStocks.md)** —
+  el split aleatorio reproduce el +28.6 pts del autor; el walk-forward
+  temporal con embargo de 365 días cae a **+0.2 pts (IC [−4.6, +6.1])**.
+
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 por mercado / 0.7276 fill×horizonte, ambos sin fugas).
 - ~~Backtestear el filtro contra P&L bajo supuestos de cinta~~ **hecho sobre features sin fugas
