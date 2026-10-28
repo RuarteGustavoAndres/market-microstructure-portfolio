@@ -264,6 +264,27 @@ as an absolute cost/impact number.** **Do not read this as "the taker pays
 the spread twice", as an execution-quality claim, or as an established impact
 figure** — short-horizon numbers are floor-noisy, not a cost model.
 
+**Robustness — raw trade-to-trade markout (no mid, no book):**
+[`results/markout_trade_to_trade.json`](results/markout_trade_to_trade.json)
+([`microstructure/scripts/markout_trade_to_trade_probe.py`](microstructure/scripts/markout_trade_to_trade_probe.py),
+read-only, same 2026-10-21→10-28 window) recomputes the exit markout entirely
+inside the aggTrade stream: raw(h) = 1e4·sign·(p_trade(t+h) − p_trade(t)) /
+p_trade(t), with p_trade(t+h) the first trade at or after t+h — no mid
+lookup, no book snapshot, hence no cross-stream clock to misalign. It does
+**not** reproduce the negative short-horizon markout of the snapshot-based
+probes: medians are positive and grow with h (BTC +0.17 @0.5 s → +0.24 @2 s →
++0.39 @300 s; ETH +0.26 → +0.34 → +0.38), nearly identically for both
+aggressor sides — aggressive trades are followed by continued motion in their
+direction, not reversion. SOL's median is ≈0 at every horizon: with a
+half-spread ≈0.49 bps and a 1-tick price grid the measure is
+bounce/tick-dominated there and must be read with care. This measure has its
+own convention contamination (exits are future taker prints, entries pay the
+spread), so it is a cross-check, not a cost model; its role is to bound the
+lag artifact: the lag-free measure shows no negative short-horizon floor for
+BTC/ETH, which limits how much of the snapshot-based negativity can be real
+adverse-selection cost rather than alignment/convention artifact. All figures
+descriptive only.
+
 **Robustness — strict freshness cap (0.5s):** re-running with
 `--max-mid-age 0.5` (drops ~78% of fills, median exit-mid staleness
 0.25s), only fresh exit mids;

@@ -1,0 +1,349 @@
+{
+  "window": {
+    "since": "2026-10-21T00:00:00Z",
+    "until": "2026-10-28T19:36:00Z"
+  },
+  "symbols_usados": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "horizontes_s": [
+    0.5,
+    1.0,
+    2.0,
+    5.0,
+    30.0,
+    300.0
+  ],
+  "definicion": "raw(h) = 1e4 * sign * (p_trade(t+h) - p_trade(t)) / p_trade(t); sign=+1 buy aggressor, -1 sell aggressor; p_trade(t+h) = first aggTrade at or after t+h; same aggTrade stream for entry and exit \u2014 no mid, no book snapshot, no cross-stream clock to misalign.",
+  "caveats": "small h is bid-ask-bounce dominated (toggle between bid-side and ask-side prints; size ~ half-spread, largest for SOL ~0.49 bps \u2014 read SOL at small h with care); exit is a future TAKER print, not a maker fill: a robustness cross-check for the mid-based decomposition, not a cost model.",
+  "resumen_por_simbolo": {
+    "BTCUSDT": {
+      "trades_input": 7332379,
+      "n_sin_salida": 6040,
+      "por_horizonte_s": {
+        "0.5": {
+          "all": {
+            "n": 7332369,
+            "mean_bps": 0.384799738370702,
+            "median_bps": 0.16850659823623892
+          },
+          "buy": {
+            "n": 3626238,
+            "mean_bps": 0.40249327854948247,
+            "median_bps": 0.1738749205921925
+          },
+          "sell": {
+            "n": 3706131,
+            "mean_bps": 0.36748761752262066,
+            "median_bps": 0.16132735181188118
+          }
+        },
+        "1.0": {
+          "all": {
+            "n": 7332352,
+            "mean_bps": 0.413384053228678,
+            "median_bps": 0.19849872929877674
+          },
+          "buy": {
+            "n": 3626223,
+            "mean_bps": 0.44028514528425206,
+            "median_bps": 0.2073246582188482
+          },
+          "sell": {
+            "n": 3706129,
+            "mean_bps": 0.38706296220970926,
+            "median_bps": 0.18925191085185467
+          }
+        },
+        "2.0": {
+          "all": {
+            "n": 7332349,
+            "mean_bps": 0.45543606781976886,
+            "median_bps": 0.24192777730064244
+          },
+          "buy": {
+            "n": 3626222,
+            "mean_bps": 0.48940165545415987,
+            "median_bps": 0.24941978722036745
+          },
+          "sell": {
+            "n": 3706127,
+            "mean_bps": 0.422202786520246,
+            "median_bps": 0.23521867289552692
+          }
+        },
+        "5.0": {
+          "all": {
+            "n": 7332259,
+            "mean_bps": 0.5193934814510439,
+            "median_bps": 0.32045385761132383
+          },
+          "buy": {
+            "n": 3626217,
+            "mean_bps": 0.5427920736048909,
+            "median_bps": 0.32243143061477364
+          },
+          "sell": {
+            "n": 3706042,
+            "mean_bps": 0.49649887511783275,
+            "median_bps": 0.31858450454054243
+          }
+        },
+        "30.0": {
+          "all": {
+            "n": 7332025,
+            "mean_bps": 0.5610049564126439,
+            "median_bps": 0.4274720402751943
+          },
+          "buy": {
+            "n": 3626151,
+            "mean_bps": 0.6585599998262267,
+            "median_bps": 0.39753725669441425
+          },
+          "sell": {
+            "n": 3705874,
+            "mean_bps": 0.4655485760205403,
+            "median_bps": 0.45570262570890574
+          }
+        },
+        "300.0": {
+          "all": {
+            "n": 7326880,
+            "mean_bps": 0.45076910774808426,
+            "median_bps": 0.3864570942068582
+          },
+          "buy": {
+            "n": 3623249,
+            "mean_bps": 0.47429743695094106,
+            "median_bps": 0.11346845324957654
+          },
+          "sell": {
+            "n": 3703631,
+            "mean_bps": 0.427751427191916,
+            "median_bps": 0.6406141857110152
+          }
+        }
+      }
+    },
+    "ETHUSDT": {
+      "trades_input": 7289832,
+      "n_sin_salida": 7020,
+      "por_horizonte_s": {
+        "0.5": {
+          "all": {
+            "n": 7289817,
+            "mean_bps": 0.45488921742087585,
+            "median_bps": 0.2565462039711019
+          },
+          "buy": {
+            "n": 3661209,
+            "mean_bps": 0.453157953906019,
+            "median_bps": 0.25378026858388675
+          },
+          "sell": {
+            "n": 3628608,
+            "mean_bps": 0.4566360353637249,
+            "median_bps": 0.2583567648563555
+          }
+        },
+        "1.0": {
+          "all": {
+            "n": 7289816,
+            "mean_bps": 0.4785746947874474,
+            "median_bps": 0.29666925192605714
+          },
+          "buy": {
+            "n": 3661209,
+            "mean_bps": 0.48385831469978097,
+            "median_bps": 0.29297528962578245
+          },
+          "sell": {
+            "n": 3628607,
+            "mean_bps": 0.4732436030556576,
+            "median_bps": 0.2987520699238138
+          }
+        },
+        "2.0": {
+          "all": {
+            "n": 7289789,
+            "mean_bps": 0.5112094445535011,
+            "median_bps": 0.339940935262189
+          },
+          "buy": {
+            "n": 3661184,
+            "mean_bps": 0.5238341683144552,
+            "median_bps": 0.33516135924658763
+          },
+          "sell": {
+            "n": 3628605,
+            "mean_bps": 0.4984713712062988,
+            "median_bps": 0.3428355931909733
+          }
+        },
+        "5.0": {
+          "all": {
+            "n": 7289696,
+            "mean_bps": 0.5254672455696622,
+            "median_bps": 0.38837130022458877
+          },
+          "buy": {
+            "n": 3661163,
+            "mean_bps": 0.5466376568718206,
+            "median_bps": 0.3844149631394979
+          },
+          "sell": {
+            "n": 3628533,
+            "mean_bps": 0.5041064569109274,
+            "median_bps": 0.40546567733188904
+          }
+        },
+        "30.0": {
+          "all": {
+            "n": 7289143,
+            "mean_bps": 0.5223717625306741,
+            "median_bps": 0.4605439442663423
+          },
+          "buy": {
+            "n": 3660961,
+            "mean_bps": 0.5825629050810038,
+            "median_bps": 0.4237988481143454
+          },
+          "sell": {
+            "n": 3628182,
+            "mean_bps": 0.4616368199555227,
+            "median_bps": 0.49818370524085465
+          }
+        },
+        "300.0": {
+          "all": {
+            "n": 7283711,
+            "mean_bps": 0.46297106165020085,
+            "median_bps": 0.38194827571634615
+          },
+          "buy": {
+            "n": 3658076,
+            "mean_bps": 0.4097371981370931,
+            "median_bps": -0.04319001446763354
+          },
+          "sell": {
+            "n": 3625635,
+            "mean_bps": 0.5166812444194467,
+            "median_bps": 0.8140949834612515
+          }
+        }
+      }
+    },
+    "SOLUSDT": {
+      "trades_input": 1644595,
+      "n_sin_salida": 999,
+      "por_horizonte_s": {
+        "0.5": {
+          "all": {
+            "n": 1644592,
+            "mean_bps": -0.26499617776059203,
+            "median_bps": -0.0
+          },
+          "buy": {
+            "n": 841331,
+            "mean_bps": -0.25099199063581346,
+            "median_bps": 0.0
+          },
+          "sell": {
+            "n": 803261,
+            "mean_bps": -0.27966408365653006,
+            "median_bps": -0.0
+          }
+        },
+        "1.0": {
+          "all": {
+            "n": 1644591,
+            "mean_bps": -0.24882873172866107,
+            "median_bps": 0.0
+          },
+          "buy": {
+            "n": 841331,
+            "mean_bps": -0.23342006561934364,
+            "median_bps": 0.0
+          },
+          "sell": {
+            "n": 803260,
+            "mean_bps": -0.2649677010118548,
+            "median_bps": -0.0
+          }
+        },
+        "2.0": {
+          "all": {
+            "n": 1644589,
+            "mean_bps": -0.23640841075983138,
+            "median_bps": -0.0
+          },
+          "buy": {
+            "n": 841331,
+            "mean_bps": -0.23216245401321683,
+            "median_bps": 0.0
+          },
+          "sell": {
+            "n": 803258,
+            "mean_bps": -0.24085561830159996,
+            "median_bps": -0.0
+          }
+        },
+        "5.0": {
+          "all": {
+            "n": 1644581,
+            "mean_bps": -0.22480733274524348,
+            "median_bps": 0.0
+          },
+          "buy": {
+            "n": 841330,
+            "mean_bps": -0.21273578782203287,
+            "median_bps": 0.0
+          },
+          "sell": {
+            "n": 803251,
+            "mean_bps": -0.23745114257585032,
+            "median_bps": -0.0
+          }
+        },
+        "30.0": {
+          "all": {
+            "n": 1644517,
+            "mean_bps": -0.24589565425092405,
+            "median_bps": 0.0
+          },
+          "buy": {
+            "n": 841299,
+            "mean_bps": -0.21910790889018844,
+            "median_bps": 0.0
+          },
+          "sell": {
+            "n": 803218,
+            "mean_bps": -0.2739534211140191,
+            "median_bps": -0.0
+          }
+        },
+        "300.0": {
+          "all": {
+            "n": 1643701,
+            "mean_bps": -0.2439848533207502,
+            "median_bps": 0.0
+          },
+          "buy": {
+            "n": 840881,
+            "mean_bps": -0.42166569504539786,
+            "median_bps": -0.9650646593326689
+          },
+          "sell": {
+            "n": 802820,
+            "mean_bps": -0.05788031697354478,
+            "median_bps": -0.0
+          }
+        }
+      }
+    }
+  },
+  "lectura": "sin desfase entre streams por construccion: todo el desfase de cruce (trades-vs-snapshots <=0.5 s) que contamina la descomposicion drift/entry esta ausente aqui; el rebote bid-ask aparece en su lugar y decae con h.",
+  "duracion_seg": 735.15
+}

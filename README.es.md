@@ -273,6 +273,29 @@ de usarse como número absoluto de costo/impacto.** **No leer esto como
 ejecución, ni como un impacto real establecido** — los números de horizonte
 corto son ruido de piso, no un modelo de costos.
 
+**Robustez — markout crudo trade-to-trade (sin mid, sin libro):**
+[`results/markout_trade_to_trade.json`](results/markout_trade_to_trade.json)
+([`microstructure/scripts/markout_trade_to_trade_probe.py`](microstructure/scripts/markout_trade_to_trade_probe.py),
+solo lectura, misma ventana 2026-10-21→10-28) recalcula el markout de salida
+enteramente dentro del stream de aggTrades: raw(h) = 1e4·signo·(p_trade(t+h)
+− p_trade(t)) / p_trade(t), con p_trade(t+h) el primer trade en o después de
+t+h — sin lookup de mid, sin snapshot de libro, y por lo tanto sin reloj de
+cruce entre streams que desalinear. **No** reproduce el markout negativo de
+horizonte corto de las sondas basadas en snapshots: las medianas son
+positivas y crecen con h (BTC +0.17 @0.5s → +0.24 @2s → +0.39 @300s; ETH
++0.26 → +0.34 → +0.38), casi idénticas para ambas manos agresoras — los
+trades agresivos van seguidos de continuación en su dirección, no de
+reversión. La mediana de SOL es ≈0 en todos los horizontes: con medio-spread
+≈0.49 bps y grilla de precio de 1 tick la medida queda dominada por el
+rebote/tick y hay que leerla con cuidado. Esta medida tiene su propia
+contaminación de convención (las salidas son prints taker futuros, las
+entradas pagan el spread), así que es un cross-check, no un modelo de
+costos; su rol es acotar el artefacto de desfase: la medida sin desfase no
+muestra piso negativo de horizonte corto para BTC/ETH, lo que acota cuánto
+de la negatividad basada en snapshots puede ser costo real de selección
+adversa y cuánto artefacto de alineación/convención. Todas las cifras solo
+descriptivas.
+
 **Robustez — tope estricto de frescura (0.5s):** re-corrida con
 `--max-mid-age 0.5` (descarta ~78% de los fills, frescura mediana del
 mid de salida 0.25s), solo mids de salida frescos;
