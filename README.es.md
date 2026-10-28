@@ -240,31 +240,34 @@ sonda de solo lectura sobre la tabla completa de captura, ~11.5 días)
 muestra que **no** se encoge con mids más frescos: la entrada se mantiene
 ≈−0.5 bps para mids de entrada de menos de 2s (~90% de los trades:
 0–0.5s −0.52, 1–2s −0.53) y solo degrada con mids de ≥2s (2–5s: −0.87).
-**Origen del piso de entrada:** una sonda posterior de
-desfase de timestamps
+**Origen del piso de entrada: un desfase fijo de timestamps entre trades y
+snapshots; ningún piso negativo permanente sobrevive más allá de ~1 s.** Una
+sonda de desfase de timestamps
 ([`results/markout_entry_lag_probe.json`](results/markout_entry_lag_probe.json),
 script
 [`microstructure/scripts/markout_entry_lag_probe.py`](microstructure/scripts/markout_entry_lag_probe.py),
-solo lectura, ventana 2026-10-21→10-28) recalcula la entrada con el mid
-corrido ±0.5s: entry(delta) **no** es plano — decae monotónicamente y llega
-al medio-spread estático en d≈+0.5s (BTC mediana −0.006 vs medio-spread
-+0.006; ETH −0.061 vs +0.021), y el piso de SOL coincide exactamente con su
-medio-spread (−0.491 vs +0.490) en todos los offsets. Por la regla de
-decisión de la propia sonda, esto **no permite excluir un desfase fijo de
-timestamps ≲0.5 s** entre el stamp de aggTrades y el del libro como origen
-del piso — las dos sondas constriñen relojes distintos (staleness =
-frescura dentro de la propia línea de tiempo del libro; desfase =
-alineación entre streams), así que la planicie ante staleness no rescata un
-claim de impacto. El piso de entrada es *o* selección adversa real alrededor
-del fill *o* un artefacto de stamping entre streams — el patrón de decaimiento
-coincide con la hipótesis del desfase (colapso monotónico hacia el
-medio-spread estático, no un patrón de drift), así que una lectura de impacto
-real **no está establecida**; la señal de toxicidad que consume este pipeline es
-el término de deriva del lado de salida, no este piso. **No leer esto como
+solo lectura, ventana 2026-10-21→10-28, δ ∈ {−0.5 … +2 s}) recalcula la
+entrada con el mid corrido δ: entry(δ) **no** es plano — la mediana colapsa
+monotónicamente hacia su medio-spread estático en δ≈+0.5…+1 s (BTC −0.280 →
+−0.006 a +0.5s → −0.006 a +1s; ETH −0.368 → −0.062 → −0.021; SOL plano en
+−0.491 ≡ su medio-spread 0.490 en todos los δ) y se vuelve **positiva** en
+δ=+2 s (BTC mediana +0.080 / media +0.228; ETH +0.153 / +0.294) cuando el mid
+deriva con la tendencia. La media decae más lento que la mediana (BTC −0.591 →
+−0.244 a +0.5s → −0.090 a +1s) por una cola pesada, y también cruza cero a
++1 s — el mínimo queda encerrado, y la cola de la media a +0.5 s es movimiento
+transitorio del mid, no un piso permanente. Consistente con un desfase fijo de
+ingesta ≲0.5 s entre el stamp de aggTrades y el del libro (las dos sondas
+constriñen relojes distintos: staleness = frescura dentro de la propia línea
+de tiempo del libro; desfase = alineación entre streams). **Consecuencia para
+la lectura de toxicidad: la descomposición drift/entry hereda el mismo mid(t)
+— el término de deriva también se mide contra el mid (posiblemente desfasado)
+— así que ninguno de los dos términos debe citarse como medida de impacto
+independiente, y la tabla de arriba debería recalcularse sobre la medida
+limpia raw (fill a fill: precio de salida − precio del fill, sin mid) antes
+de usarse como número absoluto de costo/impacto.** **No leer esto como
 "el taker paga el spread dos veces", ni como una medida de calidad de
-ejecución, ni como un impacto real establecido** — es una medición de
-toxicidad de flujo, y los números de horizonte corto son ruido de piso, no
-un modelo de costos.
+ejecución, ni como un impacto real establecido** — los números de horizonte
+corto son ruido de piso, no un modelo de costos.
 
 **Robustez — tope estricto de frescura (0.5s):** re-corrida con
 `--max-mid-age 0.5` (descarta ~78% de los fills, frescura mediana del

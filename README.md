@@ -232,29 +232,33 @@ above the one-tick quoted spread, and an entry-staleness stratification
 read-only probe over the full capture table, ~11.5 days) shows it does
 **not** shrink with fresher mids: entry stays ≈−0.5 bps for entry mids
 younger than 2s (~90% of trades: 0–0.5s −0.52, 1–2s −0.53) and only
-degrades for mids ≥2s old (2–5s: −0.87). **Origin of the entry floor:** a
-follow-up timestamp-offset sweep
+degrades for mids ≥2s old (2–5s: −0.87). **Origin of the entry floor: a fixed
+trade-vs-snapshot timestamp lag; no permanent negative floor survives beyond
+~1 s.** A timestamp-offset sweep
 ([`results/markout_entry_lag_probe.json`](results/markout_entry_lag_probe.json),
 script
 [`microstructure/scripts/markout_entry_lag_probe.py`](microstructure/scripts/markout_entry_lag_probe.py),
-read-only, 2026-10-21→10-28 window) recomputes the entry with the mid lookup
-shifted ±0.5 s: entry(delta) is *not* flat — it decays monotonically and
-reaches the static quoted half-spread at d≈+0.5 s (BTC median −0.006 vs
-half-spread +0.006; ETH −0.061 vs +0.021), and SOL's floor sits exactly at its
-half-spread (−0.491 vs +0.490) at every offset. By the probe's own decision
-rule this **cannot exclude a fixed ingest-timestamp offset of order ≤0.5 s**
-between the aggTrade and book-snapshot stamps as the origin of the floor —
-the two probes constrain different clocks (staleness = freshness within the
-book's own timeline; offset = cross-stream alignment), so staleness-flatness
-does not rescue an impact claim. The entry floor is *either* real adverse
-selection around the fill *or* a cross-stream stamping artifact — the offset
-decay matches the lag hypothesis (monotonic collapse to the static
-half-spread, not a drift pattern), so a real-impact reading is **not
-established**; the toxicity signal this pipeline consumes is the
-exit-side drift term, not this floor. **Do not read this as "the taker pays
+read-only, 2026-10-21→10-28 window, δ ∈ {−0.5 … +2 s}) recomputes the entry
+with the mid lookup shifted by δ: entry(δ) is *not* flat — the median
+collapses monotonically to its static quoted half-spread by δ≈+0.5…+1 s (BTC
+−0.280 → −0.006 at +0.5 s → −0.006 at +1 s; ETH −0.368 → −0.062 → −0.021; SOL
+flat at −0.491 ≡ its half-spread 0.490 at every δ) and turns **positive** at
+δ=+2 s (BTC median +0.080 / mean +0.228; ETH +0.153 / +0.294) as the mid
+drifts with the trend. The mean decays slower than the median (BTC −0.591 →
+−0.244 at +0.5 s → −0.090 at +1 s) because of a heavy tail, and it also
+crosses zero by +1 s — the minimum is enclosed, and the mean tail at +0.5 s is
+transient mid movement, not a permanent floor. Consistent with a fixed
+ingest-timestamp offset of order ≤0.5 s between the aggTrade and
+book-snapshot stamps (the two probes constrain different clocks: staleness =
+freshness within the book's own timeline; offset = cross-stream alignment).
+**Consequence for the toxicity readout: the drift/entry decomposition inherits
+the same mid(t) — the drift term is also looked up against the (possibly
+lagged) mid — so neither term should be cited as an independent impact
+measure, and the table above should be re-derived on the clean raw measure
+(fill-to-fill: exit fill price − entry fill price, no mid) before being used
+as an absolute cost/impact number.** **Do not read this as "the taker pays
 the spread twice", as an execution-quality claim, or as an established impact
-figure** — it is a flow-toxicity measurement, and short-horizon numbers are
-floor-noisy, not a cost model.
+figure** — short-horizon numbers are floor-noisy, not a cost model.
 
 **Robustness — strict freshness cap (0.5s):** re-running with
 `--max-mid-age 0.5` (drops ~78% of fills, median exit-mid staleness
