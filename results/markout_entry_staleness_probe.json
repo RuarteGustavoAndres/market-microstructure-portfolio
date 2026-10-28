@@ -1,0 +1,416 @@
+{
+ "BTCUSDT": {
+  "trades_input": 10257082,
+  "estratos_entry_staleness": {
+   "0-0.5s": {
+    "n_trades_con_mid": 2678254,
+    "edad_media_entry_s": 0.2280329169241149,
+    "por_horizonte": {
+     "5": {
+      "n": 2613869,
+      "mean_raw_bps": 0.5361227706508639,
+      "mean_drift_bps": 1.0524813276187315,
+      "mean_entry_bps": -0.5163585569678676
+     },
+     "300": {
+      "n": 2638069,
+      "mean_raw_bps": 0.48221425513539146,
+      "mean_drift_bps": 1.003964090150306,
+      "mean_entry_bps": -0.5217498350149146
+     }
+    }
+   },
+   "0.5-1s": {
+    "n_trades_con_mid": 2288383,
+    "edad_media_entry_s": 0.7488230636697355,
+    "por_horizonte": {
+     "5": {
+      "n": 2264873,
+      "mean_raw_bps": 0.4825853207547574,
+      "mean_drift_bps": 0.997547165166877,
+      "mean_entry_bps": -0.5149618444121197
+     },
+     "300": {
+      "n": 2257809,
+      "mean_raw_bps": 0.4173595239219661,
+      "mean_drift_bps": 0.9373053907247199,
+      "mean_entry_bps": -0.5199458668027538
+     }
+    }
+   },
+   "1-2s": {
+    "n_trades_con_mid": 4277135,
+    "edad_media_entry_s": 1.48474515553239,
+    "por_horizonte": {
+     "5": {
+      "n": 4242476,
+      "mean_raw_bps": 0.47219955984438217,
+      "mean_drift_bps": 1.0048542256117532,
+      "mean_entry_bps": -0.5326546657673709
+     },
+     "300": {
+      "n": 4217739,
+      "mean_raw_bps": 0.38412950035540716,
+      "mean_drift_bps": 0.9190124487170366,
+      "mean_entry_bps": -0.5348829483616294
+     }
+    }
+   },
+   "2-5s": {
+    "n_trades_con_mid": 695329,
+    "edad_media_entry_s": 2.713070295457038,
+    "por_horizonte": {
+     "5": {
+      "n": 636723,
+      "mean_raw_bps": 0.5100497172198705,
+      "mean_drift_bps": 1.384463841339372,
+      "mean_entry_bps": -0.8744141241195014
+     },
+     "300": {
+      "n": 674973,
+      "mean_raw_bps": 0.4924958695984625,
+      "mean_drift_bps": 1.372774300610123,
+      "mean_entry_bps": -0.8802784310116605
+     }
+    }
+   },
+   "5-30s": {
+    "n_trades_con_mid": 180981,
+    "edad_media_entry_s": 10.510672716135087,
+    "por_horizonte": {
+     "5": {
+      "n": 100771,
+      "mean_raw_bps": 0.5469325219360596,
+      "mean_drift_bps": 1.9627028275960068,
+      "mean_entry_bps": -1.4157703056599473
+     },
+     "300": {
+      "n": 172378,
+      "mean_raw_bps": 0.2749348752960474,
+      "mean_drift_bps": 1.7572286227610603,
+      "mean_entry_bps": -1.482293747465013
+     }
+    }
+   },
+   "30-300s": {
+    "n_trades_con_mid": 80790,
+    "edad_media_entry_s": 73.1115225489887,
+    "por_horizonte": {
+     "5": {
+      "n": 4966,
+      "mean_raw_bps": 1.1017745998133888,
+      "mean_drift_bps": 0.2768516912727331,
+      "mean_entry_bps": 0.8249229085406556
+     },
+     "300": {
+      "n": 74069,
+      "mean_raw_bps": 1.0034568362838572,
+      "mean_drift_bps": 2.006710874250315,
+      "mean_entry_bps": -1.0032540379664578
+     }
+    }
+   },
+   ">300s": {
+    "n_trades_con_mid": 56208,
+    "edad_media_entry_s": 8043.425757778932,
+    "por_horizonte": {
+     "5": {
+      "n": 5,
+      "mean_raw_bps": -0.006163969657291549,
+      "mean_drift_bps": 4.970194137496871,
+      "mean_entry_bps": -4.976358107154163
+     },
+     "300": {
+      "n": 1248,
+      "mean_raw_bps": 0.12435081096860572,
+      "mean_drift_bps": 2.7898977398407587,
+      "mean_entry_bps": -2.6655469288721534
+     }
+    }
+   }
+  }
+ },
+ "ETHUSDT": {
+  "trades_input": 10470681,
+  "estratos_entry_staleness": {
+   "0-0.5s": {
+    "n_trades_con_mid": 2642668,
+    "edad_media_entry_s": 0.23401552467642095,
+    "por_horizonte": {
+     "5": {
+      "n": 2591394,
+      "mean_raw_bps": 0.5622017954857814,
+      "mean_drift_bps": 1.1599202289389752,
+      "mean_entry_bps": -0.5977184334531938
+     },
+     "300": {
+      "n": 2601532,
+      "mean_raw_bps": 0.34084417218716284,
+      "mean_drift_bps": 0.9445071069393852,
+      "mean_entry_bps": -0.6036629347522224
+     }
+    }
+   },
+   "0.5-1s": {
+    "n_trades_con_mid": 2342676,
+    "edad_media_entry_s": 0.749213864998415,
+    "por_horizonte": {
+     "5": {
+      "n": 2319614,
+      "mean_raw_bps": 0.5176917315233701,
+      "mean_drift_bps": 1.1034592041910536,
+      "mean_entry_bps": -0.5857674726676835
+     },
+     "300": {
+      "n": 2309632,
+      "mean_raw_bps": 0.4825302616312423,
+      "mean_drift_bps": 1.0712743671967235,
+      "mean_entry_bps": -0.5887441055654811
+     }
+    }
+   },
+   "1-2s": {
+    "n_trades_con_mid": 4426859,
+    "edad_media_entry_s": 1.4864869636726559,
+    "por_horizonte": {
+     "5": {
+      "n": 4390959,
+      "mean_raw_bps": 0.5309651537246961,
+      "mean_drift_bps": 1.1472068303865417,
+      "mean_entry_bps": -0.6162416766618457
+     },
+     "300": {
+      "n": 4364441,
+      "mean_raw_bps": 0.47299986858145987,
+      "mean_drift_bps": 1.0905405891218163,
+      "mean_entry_bps": -0.6175407205403564
+     }
+    }
+   },
+   "2-5s": {
+    "n_trades_con_mid": 713268,
+    "edad_media_entry_s": 2.661417246138629,
+    "por_horizonte": {
+     "5": {
+      "n": 654245,
+      "mean_raw_bps": 0.5746766298622933,
+      "mean_drift_bps": 1.3896070379008647,
+      "mean_entry_bps": -0.8149304080385713
+     },
+     "300": {
+      "n": 695367,
+      "mean_raw_bps": 0.4839532978120612,
+      "mean_drift_bps": 1.3057802009379698,
+      "mean_entry_bps": -0.8218269031259084
+     }
+    }
+   },
+   "5-30s": {
+    "n_trades_con_mid": 184612,
+    "edad_media_entry_s": 10.917747816477602,
+    "por_horizonte": {
+     "5": {
+      "n": 93484,
+      "mean_raw_bps": 0.5051717675807506,
+      "mean_drift_bps": 1.6949615933701692,
+      "mean_entry_bps": -1.1897898257894186
+     },
+     "300": {
+      "n": 178543,
+      "mean_raw_bps": 0.9319524112696939,
+      "mean_drift_bps": 2.3441219825561888,
+      "mean_entry_bps": -1.412169571286495
+     }
+    }
+   },
+   "30-300s": {
+    "n_trades_con_mid": 91790,
+    "edad_media_entry_s": 72.99580109426692,
+    "por_horizonte": {
+     "5": {
+      "n": 5751,
+      "mean_raw_bps": 1.0680547268888232,
+      "mean_drift_bps": -0.7934264909536142,
+      "mean_entry_bps": 1.8614812178424374
+     },
+     "300": {
+      "n": 85037,
+      "mean_raw_bps": 0.27953032779096676,
+      "mean_drift_bps": 1.4695906929508489,
+      "mean_entry_bps": -1.190060365159882
+     }
+    }
+   },
+   ">300s": {
+    "n_trades_con_mid": 68807,
+    "edad_media_entry_s": 9530.20233573994,
+    "por_horizonte": {
+     "5": {
+      "n": 50,
+      "mean_raw_bps": -0.17655368997448728,
+      "mean_drift_bps": -18.321641862531443,
+      "mean_entry_bps": 18.145088172556957
+     },
+     "300": {
+      "n": 2611,
+      "mean_raw_bps": 0.6502599740078207,
+      "mean_drift_bps": 5.294811574683251,
+      "mean_entry_bps": -4.64455160067543
+     }
+    }
+   }
+  }
+ },
+ "SOLUSDT": {
+  "trades_input": 2405476,
+  "estratos_entry_staleness": {
+   "0-0.5s": {
+    "n_trades_con_mid": 570126,
+    "edad_media_entry_s": 0.24542954373286832,
+    "por_horizonte": {
+     "5": {
+      "n": 564492,
+      "mean_raw_bps": -0.2539618059204172,
+      "mean_drift_bps": 0.31247301066736477,
+      "mean_entry_bps": -0.566434816587782
+     },
+     "300": {
+      "n": 562967,
+      "mean_raw_bps": -0.21960628491426878,
+      "mean_drift_bps": 0.3488040339217912,
+      "mean_entry_bps": -0.5684103188360601
+     }
+    }
+   },
+   "0.5-1s": {
+    "n_trades_con_mid": 553067,
+    "edad_media_entry_s": 0.7491897456867331,
+    "por_horizonte": {
+     "5": {
+      "n": 550020,
+      "mean_raw_bps": -0.2761113552693024,
+      "mean_drift_bps": 0.29795907574953284,
+      "mean_entry_bps": -0.5740704310188353
+     },
+     "300": {
+      "n": 546438,
+      "mean_raw_bps": -0.29450500294927184,
+      "mean_drift_bps": 0.2799862183267234,
+      "mean_entry_bps": -0.5744912212759953
+     }
+    }
+   },
+   "1-2s": {
+    "n_trades_con_mid": 1069592,
+    "edad_media_entry_s": 1.4935594145319075,
+    "por_horizonte": {
+     "5": {
+      "n": 1064892,
+      "mean_raw_bps": -0.27258209050890364,
+      "mean_drift_bps": 0.30580862122251734,
+      "mean_entry_bps": -0.578390711731421
+     },
+     "300": {
+      "n": 1057349,
+      "mean_raw_bps": -0.28728685689048633,
+      "mean_drift_bps": 0.29121521890990276,
+      "mean_entry_bps": -0.5785020758003891
+     }
+    }
+   },
+   "2-5s": {
+    "n_trades_con_mid": 142091,
+    "edad_media_entry_s": 2.532790487281455,
+    "por_horizonte": {
+     "5": {
+      "n": 134528,
+      "mean_raw_bps": -0.24435813288791788,
+      "mean_drift_bps": 0.41214912204301374,
+      "mean_entry_bps": -0.6565072549309316
+     },
+     "300": {
+      "n": 138947,
+      "mean_raw_bps": -0.3251309150037505,
+      "mean_drift_bps": 0.3370010031833785,
+      "mean_entry_bps": -0.6621319181871289
+     }
+    }
+   },
+   "5-30s": {
+    "n_trades_con_mid": 26140,
+    "edad_media_entry_s": 10.892506576067817,
+    "por_horizonte": {
+     "5": {
+      "n": 13245,
+      "mean_raw_bps": -0.10728070768039324,
+      "mean_drift_bps": 0.7507571708096265,
+      "mean_entry_bps": -0.8580378784900198
+     },
+     "300": {
+      "n": 25165,
+      "mean_raw_bps": -0.32722097001724626,
+      "mean_drift_bps": 0.7175103071164382,
+      "mean_entry_bps": -1.0447312771336843
+     }
+    }
+   },
+   "30-300s": {
+    "n_trades_con_mid": 13126,
+    "edad_media_entry_s": 76.3313517990807,
+    "por_horizonte": {
+     "5": {
+      "n": 788,
+      "mean_raw_bps": 0.09377292311501398,
+      "mean_drift_bps": 0.0263329573263106,
+      "mean_entry_bps": 0.06743996578870338
+     },
+     "300": {
+      "n": 11840,
+      "mean_raw_bps": -1.1338493236240914,
+      "mean_drift_bps": -0.7456376407473285,
+      "mean_entry_bps": -0.38821168287676294
+     }
+    }
+   },
+   ">300s": {
+    "n_trades_con_mid": 31334,
+    "edad_media_entry_s": 8805.016617990357,
+    "por_horizonte": {
+     "5": {
+      "n": 27,
+      "mean_raw_bps": -0.5605312621651216,
+      "mean_drift_bps": -3.5550129842434277,
+      "mean_entry_bps": 2.9944817220783055
+     },
+     "300": {
+      "n": 968,
+      "mean_raw_bps": 1.3627070753585753,
+      "mean_drift_bps": 12.420427664646356,
+      "mean_entry_bps": -11.05772058928778
+     }
+    }
+   }
+  }
+ },
+ "_provenance": {
+  "script": "/tmp/probe_entry_staleness.py v2 (read-only, solo SELECT; reutiliza mb.cargar de markout_binance.py)",
+  "fecha_corrida": "2026-10-28 08:45 (-03)",
+  "ventana": "tabla completa de captura: 2026-10-16 22:54Z -> 2026-10-28 11:41Z (~11.5 d\u00edas)",
+  "definiciones": {
+   "entry_bps": "10000*sign*(mid(t)-price)/mid(t) \u2014 igual que el generador (usa el mid de ENTRADA)",
+   "edad_entry": "t - ts_mid(t): edad del mid usado EN el entry (el generador solo registra frescura en el exit)",
+   "tope_exit": "fresh = (t+h) - ts_mid(t+h) <= 5s, igual que el default"
+  },
+  "nota": "_buckets 30-300s y >300s: n peque\u00f1o y ruidoso, NO interpretar; ~90% de los trades tienen mid de entrada <2s",
+  "duracion_seg": 223.3,
+  "buckets": [
+   "0-0.5s",
+   "0.5-1s",
+   "1-2s",
+   "2-5s",
+   "5-30s",
+   "30-300s",
+   ">300s"
+  ]
+ }
+}

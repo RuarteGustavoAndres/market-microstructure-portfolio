@@ -223,10 +223,16 @@ venue 2 = continuous high-frequency books — same schema, same analytics.
 adverse selection of *aggressive* flow — a maker filling the other side earns
 the negative of it. BTC/ETH show small positive markout (their aggressors are
 right at 5s), SOL is clearly toxic (median −0.48 bps, 66–68% of taker trades
-lose). **These magnitudes are inside the spread:** BTC's entry −0.44 bps is
-~$3.6 on ~$81k — the quoted spread is one tick (~$0.01), so the entry
-offset is dominated by mid movement within the second, i.e. the ~1s staleness
-of the reconstructed exit mid, not by paying the spread. **Do not read this as "the taker pays the
+lose). **On the entry term:** BTC's entry −0.44 bps (~$3.6 on ~$81k) is far
+above the one-tick quoted spread, and an entry-staleness stratification
+([`results/markout_entry_staleness_probe.json`](results/markout_entry_staleness_probe.json),
+read-only probe over the full capture table, ~11.5 days) shows it does
+**not** shrink with fresher mids: entry stays ≈−0.5 bps for entry mids
+younger than 2s (~90% of trades: 0–0.5s −0.52, 1–2s −0.53) and only
+degrades for mids ≥2s old (2–5s: −0.87). It is therefore real price impact /
+adverse selection around the fill itself — exactly the toxicity signal this
+pipeline consumes — not a staleness artifact of the reconstructed mid and
+not quoted-spread payment. **Do not read this as "the taker pays the
 spread twice" or as an execution-quality claim** — it is a flow-toxicity
 measurement, and short-horizon numbers are floor-noisy, not a cost model.
 
@@ -235,7 +241,10 @@ measurement, and short-horizon numbers are floor-noisy, not a cost model.
 0.25s), only fresh exit mids;
 [`results/markout_strict_freshness.json`](results/markout_strict_freshness.json)
 keeps the same shape: BTC +0.38, ETH +0.50, SOL −0.26 mean bps @5s (drift
-~+0.81/+1.08/+0.31, entry ~−0.43/−0.58/−0.58). The per-market ordering and
+~+0.81/+1.08/+0.31, entry ~−0.43/−0.58/−0.58). A further cap at 1s
+([`results/markout_max_mid_age_1s.json`](results/markout_max_mid_age_1s.json))
+moves BTC drift to 0.77 @5s / 0.84 @300s and entry to −0.40 @5s — the
+decomposition shifts only modestly with the freshness cap. The per-market ordering and
 signs are stable; the entry/drift decomposition itself is **not** quoted as a
 cost model — the drift term barely scales with horizon (0.81 @5s → 0.68
 @300s), so "market drift" vs "mid-offset" cannot be separated with this data

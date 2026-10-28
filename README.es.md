@@ -232,11 +232,17 @@ misma analítica.
 selection del flujo *agresivo* — un maker que toma el otro lado gana el
 negativo de esto. BTC/ETH muestran markout positivo chico (sus agresores
 aciertan a 5s); SOL es claramente tóxico (mediana −0.48 bps, 66–68% de los
-trades taker pierden). **Estas magnitudes viven dentro del spread:** la
-entrada de BTC −0.44 bps es ~$3.6 sobre ~$81k — el spread cotizado es ~un
-tick (~$0.01), así que el término de entrada está dominado por el movimiento
-del mid dentro del segundo, o sea el ~1s de staleness del mid de salida
-reconstruido, no por pagar el spread.
+trades taker pierden). **Sobre el término de entrada:** la entrada de BTC
+−0.44 bps (~$3.6 sobre ~$81k) está muy por encima del spread cotizado de un
+tick, y una estratificación por staleness del mid de entrada
+([`results/markout_entry_staleness_probe.json`](results/markout_entry_staleness_probe.json),
+sonda de solo lectura sobre la tabla completa de captura, ~11.5 días)
+muestra que **no** se encoge con mids más frescos: la entrada se mantiene
+≈−0.5 bps para mids de entrada de menos de 2s (~90% de los trades:
+0–0.5s −0.52, 1–2s −0.53) y solo degrada con mids de ≥2s (2–5s: −0.87).
+Es entonces impacto real de precio / selección adversa alrededor del fill
+mismo — exactamente la señal de toxicidad que consume este pipeline — no un
+artefacto de staleness del mid reconstruido ni pago del spread cotizado.
 **No leer esto como "el taker paga el spread dos veces" ni como una medida de
 calidad de ejecución** — es una medición de toxicidad de flujo, y los números
 de horizonte corto son ruido de piso, no un modelo de costos.
@@ -246,7 +252,11 @@ de horizonte corto son ruido de piso, no un modelo de costos.
 mid de salida 0.25s), solo mids de salida frescos;
 [`results/markout_strict_freshness.json`](results/markout_strict_freshness.json)
 conserva la misma forma: BTC +0.38, ETH +0.50, SOL −0.26 bps medios @5s
-(deriva ~+0.81/+1.08/+0.31, entrada ~−0.43/−0.58/−0.58). El orden y los
+(deriva ~+0.81/+1.08/+0.31, entrada ~−0.43/−0.58/−0.58). Un tope adicional
+de 1s ([`results/markout_max_mid_age_1s.json`](results/markout_max_mid_age_1s.json))
+mueve la deriva de BTC a 0.77 @5s / 0.84 @300s y la entrada a −0.40 @5s —
+la descomposición se mueve solo marginalmente con el tope de frescura.
+El orden y los
 signos por mercado son estables; la descomposición entrada/deriva **no** se
 cita como modelo de costos — el término de deriva casi no escala con el
 horizonte (0.81 @5s → 0.68 @300s), así que "deriva del mercado" vs
