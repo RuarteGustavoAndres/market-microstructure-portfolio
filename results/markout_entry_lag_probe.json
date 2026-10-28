@@ -609,4 +609,3 @@
   "lectura": "entry(delta) plano en +-0.5 s excluye el desfase fijo como origen del piso de entry; entry(delta) que colapsa hacia el medio spread confirma el desfase. Ref: median_half_spread_bps.",
   "duracion_seg": 952.655
 }
-EXIT=0

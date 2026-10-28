@@ -245,9 +245,13 @@ collapses monotonically to its static quoted half-spread by δ≈+0.5…+1 s (BT
 flat at −0.491 ≡ its half-spread 0.490 at every δ) and turns **positive** at
 δ=+2 s (BTC median +0.080 / mean +0.228; ETH +0.153 / +0.294) as the mid
 drifts with the trend. The mean decays slower than the median (BTC −0.591 →
-−0.244 at +0.5 s → −0.090 at +1 s) because of a heavy tail, and it also
-crosses zero by +1 s — the minimum is enclosed, and the mean tail at +0.5 s is
-transient mid movement, not a permanent floor. Consistent with a fixed
+−0.244 at +0.5 s → −0.090 at +1 s) because of a heavy tail; it crosses zero
+only between +1 s and +2 s, and the mean identifies nothing on its own — at
+positive δ the shifted mid lookup mixes the lag correction with real drift in
+the aggressor's favor (the toxicity signal itself), so only the median
+plateau localizes the offset, and a residual mean of ≈−0.09 bps at +1 s stays
+unexplained by the lag alone. The minimum is enclosed, and the mean tail at
++0.5 s is transient mid movement, not a permanent floor. Consistent with a fixed
 ingest-timestamp offset of order ≤0.5 s between the aggTrade and
 book-snapshot stamps (the two probes constrain different clocks: staleness =
 freshness within the book's own timeline; offset = cross-stream alignment).

@@ -253,9 +253,13 @@ monotónicamente hacia su medio-spread estático en δ≈+0.5…+1 s (BTC −0.2
 −0.491 ≡ su medio-spread 0.490 en todos los δ) y se vuelve **positiva** en
 δ=+2 s (BTC mediana +0.080 / media +0.228; ETH +0.153 / +0.294) cuando el mid
 deriva con la tendencia. La media decae más lento que la mediana (BTC −0.591 →
-−0.244 a +0.5s → −0.090 a +1s) por una cola pesada, y también cruza cero a
-+1 s — el mínimo queda encerrado, y la cola de la media a +0.5 s es movimiento
-transitorio del mid, no un piso permanente. Consistente con un desfase fijo de
+−0.244 a +0.5s → −0.090 a +1s) por una cola pesada; cruza cero recién entre
++1 s y +2 s, y la media por sí sola no identifica nada — con δ positivos la
+búsqueda del mid corrido mezcla la corrección del desfase con deriva real a
+favor del agresor (la señal de toxicidad misma), así que solo la meseta de la
+mediana localiza el desfase, y queda una media residual de ≈−0.09 bps a +1 s
+sin explicar por el desfase solo. El mínimo queda encerrado, y la cola de la
+media a +0.5 s es movimiento transitorio del mid, no un piso permanente. Consistente con un desfase fijo de
 ingesta ≲0.5 s entre el stamp de aggTrades y el del libro (las dos sondas
 constriñen relojes distintos: staleness = frescura dentro de la propia línea
 de tiempo del libro; desfase = alineación entre streams). **Consecuencia para
