@@ -6,15 +6,15 @@
 
 | Metric | Value |
 |---|---|
-| Generated | 2026-10-26 16:07 UTC |
-| trades_full (fills captured, exact count) | 1220542 |
-| Last fill timestamp (exact) | 2026-10-26_16:00_UTC |
-| libro_eventos (order-book events, chunk-estimate) | 194122160 |
-| Last book-event timestamp (exact) | 2026-10-26_16:00_UTC |
-| libro_top5 (top-5 snapshots, exact count) | 1578646 |
-| Active tokens last 7 days (exact, indexed) | 217 |
-| Fills last 7 days (exact, indexed) | 742484 |
-| Markets tracked (market_meta) | 17166 |
+| Generated | 2026-10-28 12:56 UTC |
+| trades_full (fills captured, exact count) | 1416998 |
+| Last fill timestamp (exact) | 2026-10-28_12:53_UTC |
+| libro_eventos (order-book events, chunk-estimate) | 208092480 |
+| Last book-event timestamp (exact) | 2026-10-28_12:53_UTC |
+| libro_top5 (top-5 snapshots, exact count) | 1837215 |
+| Active tokens last 7 days (exact, indexed) | 124 |
+| Fills last 7 days (exact, indexed) | 748523 |
+| Markets tracked (market_meta) | 18723 |
 
 **Liveness:** Healthy: last trade 0 min ago.
 
@@ -23,4 +23,6 @@ UTC (~3h). Trades stream: no gaps. See README "Data status".
 
 Model re-training is NOT run daily — model metrics are re-validated on explicit
 cadence and always cite a human-reviewed provenance: see results/MODEL_STATUS.md
-(current: leak-free re-run 2026-10-19, AUC 0.7356 pooled OOS / PR-AUC 0.514).
+(current: leak-free re-run 2026-10-19 — headline AUC 0.7276 temporal
+walk-forward fill×horizon; per-market GroupKFold 0.7356. Provenance of the
+three published AUCs: docs/RESULTS.md "AUC provenance").
