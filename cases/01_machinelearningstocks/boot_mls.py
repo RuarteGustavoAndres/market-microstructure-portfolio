@@ -3,7 +3,9 @@ import numpy as np, pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 df = pd.read_csv(sys.argv[1]); df["Date"] = pd.to_datetime(df["Date"])
 df = df.dropna(axis=0, how="any").reset_index(drop=True)
-X = df[df.columns[6:]].values
+feat = list(df.columns[list(df.columns).index('SP500_p_change') + 1:])
+assert len(feat) == 41 and feat[0] == 'Market Cap' and 'SP500_p_change' not in feat, feat
+X = df[feat].values
 y = ((df.stock_p_change - df.SP500_p_change) >= 10).astype(int).values
 rs, rm = df.stock_p_change.values, df.SP500_p_change.values
 yr = df.Date.dt.year.values

@@ -1,0 +1,10 @@
+n features: author 41 | ours 41 | identical matrix: True
+0 autor {'acc': 0.77, 'prec': 0.8, 'trades': 183, 'out': 31.1} | nuestro {'acc': 0.77, 'prec': 0.8, 'trades': 183, 'out': 31.1} | IGUAL
+1 autor {'acc': 0.81, 'prec': 0.79, 'trades': 171, 'out': 25.1} | nuestro {'acc': 0.81, 'prec': 0.79, 'trades': 171, 'out': 25.1} | IGUAL
+2 autor {'acc': 0.8, 'prec': 0.8, 'trades': 164, 'out': 24.4} | nuestro {'acc': 0.8, 'prec': 0.8, 'trades': 164, 'out': 24.4} | IGUAL
+3 autor {'acc': 0.81, 'prec': 0.79, 'trades': 182, 'out': 31.5} | nuestro {'acc': 0.81, 'prec': 0.79, 'trades': 182, 'out': 31.5} | IGUAL
+4 autor {'acc': 0.77, 'prec': 0.72, 'trades': 180, 'out': 27.1} | nuestro {'acc': 0.77, 'prec': 0.72, 'trades': 180, 'out': 27.1} | IGUAL
+5 autor {'acc': 0.78, 'prec': 0.71, 'trades': 169, 'out': 26.5} | nuestro {'acc': 0.78, 'prec': 0.71, 'trades': 169, 'out': 26.5} | IGUAL
+6 autor {'acc': 0.78, 'prec': 0.78, 'trades': 182, 'out': 30.0} | nuestro {'acc': 0.78, 'prec': 0.78, 'trades': 182, 'out': 30.0} | IGUAL
+7 autor {'acc': 0.8, 'prec': 0.72, 'trades': 174, 'out': 23.9} | nuestro {'acc': 0.8, 'prec': 0.72, 'trades': 174, 'out': 23.9} | IGUAL
+TODAS IGUALES: True

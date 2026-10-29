@@ -2,7 +2,7 @@
 """Audit of robertmartin8/MachineLearningStocks backtest (reads keystats.csv only; runs none of the repo's code).
 
 Same model/features/label/accounting as the repo's backtesting.py:
-  RandomForestClassifier(n_estimators=100, random_state=0), features = columns[6:], label = stock_p_change - SP500_p_change >= 10,
+  RandomForestClassifier(n_estimators=100, random_state=0), features = the 41 columns after SP500_p_change (Market Cap ... Shares Short (prior month)), label = stock_p_change - SP500_p_change >= 10,
   'trade' = every row predicted 1, return = mean(stock_p_change) vs mean(SP500_p_change) over those rows.
 Only the split changes.
 
@@ -25,7 +25,8 @@ PATH, OUT = sys.argv[1], sys.argv[2]
 df = pd.read_csv(PATH)
 df["Date"] = pd.to_datetime(df["Date"])
 df = df.dropna(axis=0, how="any").reset_index(drop=True)  # same as repo
-feat = [c for c in df.columns[6:]]
+feat = list(df.columns[list(df.columns).index('SP500_p_change') + 1:])
+assert len(feat) == 41 and feat[0] == 'Market Cap' and 'SP500_p_change' not in feat, feat  # same inputs as the project's backtesting.py
 X = df[feat].values
 y = ((df["stock_p_change"] - df["SP500_p_change"]) >= 10).astype(int).values
 r_s = df["stock_p_change"].values

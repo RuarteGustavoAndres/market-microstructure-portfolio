@@ -51,7 +51,7 @@ def test_every_cases_json_parses():
 
 def test_case_files_exist():
     for name in ("audit_mls.py", "boot_mls.py", "mls_audit.json",
-                 "mls_bootstrap.json"):
+                 "mls_bootstrap.json", "anchor.py", "anchor_stdout.txt"):
         assert (CASE_DIR / name).is_file(), f"missing {name}"
     assert CASE_MD.is_file(), "case page missing under docs/cases/"
 
@@ -112,3 +112,23 @@ def test_case_page_numbers_match_json():
     missing = [tok for tok in required if tok not in md]
     assert not missing, "case page numbers not derivable from JSON: " + str(missing)
 
+
+def test_scripts_use_the_projects_41_inputs():
+    """Regression: the first published version selected df.columns[6:] on a frame read
+    without index_col, which silently added SP500_p_change (the index's own forward
+    return) as a 42nd input. Both scripts must select inputs by name and assert the
+    project's exact 41 inputs."""
+    for name in ("audit_mls.py", "boot_mls.py"):
+        src = (CASE_DIR / name).read_text(encoding="utf-8")
+        assert "len(feat) == 41" in src, f"{name}: missing 41-input assertion"
+        assert "'SP500_p_change' not in feat" in src, f"{name}: leaking column not excluded"
+        assert "columns[6:]" not in src, f"{name}: positional column selection"
+
+
+def test_anchor_run_matches_the_projects_own_backtest():
+    """anchor_stdout.txt records the author's own backtesting.py run under the same
+    random splits as our re-implementation: same input matrix, identical results."""
+    out = (CASE_DIR / "anchor_stdout.txt").read_text(encoding="utf-8")
+    assert "author 41 | ours 41 | identical matrix: True" in out
+    assert "TODAS IGUALES: True" in out
+    assert "DIFIERE" not in out

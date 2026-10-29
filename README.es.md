@@ -324,8 +324,8 @@ completos en [`docs/cases/`](docs/cases/):
 
 - **[Caso 01 — MachineLearningStocks](docs/cases/CASE_01_MachineLearningStocks.md)** —
   el split aleatorio reproduce aproximadamente el +28.6 pts del autor (nuestro:
-  **+30.1**); el walk-forward
-  temporal con embargo de 365 días cae a **+0.2 pts (IC [−4.6, +6.1])**.
+  **+29.2**); el walk-forward
+  temporal con embargo de 365 días cae a **+2.3 pts (IC [−3.1, +8.5], incluye 0)**.
 
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 por mercado / 0.7276 fill×horizonte, ambos sin fugas).

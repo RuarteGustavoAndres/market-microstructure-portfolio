@@ -1,19 +1,19 @@
 {
  "method": "block bootstrap by calendar month (2000 resamples, seed 1) over the pooled temporal walk-forward test rows (2009, 2011-2013)",
  "n_month_blocks": 35,
- "n_trades": 303,
+ "n_trades": 291,
  "outperformance_pts": {
-  "point": 0.24161716171617442,
+  "point": 2.2789690721649514,
   "ci95": [
-   -4.585940284974096,
-   6.07520537630662
+   -3.10135264699381,
+   8.487925028688702
   ]
  },
  "precision_minus_prevalence": {
-  "point": -0.0026759432700026453,
+  "point": 0.006408470325996118,
   "ci95": [
-   -0.06421587344107905,
-   0.05661485979221338
+   -0.05968494035398198,
+   0.06578665351846667
   ]
  }
 }

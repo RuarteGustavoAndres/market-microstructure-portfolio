@@ -311,8 +311,8 @@ Audits of public backtests — same data file
 
 - **[Case 01 — MachineLearningStocks](docs/cases/CASE_01_MachineLearningStocks.md)** —
   the random split approximately reproduces the author's +28.6 pts (ours:
-  **+30.1**); the time-ordered
-  walk-forward with a 365-day embargo drops to **+0.2 pts (CI [−4.6, +6.1])**.
+  **+29.2**); the time-ordered
+  walk-forward with a 365-day embargo drops to **+2.3 pts (CI [−3.1, +8.5], includes 0)**.
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7356 by-market / 0.7276 fill×horizon, both leak-free).
