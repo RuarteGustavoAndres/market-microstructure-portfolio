@@ -318,12 +318,13 @@ en vivo; último reporte machine-readable en
 
 ## Casos de estudio (auditorías públicas de backtests)
 
-Reproducciones independientes de backtests públicos conocidos — mismo archivo
+Auditorías de backtests públicos — mismo archivo
 de datos (sha256 en cada página), mismo método, scripts propios. Recorridos
 completos en [`docs/cases/`](docs/cases/):
 
 - **[Caso 01 — MachineLearningStocks](docs/cases/CASE_01_MachineLearningStocks.md)** —
-  el split aleatorio reproduce el +28.6 pts del autor; el walk-forward
+  el split aleatorio reproduce aproximadamente el +28.6 pts del autor (nuestro:
+  **+30.1**); el walk-forward
   temporal con embargo de 365 días cae a **+0.2 pts (IC [−4.6, +6.1])**.
 
 ## Próximos pasos (acotados)

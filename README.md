@@ -305,12 +305,13 @@ DB; latest machine-readable report in
 
 ## Case studies (public backtest audits)
 
-Independent reproductions of well-known public backtests — same data file
+Audits of public backtests — same data file
 (sha256 in each case page), same method, our own scripts. Full walkthroughs in
 [`docs/cases/`](docs/cases/):
 
 - **[Case 01 — MachineLearningStocks](docs/cases/CASE_01_MachineLearningStocks.md)** —
-  the random split reproduces the author's +28.6 pts; the time-ordered
+  the random split approximately reproduces the author's +28.6 pts (ours:
+  **+30.1**); the time-ordered
   walk-forward with a 365-day embargo drops to **+0.2 pts (CI [−4.6, +6.1])**.
 
 ## Next steps (scoped)
