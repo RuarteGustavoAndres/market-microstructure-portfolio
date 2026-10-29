@@ -1,0 +1,44 @@
+{
+ "env": {
+  "python": "3.12.13",
+  "numpy": "2.5.4",
+  "pandas": "3.1.0",
+  "repo_commit": "33266732b0b16188b565e0aeb6b24efa71161f6a",
+  "goog_year_csv_sha256": "3667ef08ae4dac9e8048d3942c703319bda86298aed9060c19d9bb3d0259cfe6"
+ },
+ "buy_and_hold": {
+  "full": 13340.7,
+  "train_70": 12403.02,
+  "test_30": 10756.02,
+  "days": 252,
+  "cut_index": 176,
+  "first": "2016-11-02",
+  "last": "2017-11-01"
+ },
+ "agents": {
+  "1-turtle": {
+   "published_total_balance": 10361.980043,
+   "reproduced_total_balance": 10361.980043,
+   "exact": true,
+   "transform": "none"
+  },
+  "2-moving-average": {
+   "published_total_balance": 10061.999939,
+   "reproduced_total_balance": 10061.999939,
+   "exact": true,
+   "transform": ".loc chained-assignment fix (pandas 3 CoW)"
+  },
+  "3-signal-rolling": {
+   "published_total_balance": 10144.970031,
+   "reproduced_total_balance": 10144.970031,
+   "exact": true,
+   "transform": "none"
+  },
+  "23-abcd-strategy": {
+   "published_total_balance": 13054.580017,
+   "reproduced_total_balance": 13054.580017,
+   "exact": true,
+   "transform": "none"
+  }
+ }
+}

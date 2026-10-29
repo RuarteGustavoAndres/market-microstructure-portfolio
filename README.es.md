@@ -326,6 +326,12 @@ completos en [`docs/cases/`](docs/cases/):
   el split aleatorio reproduce aproximadamente el +28.6 pts del autor (nuestro:
   **+30.1**); el walk-forward
   temporal con embargo de 365 días cae a **+0.2 pts (IC [−4.6, +6.1])**.
+- **[Caso 02 — Stock-Prediction-Models](docs/cases/CASE_02_StockPredictionModels.md)** —
+  los 4 agentes de reglas reproducen byte a byte y ninguno vence a buy-and-hold;
+  el único que "vence al mercado" necesita precios futuros (con la señal retrasada:
+  +30.5% → **−63.2%**); los evolutivos no fijan semilla, dos compran sin dinero (la
+  puerta de caja mira una variable que nunca se decrementa) y su +25…37% in-sample
+  cae a **−54%…−274%** out-of-sample.
 
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 por mercado / 0.7276 fill×horizonte, ambos sin fugas).

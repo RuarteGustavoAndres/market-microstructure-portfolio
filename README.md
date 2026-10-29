@@ -313,6 +313,12 @@ Audits of public backtests — same data file
   the random split approximately reproduces the author's +28.6 pts (ours:
   **+30.1**); the time-ordered
   walk-forward with a 365-day embargo drops to **+0.2 pts (CI [−4.6, +6.1])**.
+- **[Case 02 — Stock-Prediction-Models](docs/cases/CASE_02_StockPredictionModels.md)** —
+  the 4 rule-based agents reproduce byte-for-byte and none beats buy-and-hold; the
+  only one that "beats the market" needs future prices (delayed signal: +30.5% →
+  **−63.2%**); the evolution agents ship no seeds, two of them buy while broke (the
+  cash gate watches a variable that is never decremented), and their in-sample
+  +25…37% falls to **−54%…−274%** out of sample.
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7356 by-market / 0.7276 fill×horizon, both leak-free).
