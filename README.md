@@ -313,6 +313,17 @@ Audits of public backtests — same data file
   the random split approximately reproduces the author's +28.6 pts (ours:
   **+29.2**); the time-ordered
   walk-forward with a 365-day embargo drops to **+2.3 pts (CI [−3.1, +8.5], includes 0)**.
+- **[Case 02 — Stock-Prediction-Models](docs/cases/CASE_02_StockPredictionModels.md)** —
+  the 4 rule-based agents reproduce to the cent and none beats buy-and-hold (agent 23, the
+  closest, is −2.1%; its future peeking is a real defect — the fixed-12-day-shift check only
+  bounds its effect from below, ~1%, and is not a causal measurement). The notebooks' saved
+  "final balance" is cash only: unsold inventory is never valued. Our seeded re-runs suggest
+  agent 22's −$70,156 is cash spent into shares rather than a loss (in every seed the broken
+  gate keeps buying while broke) — but that outperformance is financed by free
+  leverage: two evolution agents keep buying while broke (the cash gate watches a variable
+  that is never decremented). Among the stochastic agents only agent 6 respects its cash
+  limit: +1.1%…+3.8% over buy-and-hold in-sample, −0.8%…+2.0% out of sample (5 seeds) — no
+  edge distinguishable from buy-and-hold.
 
 ## Next steps (scoped)
 - ~~MLP → LightGBM~~ **done** — superseded by the leak-free LightGBM re-run (AUC 0.7356 by-market / 0.7276 fill×horizon, both leak-free).

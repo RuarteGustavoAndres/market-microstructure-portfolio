@@ -1,0 +1,155 @@
+{
+ "env": {
+  "python": "3.12.13",
+  "numpy": "2.5.4",
+  "pandas": "3.1.0",
+  "repo_commit": "33266732b0b16188b565e0aeb6b24efa71161f6a",
+  "goog_year_csv_sha256": "3667ef08ae4dac9e8048d3942c703319bda86298aed9060c19d9bb3d0259cfe6"
+ },
+ "buy_and_hold": {
+  "full": 13340.7,
+  "train_70": 12403.02,
+  "test_30": 10756.02,
+  "days": 252,
+  "cut_index": 176,
+  "first": "2016-11-02",
+  "last": "2017-11-01"
+ },
+ "agents": {
+  "6-evolution-strategy": {
+   "published_total_balance": 13740.719785,
+   "runs": [
+    {
+     "seed": 42,
+     "oos_cash": 3539.589903,
+     "min_cash_during_buy": 536.7799059999993,
+     "rc": 0,
+     "unsold_units": 7,
+     "last_price": 1025.5,
+     "total_value": 10718.089903
+    },
+    {
+     "seed": 43,
+     "oos_cash": 1712.729922,
+     "min_cash_during_buy": 684.6299459999998,
+     "rc": 0,
+     "unsold_units": 9,
+     "last_price": 1025.5,
+     "total_value": 10942.229922
+    },
+    {
+     "seed": 44,
+     "oos_cash": 4599.119935,
+     "min_cash_during_buy": 713.2199110000015,
+     "rc": 0,
+     "unsold_units": 6,
+     "last_price": 1025.5,
+     "total_value": 10752.119934999999
+    },
+    {
+     "seed": 45,
+     "oos_cash": 2767.460145,
+     "min_cash_during_buy": 724.1601570000016,
+     "rc": 0,
+     "unsold_units": 8,
+     "last_price": 1025.5,
+     "total_value": 10971.460145000001
+    },
+    {
+     "seed": 46,
+     "oos_cash": 1436.609983,
+     "min_cash_during_buy": 419.49999799999966,
+     "rc": 0,
+     "unsold_units": 9,
+     "last_price": 1025.5,
+     "total_value": 10666.109983
+    }
+   ],
+   "transform": "dead imports/%%time stripped; _MIN_CASH instrumented; MTM print at end of buy(); np.random.seed(s); close split 70/30, fit on train[:176], agent.trend = close[175:] for the final buy()"
+  },
+  "21-neuro-evolution": {
+   "published_total_balance": 12537.790467,
+   "runs": [
+    {
+     "seed": 42,
+     "oos_cash": -10902.290038,
+     "min_cash_during_buy": -11833.700073,
+     "rc": 0,
+     "unsold_units": 22,
+     "last_price": 1025.5,
+     "total_value": 11658.709962
+    },
+    {
+     "seed": 43,
+     "oos_cash": 8307.089903,
+     "min_cash_during_buy": 3543.319943999997,
+     "rc": 0,
+     "unsold_units": 2,
+     "last_price": 1025.5,
+     "total_value": 10358.089903
+    },
+    {
+     "seed": 44,
+     "oos_cash": 7279.939759,
+     "min_cash_during_buy": 5237.689757999999,
+     "rc": 0,
+     "unsold_units": 3,
+     "last_price": 1025.5,
+     "total_value": 10356.439759
+    },
+    {
+     "seed": 45,
+     "oos_cash": -17399.610165,
+     "min_cash_during_buy": -17400.080135000004,
+     "rc": 0,
+     "unsold_units": 29,
+     "last_price": 1025.5,
+     "total_value": 12339.889835000002
+    },
+    {
+     "seed": 46,
+     "oos_cash": 6161.639952,
+     "min_cash_during_buy": 5230.229916999999,
+     "rc": 0,
+     "unsold_units": 4,
+     "last_price": 1025.5,
+     "total_value": 10263.639952000001
+    }
+   ],
+   "transform": "dead imports/%%time stripped; _MIN_CASH instrumented; MTM print at end of buy(); np.random.seed(s); close split 70/30, fit on train[:176], agent.trend = close[175:] for the final buy()"
+  },
+  "22-neuro-evolution-novelty-search": {
+   "published_total_balance": -70156.299862,
+   "runs": [
+    {
+     "seed": 42,
+     "oos_cash": -23989.350221,
+     "min_cash_during_buy": -23989.350221000004,
+     "rc": 0,
+     "unsold_units": 36,
+     "last_price": 1025.5,
+     "total_value": 12928.649779
+    },
+    {
+     "seed": 43,
+     "oos_cash": -42092.260254,
+     "min_cash_during_buy": -42092.26025399999,
+     "rc": 0,
+     "unsold_units": 55,
+     "last_price": 1025.5,
+     "total_value": 14310.239746
+    },
+    {
+     "seed": 44,
+     "oos_cash": -2155.750059,
+     "min_cash_during_buy": -3128.310056999998,
+     "rc": 0,
+     "unsold_units": 13,
+     "last_price": 1025.5,
+     "total_value": 11175.749941
+    }
+   ],
+   "transform": "dead imports/%%time stripped; _MIN_CASH instrumented; MTM print at end of buy(); np.random.seed(s); close split 70/30, fit on train[:176], agent.trend = close[175:] for the final buy()"
+  }
+ }
+}

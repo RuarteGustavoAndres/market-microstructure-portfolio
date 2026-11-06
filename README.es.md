@@ -326,6 +326,18 @@ completos en [`docs/cases/`](docs/cases/):
   el split aleatorio reproduce aproximadamente el +28.6 pts del autor (nuestro:
   **+29.2**); el walk-forward
   temporal con embargo de 365 días cae a **+2.3 pts (IC [−3.1, +8.5], incluye 0)**.
+- **[Caso 02 — Stock-Prediction-Models](docs/cases/CASE_02_StockPredictionModels.md)** —
+  los 4 agentes de reglas reproducen al centavo y ninguno vence a buy-and-hold (el 23, el
+  más cercano, queda a −2.1%; su mirada al futuro es un defecto real — el cheque con
+  retardo fijo de 12 días solo acota su efecto por abajo, ~1%, y no es una medición causal).
+  El "balance final" que guardan los cuadernos es solo efectivo: no valúa las acciones sin
+  vender. Nuestras corridas con semillas sugieren que el −$70.156 del agente 22 es efectivo
+  gastado en acciones, no una pérdida (en cada semilla la puerta rota sigue comprando sin
+  dinero) — pero ese desempeño está financiado con apalancamiento gratis: dos agentes
+  evolutivos siguen comprando sin dinero (la puerta de caja mira una variable que nunca se
+  decrementa). De los agentes estocásticos solo el 6 respeta su límite de caja: +1.1%…+3.8%
+  sobre buy-and-hold dentro de la muestra y −0.8%…+2.0% fuera de ella (5 semillas) —
+  ninguna ventaja distinguible de buy-and-hold.
 
 ## Próximos pasos (acotados)
 - ~~MLP → LightGBM~~ **hecho** — superado por la re-corrída sin fugas (AUC 0.7356 por mercado / 0.7276 fill×horizonte, ambos sin fugas).

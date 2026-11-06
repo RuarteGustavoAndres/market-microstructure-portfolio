@@ -1,0 +1,38 @@
+{
+ "env": {
+  "python": "3.12.13",
+  "numpy": "2.5.4",
+  "pandas": "3.1.0",
+  "repo_commit": "33266732b0b16188b565e0aeb6b24efa71161f6a",
+  "goog_year_csv_sha256": "3667ef08ae4dac9e8048d3942c703319bda86298aed9060c19d9bb3d0259cfe6"
+ },
+ "buy_and_hold": {
+  "full": 13340.7,
+  "train_70": 12403.02,
+  "test_30": 10756.02,
+  "days": 252,
+  "cut_index": 176,
+  "first": "2016-11-02",
+  "last": "2017-11-01"
+ },
+ "agents": {
+  "2-moving-average": {
+   "published_total_balance": 10061.999939,
+   "execution_delay_days": 1,
+   "delayed_cash": 9074.759946,
+   "unsold_units": 1,
+   "last_price": 1025.5,
+   "total_value": 10100.259946,
+   "why": "buy decision at day i uses the short/long MA that includes close[i]; agents 1, 2 and 3 all trade at the close they observe (same-close convention, not look-ahead of future prices). This 1-day-delayed run for agent 2 is a sensitivity check."
+  },
+  "23-abcd-strategy": {
+   "published_total_balance": 13054.580017,
+   "signal_delay_days": 12,
+   "delayed_cash": 3681.0401,
+   "unsold_units": 9,
+   "last_price": 1025.5,
+   "total_value": 12910.5401,
+   "why": "buy day a is signalled from ma[b], ma[c], ma[d] with b>=a, c>=b, d>=c (step 4), so the pattern is only knowable on day d; min d-a = 12 days"
+  }
+ }
+}

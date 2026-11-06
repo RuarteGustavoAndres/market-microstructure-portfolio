@@ -20,3 +20,9 @@ Thumbs.db
 # Docs de estrategia interna — nunca al repo público
 docs/UPWORK_PERFIL.md
 docs/PROPUESTA_MODELO.md
+
+# Config local de Hermes (skills/auditoría) — nunca al repo
+.hermes/
+
+# Scripts generados por audit_sp.py (output de reproducción, no es código del repo)
+cases/**/_run_*.py
