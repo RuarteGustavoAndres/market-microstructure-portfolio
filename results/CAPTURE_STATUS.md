@@ -6,17 +6,17 @@
 
 | Metric | Value |
 |---|---|
-| Generated | 2026-11-15 16:35 UTC |
-| trades_full (fills captured, exact count) | 3076504 |
-| Last fill timestamp (exact) | 2026-11-15_16:00_UTC |
-| libro_eventos (order-book events, chunk-estimate) | 469199392 |
-| Last book-event timestamp (exact) | 2026-11-15_16:00_UTC |
-| libro_top5 (top-5 snapshots, exact count) | 3811927 |
-| Active tokens last 7 days (exact, indexed) | 129 |
-| Fills last 7 days (exact, indexed) | 640986 |
-| Markets tracked (market_meta) | 33319 |
+| Generated | 2026-11-16 16:30 UTC |
+| trades_full (fills captured, exact count) | 3155201 |
+| Last fill timestamp (exact) | 2026-11-16_13:52_UTC |
+| libro_eventos (order-book events, chunk-estimate) | 480359744 |
+| Last book-event timestamp (exact) | 2026-11-16_13:52_UTC |
+| libro_top5 (top-5 snapshots, exact count) | 3901090 |
+| Active tokens last 7 days (exact, indexed) | 126 |
+| Fills last 7 days (exact, indexed) | 633213 |
+| Markets tracked (market_meta) | 34186 |
 
-**Liveness:** Healthy: last trade 0 min ago.
+**Liveness:** **WARNING: capture stale — last trade 157 min ago. Investigate before citing.**
 
 Known declared outage (unchanged): order-book stream down 2026-10-15 ~17:00–20:00
 UTC (~3h). Trades stream: no gaps. See README "Data status".
